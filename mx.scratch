@@ -99,16 +99,6 @@
         </file>
         <file>
                       
-          <name>Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dac.c</name>
-           
-        </file>
-        <file>
-                      
-          <name>Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dac_ex.c</name>
-           
-        </file>
-        <file>
-                      
           <name>Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c.c</name>
            
         </file>

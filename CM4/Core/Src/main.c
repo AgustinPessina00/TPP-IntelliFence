@@ -55,7 +55,10 @@ TIM_HandleTypeDef htim17;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+static const uint8_t GPS_ADDRESS 0x84 // 0x42 << 1; // GPS 8-bit Address
+//static const
 
+#define TIMEOUT 100; // Timeout en ms
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,8 +120,10 @@ int main(void)
   MX_LPTIM1_Init();
   MX_LPTIM2_Init();
   MX_TIM1_Init();
-  /* USER CODE BEGIN 2 */
 
+  /* USER CODE BEGIN 2 */
+  uint8_t txData[] = "Hola!\r\n";
+  uint8_t rxData[10]; // Buffer para la respuesta del esclavo
   /* USER CODE END 2 */
 
   /* Boot CPU2 */
@@ -129,6 +134,18 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+
+	// Enviar datos al esclavo
+	if (HAL_I2C_Master_Transmit(&hi2c2, GPS_ADDRESS, txData, sizeof(txData), TIMEOUT) != HAL_OK) {
+		// Manejo de error
+
+	}
+	// Esperar respuesta del esclavo
+	if (HAL_I2C_Master_Receive(&hi2c1, GPS_ADDRESS, rxData, sizeof(rxData), TIMEOUT) == HAL_OK) {
+		// Procesar respuesta
+
+	}
+	HAL_Delay(1000); // Esperar antes de volver a enviar
 
     /* USER CODE BEGIN 3 */
   }
