@@ -55,10 +55,10 @@ TIM_HandleTypeDef htim17;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-static const uint8_t GPS_ADDRESS 0x84 // 0x42 << 1; // GPS 8-bit Address
+static const uint8_t GPS_ADDRESS = 0x84; // 0x42 << 1; // GPS 8-bit Address
 //static const
 
-#define TIMEOUT 100; // Timeout en ms
+#define TIMEOUT 100 // Timeout en ms
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
