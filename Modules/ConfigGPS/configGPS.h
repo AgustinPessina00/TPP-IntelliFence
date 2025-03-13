@@ -9,35 +9,47 @@
 #define MODULES_CONFIGGPS_CONFIGGPS_H_
 
 
-#define UBX_SYNC1  0xB5
-#define UBX_SYNC2  0x62
+#define UBX_HEADER1  0xB5
+#define UBX_HEADER2  0x62
+#define VALSET_CLASS 0x06
+#define VALSET_ID 0x8A
+#define VALSET_VERSION 0x00 // 0x00 = transactionless, 0x01 = w/ transactions //CHECK!!!!
+#define RAM 0x01	//CHEQUEAR!!!
+#define BBR 0x02	//CHEQUEAR!!!
 
 
-static const uint8_t *enableGPS[] = {{0x02, 0x20, 0x72, 0x10, 0x01, 0x00, 0x00, 0x00},		// ENABLE NMEA
-									 {0x02, 0x20, 0x72, 0x10, 0x01, 0x00, 0x00, 0x00},
-									 {0x02, 0x20, 0x72, 0x10, 0x01, 0x00, 0x00, 0x00}
+static const uint8_t *payload[] = {{0x01, 0x01, 0x00, 0x00, 0x1F, 0x00, 0x31, 0x10, 0x01},		// GPS_ENA (RAM).
+								  { 0x01, 0x02, 0x00, 0x00, 0x1F, 0x00, 0x31, 0x10, 0x01}		// GPS_ENA (BBR)
 };
 
+static const uint8_t *checksum[] = {{0xFC, 0x89},		// GPS_ENA (RAM).
+								   {0xFD, 0x91}			// GPS_ENA (BBR).
+};
+
+
+
 typedef struct msgGPS {
-	uint8_t sync[];
+	uint8_t header[2];
 	uint8_t msgClass;
 	uint8_t msgID;
-	uint16_t length; // Length del payload.
-	uint32_t layer;
+	uint16_t length;	// Payload length without checksum.
+	uint32_t layer;		// 2 bytes LAYER + 2 bytes RESERVED.
+	uint8_t version;
 	uint8_t keyID[];
 	uint8_t value[];
 	uint8_t checksum[];
 } msgGPS_t;
 
 
-// *msg es la estructura
-void ubx_create_message(UBX_Message *msg, uint8_t msgClass, uint8_t msgID, uint8_t *data, uint16_t length, uint32_t layer) {
-    msg->sync[0] = UBX_SYNC1;
-    msg->sync[1] = UBX_SYNC2;
-    msg->msgClass = msgClass;
-    msg->msgID = msgID;
+// *msg es la estructura del tipo msgGPS_t
+void gps_create_message(msgGPS_t *msg, uint16_t length, uint32_t layer, uint8_t *data) {
+    msg->header[0] = UBX_HEADER1;
+    msg->header[1] = UBX_HEADER2;
+    msg->msgClass = VALSET_CLASS;
+    msg->msgID = VALSET_ID;
     msg->length = length;
-    msg->layer = layer;
+    msg->version = VALSET_VERSION;
+//    msg->layer = layer; NO HACE FALTA, PORQUE ESTÁ DENTRO DEL PAYLOAD
 
     // Copiar el payload
     memcpy(msg->payload, data, length);
@@ -51,12 +63,17 @@ void ubx_create_message(UBX_Message *msg, uint8_t msgClass, uint8_t msgID, uint8
 void configure_nmea_output() {
     msgGPS_t msg[];
 
-    // CFG-I2COUTPROT-NMEA (Key ID: 0x10720002, habilitar salida NMEA)
-    uint8_t payload[] = { 0x02, 0x20, 0x72, 0x10, 0x01, 0x00, 0x00, 0x00 };
+    //															ESTÁ OK layer?? o sería un sólo 01 y el otro es la version 0x01.
+    //						lenght	version(00 o 01 de valset)       layer(RAM) reserved   KEYID CFG-SIGNAL	      value      checksum A  chacksum B
+    //uint8_t payload[] = {   ~09~              ~00~                   |01 01|   |00 00|    |1F 00 31 10|         |01|         ~|FC|~      ~|89|~ };
+    // los que tienen ~xx~ no cuentan en el payload para la length.
+
+    // Si el "LENGTH" se cuenta desde el primer byte del layer hasta el "VALUE" está ok que sea 9. No sé por qué no se cuenta el byte de "VERSION".
+
 
     // Crear el mensaje UBX
-    for(){
-        ubx_create_message(msg[i], 0x06, 0x8A, payload, sizeof(payload));
+    for(i = 0; i < lenght; i++){
+        gps_create_message(msg[i], sizeof(payload), RAM, payload);
     }
 
 
