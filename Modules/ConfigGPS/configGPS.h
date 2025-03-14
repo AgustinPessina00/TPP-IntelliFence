@@ -14,8 +14,8 @@
 #define VALSET_CLASS 0x06
 #define VALSET_ID 0x8A
 #define VALSET_VERSION 0x00 // 0x00 = transactionless, 0x01 = w/ transactions //CHECK!!!!
-#define RAM 0x01	//CHEQUEAR!!!
-#define BBR 0x02	//CHEQUEAR!!!
+#define RAM 0x01000000		//CHEQUEAR!!! -> PESSI: Agrego para completar los 32 bits.
+#define BBR 0x01020000		//CHEQUEAR!!! -> PESSI: Agrego para completar los 32 bits.
 
 
 static const uint8_t *payload[] = {{0x01, 0x01, 0x00, 0x00, 0x1F, 0x00, 0x31, 0x10, 0x01},		// GPS_ENA (RAM).
@@ -49,7 +49,11 @@ void gps_create_message(msgGPS_t *msg, uint16_t length, uint32_t layer, uint8_t 
     msg->msgID = VALSET_ID;
     msg->length = length;
     msg->version = VALSET_VERSION;
-//    msg->layer = layer; NO HACE FALTA, PORQUE ESTÁ DENTRO DEL PAYLOAD
+
+    /*
+	msg->layer = layer; NO HACE FALTA, PORQUE ESTÁ DENTRO DEL PAYLOAD. -> PESSI: OJO, en ese caso tendriamos que pasarle no solo data,
+    																			 sino también el layer al memcpy, es más complicado.
+    */
 
     // Copiar el payload
     memcpy(msg->payload, data, length);
@@ -63,13 +67,16 @@ void gps_create_message(msgGPS_t *msg, uint16_t length, uint32_t layer, uint8_t 
 void configure_nmea_output() {
     msgGPS_t msg[];
 
-    //															ESTÁ OK layer?? o sería un sólo 01 y el otro es la version 0x01.
-    //						lenght	version(00 o 01 de valset)       layer(RAM) reserved   KEYID CFG-SIGNAL	      value      checksum A  chacksum B
-    //uint8_t payload[] = {   ~09~              ~00~                   |01 01|   |00 00|    |1F 00 31 10|         |01|         ~|FC|~      ~|89|~ };
-    // los que tienen ~xx~ no cuentan en el payload para la length.
+    /*
+    •ESTÁ OK layer?? -> PESSI: Layer debe ser de 32 bits, hay que corregir, tal como lo hice arriba.
 
-    // Si el "LENGTH" se cuenta desde el primer byte del layer hasta el "VALUE" está ok que sea 9. No sé por qué no se cuenta el byte de "VERSION".
+    uint8_t payload[] = {~09~ (Length), ~00~ (Version, 00 o 01), 01 00 00 00 (Layer RAM), 00 00 (KEYID CFG-SIGNAL),
+     	 	 	 	 	 1F 00 31 10 (Value), 01, ~FC~ (shecksum A), ~89~ (Checksum B)};
 
+    •Los que tienen ~xx~ no cuentan en el payload para la length.
+
+    •Si el "LENGTH" se cuenta desde el primer byte del layer hasta el "VALUE" está ok que sea 9. No sé por qué no se cuenta el byte de "VERSION".
+	*/
 
     // Crear el mensaje UBX
     for(i = 0; i < lenght; i++){
