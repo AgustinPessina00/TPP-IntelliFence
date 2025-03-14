@@ -2,7 +2,7 @@
  * configGPS.h
  *
  *  Created on: Mar 11, 2025
- *      Author: Agustín
+ *      Author: Agustín | Ignacio | Ezequiel
  */
 
 #ifndef MODULES_CONFIGGPS_CONFIGGPS_H_
@@ -14,12 +14,12 @@
 #define VALSET_CLASS 0x06
 #define VALSET_ID 0x8A
 #define VALSET_VERSION 0x00 // 0x00 = transactionless, 0x01 = w/ transactions //CHECK!!!!
-#define RAM 0x01000000		//CHEQUEAR!!! -> PESSI: Agrego para completar los 32 bits.
-#define BBR 0x01020000		//CHEQUEAR!!! -> PESSI: Agrego para completar los 32 bits.
+#define RAM 0x01010000		// NACHO: CHEQUEAR!!! -> PESSI: Agrego para completar los 32 bits.
+#define BBR 0x01020000		// NACHO: CHEQUEAR!!! -> PESSI: Agrego para completar los 32 bits.
 
 
 static const uint8_t *payload[] = {{0x01, 0x01, 0x00, 0x00, 0x1F, 0x00, 0x31, 0x10, 0x01},		// GPS_ENA (RAM).
-								  { 0x01, 0x02, 0x00, 0x00, 0x1F, 0x00, 0x31, 0x10, 0x01}		// GPS_ENA (BBR)
+								  { 0x01, 0x02, 0x00, 0x00, 0x1F, 0x00, 0x31, 0x10, 0x01}		// GPS_ENA (BBR).
 };
 
 static const uint8_t *checksum[] = {{0xFC, 0x89},		// GPS_ENA (RAM).
@@ -32,8 +32,8 @@ typedef struct msgGPS {
 	uint8_t header[2];
 	uint8_t msgClass;
 	uint8_t msgID;
-	uint16_t length;	// Payload length without checksum.
-	uint32_t layer;		// 2 bytes LAYER + 2 bytes RESERVED.
+	uint16_t length;		// Payload length without checksum.
+	uint32_t layer;			// 2 bytes LAYER + 2 bytes RESERVED.
 	uint8_t version;
 	uint8_t keyID[];
 	uint8_t value[];
@@ -41,7 +41,9 @@ typedef struct msgGPS {
 } msgGPS_t;
 
 
-// *msg es la estructura del tipo msgGPS_t
+	gps_create_message(&msg, sizeof(layer) + sizeof(*data));
+
+	//*msg es la estructura del tipo msgGPS_t
 void gps_create_message(msgGPS_t *msg, uint16_t length, uint32_t layer, uint8_t *data) {
     msg->header[0] = UBX_HEADER1;
     msg->header[1] = UBX_HEADER2;
@@ -68,14 +70,8 @@ void configure_nmea_output() {
     msgGPS_t msg[];
 
     /*
-    •ESTÁ OK layer?? -> PESSI: Layer debe ser de 32 bits, hay que corregir, tal como lo hice arriba.
-
-    uint8_t payload[] = {~09~ (Length), ~00~ (Version, 00 o 01), 01 00 00 00 (Layer RAM), 00 00 (KEYID CFG-SIGNAL),
-     	 	 	 	 	 1F 00 31 10 (Value), 01, ~FC~ (shecksum A), ~89~ (Checksum B)};
-
-    •Los que tienen ~xx~ no cuentan en el payload para la length.
-
-    •Si el "LENGTH" se cuenta desde el primer byte del layer hasta el "VALUE" está ok que sea 9. No sé por qué no se cuenta el byte de "VERSION".
+    uint8_t payload[] = {09 00 (Length), 01(Version 00 o 01), 01 (Layer RAM), 00 00 (RESERVED),
+     	 	 	 	 	 1F 00 31 10 (KEI ID CFG-SIGNAL), 01 (Value), FC (shecksum A), 89 (Checksum B)};
 	*/
 
     // Crear el mensaje UBX
