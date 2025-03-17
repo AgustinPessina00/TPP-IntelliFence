@@ -23,8 +23,13 @@ void gps_create_message(msgGPS_t *msg, uint16_t length, uint16_t layer, uint8_t 
     msg->layer = layer;
     msg->reserved = RESERVED;
 
-    memcpy(msg->keyID, data, 0x04); // keyID only has 4 bytes.
-    memcpy(msg->value.data(), data[3], length - 0x08); // value begins after the keyID. 0x08 = Number of bytes of the payload before the value.
+    memcpy(msg->keyID, data, 0x04); // keyID only has 4 bytes. PESSI: Habría que castearlo a puntero o hacer algo como
+    								//								  std::memcpy(&msg->keyID, data, 4);
+
+    memcpy(msg->value.data(), data[3], length - 0x08);	// value begins after the keyID. 0x08 = Number of bytes of the payload before the value.
+    													// PESSI: data[3] es un uint8_t, pero memcpy necesita un puntero.
+    													//		  habría que hacer algo como memcpy(msg->value.data(), &data[4], length - 0x08);
+
 
     msg->checksum[0] = checksum[0];
     msg->checksum[1] = checksum[1];

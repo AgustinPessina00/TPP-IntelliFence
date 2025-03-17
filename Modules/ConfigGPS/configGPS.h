@@ -186,6 +186,7 @@ typedef struct msgGPS {
 	uint16_t reserved;
 	uint32_t keyID;
 	std::vector<uint8_t> value;	// NACHO: Creo que al hacerlo así se hace automática la gestión de memoria.
+								// PESSI: Podemos hacerlo con uint8_t * para gestionar mejor la memoria y tener ordenado los valores.
 	uint8_t checksum[2];
 } msgGPS_t;
 
@@ -206,7 +207,7 @@ void configure_gps();
 
 
 
-// NACHO: CREO QUE NO ES NECESARIO. YA LOS TENEMOS DEL UCENTER-2, NO?
+// NACHO: CREO QUE NO ES NECESARIO. YA LOS TENEMOS DEL UCENTER-2, NO? -> PESSI: DEJEMOS LA FUNCIÓN PARA CHEQUEAR LOS CHECKSUM SI SON CORRECTOS.
 /*
 void ubx_calculate_checksum(UBX_Message *msg) {
     uint8_t ck_a = 0, ck_b = 0;
