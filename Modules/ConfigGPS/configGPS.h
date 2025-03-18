@@ -8,6 +8,7 @@
 #ifndef MODULES_CONFIGGPS_CONFIGGPS_H_
 #define MODULES_CONFIGGPS_CONFIGGPS_H_
 
+using namespace std;
 
 #define UBX_HEADER1  0xB5
 #define UBX_HEADER2  0x62
@@ -185,7 +186,7 @@ typedef struct msgGPS {
 	uint8_t layer;
 	uint16_t reserved;
 	uint32_t keyID;
-	std::vector<uint8_t> value;	// NACHO: Creo que al hacerlo así se hace automática la gestión de memoria.
+	vector<uint8_t> value;	// NACHO: Creo que al hacerlo así se hace automática la gestión de memoria.
 								// PESSI: Podemos hacerlo con uint8_t * para gestionar mejor la memoria y tener ordenado los valores.
 	uint8_t checksum[2];
 } msgGPS_t;
@@ -196,10 +197,10 @@ void gps_create_message(msgGPS_t *msg, uint16_t length, uint16_t layer, uint8_t 
 
 // Cast msg to uint8_t num_byte of times.
 template <typename T>
-std::vector<uint8_t> to_bytes(const T &msg, size_t num_bytes);
+vector<uint8_t> to_bytes(const T &msg, size_t num_bytes);
 
 // Concatenate bytes and form a single message
-std::vector<uint8_t> build_ubx_message(msgGPS_t *msg);
+vector<uint8_t> build_ubx_message(msgGPS_t *msg);
 
 // Configure GPS
 void configure_gps();
