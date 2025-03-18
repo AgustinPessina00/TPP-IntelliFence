@@ -2,7 +2,7 @@
  * configGPS.cpp
  *
  *  Created on: Mar 11, 2025
- *      Author: nacho
+ *      Author: Igancio | Agustín | Ezequiel
  */
 
 /* Includes ------------------------------------------------------------------*/
