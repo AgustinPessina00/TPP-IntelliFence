@@ -24,7 +24,7 @@ void gps_create_message(msgGPS_t *msg, uint16_t length, uint16_t layer, uint8_t 
     msg->reserved = RESERVED;
 
     memcpy(msg->keyID, data, 0x04); // keyID only has 4 bytes. PESSI: Habría que castearlo a puntero o hacer algo como
-    								//								  std::memcpy(&msg->keyID, data, 4);
+    								//								  memcpy(&msg->keyID, data, 4);
 
     memcpy(msg->value.data(), data[3], length - 0x08);	// value begins after the keyID. 0x08 = Number of bytes of the payload before the value.
     													// PESSI: data[3] es un uint8_t, pero memcpy necesita un puntero.
@@ -36,8 +36,8 @@ void gps_create_message(msgGPS_t *msg, uint16_t length, uint16_t layer, uint8_t 
 }
 
 
-std::vector<uint8_t> to_bytes(const T& msg, size_t numBytes) {
-    std::vector<uint8_t> bytes(numBytes);
+vector<uint8_t> to_bytes(const T& msg, size_t numBytes) {
+    vector<uint8_t> bytes(numBytes);
     T aux = msg;
 
     for (size_t i = 0; i < numBytes; ++i) {
@@ -49,10 +49,10 @@ std::vector<uint8_t> to_bytes(const T& msg, size_t numBytes) {
 }
 
 
-std::vector<uint8_t> build_ubx_message(msgGPS_t *msg) {
-    std::vector<uint8_t> message;
-    std::vector<uint8_t> reserved = to_bytes(msg->reserved, 2);
-    std::vector<uint8_t> keyID = to_bytes(msg->keyID, 4);
+vector<uint8_t> build_ubx_message(msgGPS_t *msg) {
+    vector<uint8_t> message;
+    vector<uint8_t> reserved = to_bytes(msg->reserved, 2);
+    vector<uint8_t> keyID = to_bytes(msg->keyID, 4);
 
     // UBX Header
     message.push_back(msg->header[0]);
@@ -88,7 +88,7 @@ std::vector<uint8_t> build_ubx_message(msgGPS_t *msg) {
 
 void configure_gps() {
     msgGPS_t msg[];
-    std::vector<uint8> sendMsg;
+    vector<uint8> sendMsg;
 
     size_t numMsg = 86;
 
