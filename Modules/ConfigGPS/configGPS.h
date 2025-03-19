@@ -18,6 +18,7 @@ using namespace std;
 #define RAM 0x01
 #define BBR 0x02
 #define RESERVED 0x0000
+#define LENGTH_PAYLOAD_OFFSET 8	// Length - sizeof(version) - sizeof(layer) - sizeof(reserved) - sizeof(keyID)
 
 
 /*
@@ -51,7 +52,8 @@ static const uint8_t *data[] = {
     {0x18, 0x00, 0x31, 0x10, 0x00},		// SIGNAL-GLO_L1_ENA
     {0x21, 0x00, 0x11, 0x20, 0x03},		// NAVSPG-DYNMODEL
     {0x05, 0x00, 0x22, 0x20, 0x00},		// ODO-PROFILE
-    {0xB5, 0x62, 0x06, 0x8A, 0x0A, 0x00, 0x01, 0x01, 0x00, 0x00, 0xB3, 0x00, 0x11, 0x30, 0x14, 0x00},	// NAVSPG-OUTFIL_PACC
+    {0xB3, 0x00, 0x11, 0x30, 0x14, 0x00},	// NAVSPG-OUTFIL_PACC -> keyID: 0x301100B3
+											// NAVSPG-OUTFIL_PACC -> B5 62 06 8A 0A 00 01 01 00 00 |B3 00 11 30| 14 00 A4 0F
     {0xBA, 0x00, 0x91, 0x20, 0x01},		// MSGOUT-NMEA_ID_GGA_I2C
     {0xBE, 0x00, 0x91, 0x20, 0x00},		// MSGOUT-NMEA_ID_GGA_SPI
     {0xBB, 0x00, 0x91, 0x20, 0x00},		// MSGOUT-NMEA_ID_GGA_UART1
@@ -186,18 +188,16 @@ typedef struct msgGPS {
 	uint8_t layer;
 	uint16_t reserved;
 	uint32_t keyID;
-	vector<uint8_t> value;	// NACHO: Creo que al hacerlo así se hace automática la gestión de memoria.
-								// PESSI: Podemos hacerlo con uint8_t * para gestionar mejor la memoria y tener ordenado los valores.
+	uint8_t value[length - LENGTH_PAYLOAD_OFFSET];
 	uint8_t checksum[2];
 } msgGPS_t;
 
 
 // Create msgGPS_t structure.
-void gps_create_message(msgGPS_t *msg, uint16_t length, uint16_t layer, uint8_t *data, uint8_t *checksum);
+void create_msgGPS(msgGPS_t *msg, uint16_t length, uint16_t layer, uint8_t *data, uint8_t *checksum);
 
-// Cast msg to uint8_t num_byte of times.
-template <typename T>
-vector<uint8_t> to_bytes(const T &msg, size_t num_bytes);
+// Function to add any type of variable in Big Endian.
+void append_big_endian(vector<uint8_t> *message, const T *value);
 
 // Concatenate bytes and form a single message
 vector<uint8_t> build_ubx_message(msgGPS_t *msg);
@@ -207,8 +207,8 @@ void configure_gps();
 
 
 
-
 // NACHO: CREO QUE NO ES NECESARIO. YA LOS TENEMOS DEL UCENTER-2, NO? -> PESSI: DEJEMOS LA FUNCIÓN PARA CHEQUEAR LOS CHECKSUM SI SON CORRECTOS.
+
 /*
 void ubx_calculate_checksum(UBX_Message *msg) {
     uint8_t ck_a = 0, ck_b = 0;
