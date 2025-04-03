@@ -42,7 +42,10 @@ void acel_gyro_init(){
 }
 
 void LSM6DSO_WriteReg(uint8_t reg, uint8_t data) {
-    HAL_I2C_Mem_Write(&hi2c1, LSM6DSO_ADDR, reg, I2C_MEMADD_SIZE_8BIT, &data, 1, HAL_MAX_DELAY);
+	uint8_t info[2];
+	info[0] = reg;
+	info[1] = data;
+	HAL_I2C_Master_Transmit(&hi2c1, LSM6DSO_ADDR, info, 2, HAL_MAX_DELAY);
 }
 
 
