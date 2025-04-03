@@ -12,13 +12,17 @@
 /* Private includes ----------------------------------------------------------*/
 
 
-void acel_gyro_init(){
-	uint8_t data[2];
 
-	// Inicializar Acelerómetro (Low-power)
+
+void acel_gyro_init(){
+
+	// Inicializar Acelerómetro (Low-power) -> 0x4A
+	LSM6DSO_WriteReg(CTRL1_XL, 0x4A); // 0bxxxx xxxx
+	/*
 	data[0] = CTRL1_XL;
-	data[1] = 0x4A;		// 0100 | 10 | 1 | 0	-> ODR=52Hz(LP Mode) | FS=±4g | 0
+	data[1] = 0x4A;		// 0100 | 10 | 1 | 0	-> ODR = 52Hz(LP Mode) | FS=±4g | 0
 	HAL_I2C_Master_Transmit(&hi2c1, LSM6DSO_ADDR, data, 2, HAL_MAX_DELAY);
+	*/
 
 	// Inicializar giroscopio (Power-down)
 	data[0] = CTRL2_G;
@@ -35,7 +39,10 @@ void acel_gyro_init(){
 	data[1] = ; //	1 | 	->	| G_HM_MODE = 1 (High-performance disabled) |
 	HAL_I2C_Master_Transmit(&hi2c1, LSM6DSO_ADDR, data, 2, HAL_MAX_DELAY);
 
+}
 
+void LSM6DSO_WriteReg(uint8_t reg, uint8_t data) {
+    HAL_I2C_Mem_Write(&hi2c1, LSM6DSO_ADDR, reg, I2C_MEMADD_SIZE_8BIT, &data, 1, HAL_MAX_DELAY);
 }
 
 
