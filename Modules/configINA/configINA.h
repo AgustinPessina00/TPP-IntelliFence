@@ -9,6 +9,9 @@
 #define MODULES_CONFIGINA_CONFIGINA_H_
 
 
+#define INA_GPS_ADDRESS = 0x80;	// 0x40 << 1 // INA-GPS 8-bit Address.
+#define INA_IMU_ADDRESS = 0x82;	// 0x41 << 1 // INA-IMU 8-bit Address.
+#define INA_MCU_ADDRESS = 0x8A;	// 0x45 << 1 // IMU-MCU 8-bit Address.
 
 #define CONFIGREG	0x00	// Configuration Register (00h)
 #define VSHUNTREG	0x01	// Shunt Voltage Register (01h)
