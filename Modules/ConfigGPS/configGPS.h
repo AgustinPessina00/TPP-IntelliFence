@@ -1,9 +1,3 @@
-/*
- * configGPS.h
- *
- *  Created on: Mar 11, 2025
- *      Author: Agustín | Ignacio | Ezequiel
- */
 
 #ifndef MODULES_CONFIGGPS_CONFIGGPS_H_
 #define MODULES_CONFIGGPS_CONFIGGPS_H_
@@ -20,6 +14,7 @@ using namespace std;
 #define RESERVED 0x0000
 #define LENGTH_PAYLOAD_OFFSET 8	// Length - sizeof(version) - sizeof(layer) - sizeof(reserved) - sizeof(keyID)
 
+static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
 
 /*
 static const uint8_t *payload[] = {{0x01, 0x01, 0x00, 0x00, 0x1F, 0x00, 0x31, 0x10, 0x01},		// GPS_ENA (RAM).
