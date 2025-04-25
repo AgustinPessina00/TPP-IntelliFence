@@ -96,16 +96,11 @@ void configure_gps() {
 
     	j += 2;
 
-    	//ENVÍO EL MENSAJE.
+    	// ENVÍO EL MENSAJE.
         // NACHO: ¡¡ RECORDAR EL TIEMPO ENTRE MSG DE SIGNAL Y MSG DE SIGNAL!! Ver Interface Description.
-        // Aquí debes enviar el mensaje por I2C al GPS
-        // i2c_transmit(UBLOX_I2C_ADDRESS, (uint8_t*)&sendMsg[i], sizeof(msg.sync1) + sizeof(msg.sync2) + 4 + msg.length + 2);
 
-    	if (HAL_I2C_Master_Transmit(&hi2c2, GPS_ADDRESS, sendMsgRAM, sizeof(sendMsgRAM), TIMEOUT) != HAL_OK) {
-    		// Manejo de error
-    	}
-    	if (HAL_I2C_Master_Transmit(&hi2c2, GPS_ADDRESS, sendMsgBBR, sizeof(sendMsgBBR), TIMEOUT) != HAL_OK) {
-    		// Manejo de error
-    	}
+		HAL_I2C_Master_Transmit(&hi2c2, GPS_ADDRESS, sendMsgRAM, sizeof(sendMsgRAM), HAL_MAX_DELAY);
+		HAL_I2C_Master_Transmit(&hi2c2, GPS_ADDRESS, sendMsgBBR, sizeof(sendMsgBBR), HAL_MAX_DELAY);
+
     }
 }

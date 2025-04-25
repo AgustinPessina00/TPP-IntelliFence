@@ -17,7 +17,7 @@
 #define MD1_CFG			0x5E	// Rutear Funciones del pin INT1 (5Eh)
 
 
-static const uint8_t LSM6DSO_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
+#define LSM6DSO_ADDRES 0xD4		// 0x6A << 1 // IMU 8-bit Address.
 
 
 // Write register into the LSM6DSO via I2C
