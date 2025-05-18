@@ -1,9 +1,3 @@
-/*
- * ina.h
- *
- *  Created on: May 16, 2025
- *      Author: ezero
- */
 
 #ifndef INA226_CLASS_H
 #define INA226_CLASS_H
@@ -48,11 +42,11 @@ enum class Ina226Mode : uint16_t {
     SHUNT_BUS_CONTINUOUS  = (0b111 << CFG_MODE0)
 };
 
-const float currentLsb = 0.001f;
+//const float currentLsb = 0.001f;
 
 class Ina226 {
 public:
-	Ina226(uint8_t i2cAddr, float rShunt, Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
+	Ina226(uint8_t i2cAddr, float rShunt, float currentLSB, Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
     bool readShuntVoltage_mV(float &voltage);
     bool readBusVoltage_mV(float &voltage);
     bool readCurrent_mA(float &current);
@@ -68,6 +62,7 @@ private:
 private:
     uint8_t i2cAddr;
     float rShunt;
+    float currentLSB; //PESSI: Agrego currentLSB para calibrar.
 };
 
 
