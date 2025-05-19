@@ -16,7 +16,7 @@
 #define LSM6DSO_SLEEP_DUR_MASK	(0b1111 << SLEEP_DUR3)
 
 
-enum class Lsm6dsoOdrAcc : uint16_t {
+enum class Lsm6dsoOdrAcc : uint8_t {
 	POWER_DOWN	= (0b0000 << ODR_XL3),
     ODR_1_6		= (0b1011 << ODR_XL3),
 	ODR_12_5   	= (0b0001 << ODR_XL3),
@@ -31,14 +31,14 @@ enum class Lsm6dsoOdrAcc : uint16_t {
 	ODR_6K66 	= (0b1010 << ODR_XL3)
 };
 
-enum class Lsdm6dsoFsAcc : uint16_t {
+enum class Lsm6dsoFsAcc : uint8_t {
     FS_2G		= (0b00 << FS1_XL),
     FS_16G		= (0b01 << FS1_XL),
     FS_4G   	= (0b10 << FS1_XL),
     FS_8G   	= (0b11 << FS1_XL)
 };
 
-enum class Lsm6dsoOdrGyr : uint16_t {
+enum class Lsm6dsoOdrGyr : uint8_t {
 	POWER_DOWN	= (0b0000 << ODR_G3),
 	ODR_12_5   	= (0b0001 << ODR_G3),
 	ODR_26   	= (0b0010 << ODR_G3),
@@ -52,7 +52,7 @@ enum class Lsm6dsoOdrGyr : uint16_t {
 	ODR_6K66 	= (0b1010 << ODR_G3)
 };
 
-enum class Lsdm6dsoFsGyr : uint16_t {
+enum class Lsm6dsoFsGyr : uint8_t {
     FS_250DPS		= (0b00 << FS1_G),
     FS_500DPS		= (0b01 << FS1_G),
     FS_1KDPS	  	= (0b10 << FS1_G),
@@ -126,14 +126,14 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_63 			= (0b111111  << WK_THS_5)
 };
 
-enum class Lsdm6dsoWakeDur : uint16_t {
+enum class Lsm6dsoWakeDur : uint8_t {
 	ODR_0		= (0b00 << WK_DUR1),
     ODR_1		= (0b01 << WK_DUR1),
     ODR_2	  	= (0b10 << WK_DUR1),
     ODR_3   	= (0b11 << WK_DUR1)
 };
 
-enum class Lsdm6dsoWakeWeight : uint16_t {
+enum class Lsm6dsoWakeWeight : uint8_t {
 	FS_2_6		= (0b0 << WK_THS_W),
     FS_2_8		= (0b1 << WK_THS_W)
 };
@@ -161,23 +161,17 @@ enum class Lsm6dsoSleepDur : uint8_t {
 
 class Lsm6dso {
 public:
-	Lsdm6dso(uint8_t i2cAddr, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs, Lsdm6dsoWakeDur wakeDur, Lsdm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+	Lsm6dso(uint8_t i2cAddr, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
+			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
 
 private:
-    uint8_t setConfiguration(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
-    bool writeRegister(uint8_t reg, uint16_t value);
+	bool configure(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
+			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+    uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
+    bool writeRegister(uint8_t reg, uint8_t value);
 
 private:
     uint8_t i2cAddr;
-    int odrAcc;
-    int fsAcc;
-    int odrGyr;
-	int fsGyr;
-	int wakeThs;
-	int wakeDur;
-	int wakeWeight;
-	int sleepDur;
-
 };
 
 

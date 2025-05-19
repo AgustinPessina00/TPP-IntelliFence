@@ -23,6 +23,19 @@ bool Ina226::configure(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTim
     return writeRegister(REG_CALIB, cal);
 }
 
+
+uint16_t Ina226::setConfiguration(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode) {
+    return (static_cast<uint16_t>(avg) & INA226_CFG_AVG_MASK) |
+           (static_cast<uint16_t>(vbusCt) & INA226_CFG_VBUSCT_MASK) |
+           (static_cast<uint16_t>(vshCt) & INA226_CFG_VSHCT_MASK) |
+           (static_cast<uint16_t>(mode) & INA226_CFG_MODE_MASK);
+}
+
+uint16_t Ina226::calculateCalibration() {
+    float cal = 0.00512f / (currentLSB * rShunt);
+    return static_cast<uint16_t>(cal);
+}
+
 bool Ina226::readShuntVoltage_mV(float &voltage) {
     int16_t raw;
     if (!readRegister(REG_SHUNT, reinterpret_cast<uint16_t&>(raw))) return false;
@@ -51,28 +64,15 @@ bool Ina226::readPower_mW(float &power) {
     return true;
 }
 
-uint16_t Ina226::setConfiguration(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode) {
-    return (static_cast<uint16_t>(avg) & INA226_CFG_AVG_MASK) |
-           (static_cast<uint16_t>(vbusCt) & INA226_CFG_VBUSCT_MASK) |
-           (static_cast<uint16_t>(vshCt) & INA226_CFG_VSHCT_MASK) |
-           (static_cast<uint16_t>(mode) & INA226_CFG_MODE_MASK);
-}
-
 bool Ina226::writeRegister(uint8_t reg, uint16_t value) {
     uint8_t data[2] = { static_cast<uint8_t>(value >> 8), static_cast<uint8_t>(value & 0xFF) };
-    return HAL_I2C_Mem_Write_DMA(&hi2c2, i2cAddr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, 2) == HAL_OK;
+    return HAL_I2C_Mem_Write_DMA(&hi2c2, i2cAddr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, 2) == HAL_OK; //PESSI: Revisar el corrimiento del addr.
 }
 
 bool Ina226::readRegister(uint8_t reg, uint16_t &value) {
     uint8_t data[2] = {0};
-    if (HAL_I2C_Mem_Read_DMA(&hi2c2, i2cAddr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, 2) != HAL_OK)
+    if (HAL_I2C_Mem_Read_DMA(&hi2c2, i2cAddr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, 2) != HAL_OK) //PESSI: Revisar el corrimiento del addr.
         return false;
     value = (static_cast<uint16_t>(data[0]) << 8) | data[1];
     return true;
 }
-
-uint16_t Ina226::calculateCalibration() {
-    float cal = 0.00512f / (currentLSB * rShunt);
-    return static_cast<uint16_t>(cal);
-}
-

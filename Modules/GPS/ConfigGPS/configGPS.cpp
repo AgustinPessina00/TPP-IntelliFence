@@ -5,7 +5,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 
-
+extern I2C_HandleTypeDef hi2c2;
 
 void create_msgGPS(msgGPS_t *msg, uint16_t length, uint16_t layer, uint8_t *data, uint8_t *checksum) {
     msg->header[0] = UBX_HEADER1;
