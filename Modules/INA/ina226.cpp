@@ -12,7 +12,7 @@ Ina226::Ina226(uint8_t i2cAddr, float rShunt, float currentLSB, Ina226Averaging 
     	this->rShunt = rShunt;
     	this->currentLSB = currentLSB;	//PESSI: Cargo el currentLSB.
     	configure(avg, vbusCt, vshCt, mode);
-    }
+}
 
 bool Ina226::configure(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode) {
     uint16_t config = setConfiguration(avg, vbusCt, vshCt, mode);
