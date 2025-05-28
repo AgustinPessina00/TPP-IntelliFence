@@ -5,6 +5,7 @@
 #include "lsm6dso_registers.h"
 
 // === Máscaras de campos de los registros ===
+#define LSM6DSO_I3C_DISABLE		(0b1 << I3C_DISABLE)
 #define LSM6DSO_ODR_XL_MASK     (0b1111 << ODR_XL3)
 #define LSM6DSO_FS_XL_MASK		(0b11 	<< FS1_XL)
 #define LSM6DSO_ODR_G_MASK		(0b1111 << ODR_G3)
@@ -12,9 +13,14 @@
 #define LSM6DSO_INACT_MASK		(0b11 	<< INACT_EN1)
 #define LSM6DSO_WK_THS_MASK		(0b111111 << WK_THS5)
 #define LSM6DSO_WK_DUR_MASK		(0b11 	<< WK_DUR1)
-#define LSM6DSO_WK_DUR_MASK		(0b1 	<< WAKE_THS_W)
+#define LSM6DSO_WK_DUR_MASK		(0b1 	<< WAKE_THS_W)	//PESSI: ESTAMOS PISANDO EL DATO ACÁ, PODRIAMOS HACER
+														//#define LSM6DSO_WAKE_THS_W_MASK (0b1 << WAKE_THS_W)
 #define LSM6DSO_SLEEP_DUR_MASK	(0b1111 << SLEEP_DUR3)
 
+enum class Lsm6dsoI3C : uint8_t {
+	ENABLED		= (0b0 << I3C_DISABLE),
+	DISABLED	= (0b1 << I3C_DISABLE)
+};
 
 enum class Lsm6dsoOdrAcc : uint8_t {
 	POWER_DOWN	= (0b0000 << ODR_XL3),
@@ -139,6 +145,28 @@ enum class Lsm6dsoWakeWeight : uint8_t {
 };
 
 //CHEQUEAR ESTOS VALORES... NO SÉ DE DONDE LOS SACÓ CHATTY.
+//PESSI: Te confirmo que esos valores no son correctos. Según la hoja de datos, SLEEP_DUR[3:0] representa múltiplos de 512 ODR_time, no de 16 ODR
+//como ahí dice.
+/*
+ enum class Lsm6dsoSleepDur : uint8_t {
+    DUR_0_512   = (0b0000 << SLEEP_DUR3), // 0 * 512 * ODR_time = deshabilitado
+    DUR_1_512   = (0b0001 << SLEEP_DUR3),
+    DUR_2_512   = (0b0010 << SLEEP_DUR3),
+    DUR_3_512   = (0b0011 << SLEEP_DUR3),
+    DUR_4_512   = (0b0100 << SLEEP_DUR3),
+    DUR_5_512   = (0b0101 << SLEEP_DUR3),
+    DUR_6_512   = (0b0110 << SLEEP_DUR3),
+    DUR_7_512   = (0b0111 << SLEEP_DUR3),
+    DUR_8_512   = (0b1000 << SLEEP_DUR3),
+    DUR_9_512   = (0b1001 << SLEEP_DUR3),
+    DUR_10_512  = (0b1010 << SLEEP_DUR3),
+    DUR_11_512  = (0b1011 << SLEEP_DUR3),
+    DUR_12_512  = (0b1100 << SLEEP_DUR3),
+    DUR_13_512  = (0b1101 << SLEEP_DUR3),
+    DUR_14_512  = (0b1110 << SLEEP_DUR3),
+    DUR_15_512  = (0b1111 << SLEEP_DUR3)
+};
+ */
 enum class Lsm6dsoSleepDur : uint8_t {
     DUR_16_ODR   = (0b0000 << SLEEP_DUR3),
     DUR_32_ODR   = (0b0001 << SLEEP_DUR3),
@@ -161,13 +189,15 @@ enum class Lsm6dsoSleepDur : uint8_t {
 
 class Lsm6dso {
 public:
-	Lsm6dso(uint8_t i2cAddr, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
+	Lsm6dso(uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
 			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
 
 private:
-	bool configure(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
+	bool configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
 			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+	uint8_t setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c);
     uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
+    //PESSI: FALTAN AGREGAR TODOS LOS SETS DE CONFIGURACIONES ACÁ Y LUEGO EN LA FUNCIÓN CONFIGURE EN EL .CPP
     bool writeRegister(uint8_t reg, uint8_t value);
 
 private:

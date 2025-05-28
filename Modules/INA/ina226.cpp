@@ -66,12 +66,12 @@ bool Ina226::readPower_mW(float &power) {
 
 bool Ina226::writeRegister(uint8_t reg, uint16_t value) {
     uint8_t data[2] = { static_cast<uint8_t>(value >> 8), static_cast<uint8_t>(value & 0xFF) };
-    return HAL_I2C_Mem_Write_DMA(&hi2c2, i2cAddr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, 2) == HAL_OK; //PESSI: Revisar el corrimiento del addr.
+    return HAL_I2C_Mem_Write_DMA(&hi2c2, i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, data, 2) == HAL_OK; //PESSI: Revisar el corrimiento del addr.
 }
 
 bool Ina226::readRegister(uint8_t reg, uint16_t &value) {
     uint8_t data[2] = {0};
-    if (HAL_I2C_Mem_Read_DMA(&hi2c2, i2cAddr << 1, reg, I2C_MEMADD_SIZE_8BIT, data, 2) != HAL_OK) //PESSI: Revisar el corrimiento del addr.
+    if (HAL_I2C_Mem_Read_DMA(&hi2c2, i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, data, 2) != HAL_OK) //PESSI: Revisar el corrimiento del addr.
         return false;
     value = (static_cast<uint16_t>(data[0]) << 8) | data[1];
     return true;
