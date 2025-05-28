@@ -29,7 +29,7 @@ void LSM6DSO_init(){
 	LSM6DSO_write_register(CTRL6_C, 0x10); //  | 1 |	->	| XL_HM_MODE = 1 (High-performance disabled) |
 
 	// Inicializar Operating mode Giroscopio (DISABLED)
-	LSM6DSO_write_register(CTRL7_C, 0x80); // 1 | 	-> G_HM_MODE = 1 (High-performance disabled) |
+	LSM6DSO_write_register(CTRL7_G, 0x80); // 1 | 	-> G_HM_MODE = 1 (High-performance disabled) |
 
 	// Configurar el THS del Wake-Up
 	LSM6DSO_write_register(WAKE_UP_THS, 0x02); // 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0	-> | WK_THS[5:0] = 2 (1LSB x 2 = 125mg) |

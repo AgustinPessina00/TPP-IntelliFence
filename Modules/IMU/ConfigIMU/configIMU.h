@@ -8,7 +8,7 @@
 #define CTRL2_G			0x11	// Control de giroscopio (11h)
 #define CTRL3_C			0x12	// Configurar Activación de INT1 (12h)
 #define CTRL6_C         0x15	// Operating Mode Acelerómetro (15h)
-#define CTRL7_C			0x16	// Operating Mode Giroscopio (16h)
+#define CTRL7_G			0x16	// Operating Mode Giroscopio (16h)
 #define CTRL9_XL		0x18	// Deshabilitar Interface I3C (18h)
 #define TAP_CFG0		0x56	// Aplicar Filtro HPF o SLOPE (56h)
 #define TAP_CFG2		0x58	// Habilitar Interrupciones Básicas (58h)

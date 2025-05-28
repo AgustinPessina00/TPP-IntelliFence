@@ -5,17 +5,16 @@
 #include "lsm6dso_registers.h"
 
 // === Máscaras de campos de los registros ===
-#define LSM6DSO_I3C_DISABLE		(0b1 << I3C_DISABLE)
-#define LSM6DSO_ODR_XL_MASK     (0b1111 << ODR_XL3)
-#define LSM6DSO_FS_XL_MASK		(0b11 	<< FS1_XL)
-#define LSM6DSO_ODR_G_MASK		(0b1111 << ODR_G3)
-#define LSM6DSO_FS_G_MASK		(0b11 	<< FS1_G)
-#define LSM6DSO_INACT_MASK		(0b11 	<< INACT_EN1)
-#define LSM6DSO_WK_THS_MASK		(0b111111 << WK_THS5)
-#define LSM6DSO_WK_DUR_MASK		(0b11 	<< WK_DUR1)
-#define LSM6DSO_WK_DUR_MASK		(0b1 	<< WAKE_THS_W)	//PESSI: ESTAMOS PISANDO EL DATO ACÁ, PODRIAMOS HACER
-														//#define LSM6DSO_WAKE_THS_W_MASK (0b1 << WAKE_THS_W)
-#define LSM6DSO_SLEEP_DUR_MASK	(0b1111 << SLEEP_DUR3)
+#define LSM6DSO_I3C_DISABLE		(0b1 	<< I3C_DISABLE)
+#define LSM6DSO_ODR_XL_MASK     (0b1111 	<< ODR_XL3)
+#define LSM6DSO_FS_XL_MASK		(0b11 		<< FS1_XL)
+#define LSM6DSO_ODR_G_MASK		(0b1111 	<< ODR_G3)
+#define LSM6DSO_FS_G_MASK		(0b11 		<< FS1_G)
+#define LSM6DSO_INACT_MASK		(0b11 		<< INACT_EN1)
+#define LSM6DSO_WK_THS_MASK		(0b111111	<< WK_THS5)
+#define LSM6DSO_WK_DUR_MASK		(0b11 		<< WK_DUR1)
+#define LSM6DSO_WK_DUR_THS_MASK	(0b1 		<< WAKE_THS_W)
+#define LSM6DSO_WK_DUR_SLP_MASK	(0b1111 	<< SLEEP_DUR3)
 
 enum class Lsm6dsoI3C : uint8_t {
 	ENABLED		= (0b0 << I3C_DISABLE),
@@ -82,7 +81,7 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_13 			= (0b001101  << WK_THS_5),
 	THS_14 			= (0b001110  << WK_THS_5),
 	THS_15 			= (0b001111  << WK_THS_5),
-    THS_16 			= (0b010000 << WK_THS_5),
+    THS_16 			= (0b010000  << WK_THS_5),
     THS_17 			= (0b010001  << WK_THS_5),
     THS_18 			= (0b010010  << WK_THS_5),
 	THS_19 			= (0b010011  << WK_THS_5),
@@ -98,7 +97,7 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_29 			= (0b011101  << WK_THS_5),
 	THS_30 			= (0b011110  << WK_THS_5),
 	THS_31 			= (0b011111  << WK_THS_5),
-    THS_32 			= (0b100000 << WK_THS_5),
+    THS_32 			= (0b100000  << WK_THS_5),
     THS_33 			= (0b100001  << WK_THS_5),
     THS_34 			= (0b100010  << WK_THS_5),
 	THS_35 			= (0b100011  << WK_THS_5),
@@ -114,7 +113,7 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_45 			= (0b101101  << WK_THS_5),
 	THS_46			= (0b101110  << WK_THS_5),
 	THS_47 			= (0b101111  << WK_THS_5),
-    THS_48 			= (0b110000 << WK_THS_5),
+    THS_48 			= (0b110000  << WK_THS_5),
     THS_49 			= (0b110001  << WK_THS_5),
     THS_50 			= (0b110010  << WK_THS_5),
 	THS_51 			= (0b110011  << WK_THS_5),
@@ -197,7 +196,16 @@ private:
 			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
 	uint8_t setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c);
     uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
-    //PESSI: FALTAN AGREGAR TODOS LOS SETS DE CONFIGURACIONES ACÁ Y LUEGO EN LA FUNCIÓN CONFIGURE EN EL .CPP
+    uint8_t setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr);
+    uint8_t setConfigurationREG_CTRL6_C();	//PESSI: FALTA LA MASCARA
+    uint8_t setConfigurationREG_CTRL7_G();	//PESSI: FALTA LA MASCARA
+    uint8_t setConfigurationREG_WAKE_UP_THS(Lsm6dsoWakeThs wakeThs);
+    uint8_t setConfigurationREG_WAKE_UP_DUR(Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+    uint8_t setConfigurationREG_TAP_CFG0();	//PESSI: FALTA LA MASCARA
+    uint8_t setConfigurationREG_TAP_CFG2();
+    uint8_t setConfigurationREG_MD1_CFG();	//PESSI: FALTA LA MASCARA
+    uint8_t setConfigurationREG_CTRL3_C();	//PESSI: FALTA LA MASCARA
+    //PESSI: FALTAN AGREGAR TODOS LOS SETS DE CONFIGURACIONES EN EL .CPP
     bool writeRegister(uint8_t reg, uint8_t value);
 
 private:
