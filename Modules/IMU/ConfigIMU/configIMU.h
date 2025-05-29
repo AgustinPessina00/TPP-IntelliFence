@@ -6,7 +6,7 @@
 // Registro de control
 #define CTRL1_XL		0x10	// Control de acelerómetro (10h = 0x10hexadecimal)
 #define CTRL2_G			0x11	// Control de giroscopio (11h)
-#define CTRL3_C			0x12	// Configurar Activación de INT1 (12h)
+#define CTRL3_C			0x12	// Configurar Activación de INT1 (12h) => CONVIENE DEJAR EL IF_INC EN 1 PARA QUE LEA AUTOMÁTICAMENTE
 #define CTRL6_C         0x15	// Operating Mode Acelerómetro (15h)
 #define CTRL7_G			0x16	// Operating Mode Giroscopio (16h)
 #define CTRL9_XL		0x18	// Deshabilitar Interface I3C (18h)

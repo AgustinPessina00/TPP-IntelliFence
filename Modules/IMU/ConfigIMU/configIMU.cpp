@@ -46,7 +46,7 @@ void LSM6DSO_init(){
 	// Rutear INT1 con la función Wake-Up
 	LSM6DSO_write_register(MD1_CFG, 0x20); // 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0	-> | INT1_WU = 1 |
 
-	// Configurar Nivel de Activación de INT1
+	// Configurar Nivel de Activación de INT1 => CONVIENE DEJAR EL IF_INC EN 1 PARA QUE LEA AUTOMÁTICAMENTE
 	LSM6DSO_write_register(CTRL3_C, 0x00); // 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0	-> | H_LACTIVE = 0 (INT1 se activa en ALTO) | PP_OD = 0 (Modo Push-Pull)
 
 

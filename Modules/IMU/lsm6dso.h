@@ -5,22 +5,24 @@
 #include "lsm6dso_registers.h"
 
 // === Máscaras de campos de los registros ===
-#define LSM6DSO_I3C_DISABLE		(0b1 	<< I3C_DISABLE)
-#define LSM6DSO_ODR_XL_MASK     (0b1111 	<< ODR_XL3)
-#define LSM6DSO_FS_XL_MASK		(0b11 		<< FS1_XL)
-#define LSM6DSO_ODR_G_MASK		(0b1111 	<< ODR_G3)
-#define LSM6DSO_FS_G_MASK		(0b11 		<< FS1_G)
-#define LSM6DSO_INACT_MASK		(0b11 		<< INACT_EN1)
-#define LSM6DSO_WK_THS_MASK		(0b111111	<< WK_THS5)
-#define LSM6DSO_WK_DUR_MASK		(0b11 		<< WK_DUR1)
-#define LSM6DSO_WK_DUR_THS_MASK	(0b1 		<< WAKE_THS_W)
-#define LSM6DSO_WK_DUR_SLP_MASK	(0b1111 	<< SLEEP_DUR3)
+#define LSM6DSO_ODR_XL_MASK     	(0b1111 	<< ODR_XL3)		// CTRL1_XL (0x10)
+#define LSM6DSO_FS_XL_MASK			(0b11 		<< FS1_XL)		// CTRL1_XL (0x10)
+#define LSM6DSO_ODR_G_MASK			(0b1111 	<< ODR_G3)		// CTRL2_G (0x11)
+#define LSM6DSO_FS_G_MASK			(0b11 		<< FS1_G)		// CTRL2_G (0x11)
+#define LSM6DSO_XL_HM_MODE_MASK		(0b1		<< XL_HM_MODE)	// CTRL6_C (0x15)
+#define LSM6DSO_G_HM_MODE_MASK		(0b1		<< G_HM_MODE)	// CTRL7_G (0x16)
+#define LSM6DSO_I3C_DISABLE_MASK	(0b1 		<< I3C_DISABLE)	// CTRL9_XL (0x18)
+#define LSM6DSO_SLOPE_FDS_MASK		(0b1		<< SLOPE_FDS)	// TAP_CFG0 (0x56)
+#define LSM6DSO_INT_EN_MASK			(0b1		<< INT_EN)		// TAP_CFG2 (0x58)
+#define LSM6DSO_INACT_MASK			(0b11 		<< INACT_EN1)	// TAP_CFG2 (0x58)
+#define LSM6DSO_WK_THS_MASK			(0b111111	<< WK_THS5)		// WAKE_UP_THS (0x5B)
+#define LSM6DSO_WK_DUR_MASK			(0b11 		<< WK_DUR1)		// WAKE_UP_DUR (0x5C)
+#define LSM6DSO_WK_DUR_THS_MASK		(0b1 		<< WAKE_THS_W)	// WAKE_UP_DUR (0x5C)
+#define LSM6DSO_WK_DUR_SLP_MASK		(0b1111 	<< SLEEP_DUR3)	// WAKE_UP_DUR (0x5C)
+#define LSM6DSO_INT1_WU_MASK		(0b1		<< INT1_WU)		// MD1_CFG (0x5E)
 
-enum class Lsm6dsoI3C : uint8_t {
-	ENABLED		= (0b0 << I3C_DISABLE),
-	DISABLED	= (0b1 << I3C_DISABLE)
-};
 
+// CTRL1_XL (0x10)
 enum class Lsm6dsoOdrAcc : uint8_t {
 	POWER_DOWN	= (0b0000 << ODR_XL3),
     ODR_1_6		= (0b1011 << ODR_XL3),
@@ -36,6 +38,7 @@ enum class Lsm6dsoOdrAcc : uint8_t {
 	ODR_6K66 	= (0b1010 << ODR_XL3)
 };
 
+// CTRL1_XL (0x10)
 enum class Lsm6dsoFsAcc : uint8_t {
     FS_2G		= (0b00 << FS1_XL),
     FS_16G		= (0b01 << FS1_XL),
@@ -43,6 +46,7 @@ enum class Lsm6dsoFsAcc : uint8_t {
     FS_8G   	= (0b11 << FS1_XL)
 };
 
+// CTRL2_G (0x11)
 enum class Lsm6dsoOdrGyr : uint8_t {
 	POWER_DOWN	= (0b0000 << ODR_G3),
 	ODR_12_5   	= (0b0001 << ODR_G3),
@@ -57,6 +61,7 @@ enum class Lsm6dsoOdrGyr : uint8_t {
 	ODR_6K66 	= (0b1010 << ODR_G3)
 };
 
+// CTRL2_G (0x11)
 enum class Lsm6dsoFsGyr : uint8_t {
     FS_250DPS		= (0b00 << FS1_G),
     FS_500DPS		= (0b01 << FS1_G),
@@ -64,6 +69,45 @@ enum class Lsm6dsoFsGyr : uint8_t {
     FS_2KDPS	   	= (0b11 << FS1_G)
 };
 
+// CTRL6_C (0x15)
+enum class Lsm6dsoXlHm : uint8_t {
+	ENABLED		= (0b0 << XL_HM_MODE),
+	DISABLED	= (0b1 << XL_HM_MODE)
+};
+
+// CTRL7_G (0x16)
+enum class Lsm6dsoGHm : uint8_t {
+	ENABLED		= (0b0 << G_HM_MODE),
+	DISABLED	= (0b1 << G_HM_MODE)
+};
+
+// CTRL9_XL (0x18)
+enum class Lsm6dsoI3C : uint8_t {
+	ENABLED		= (0b0 << I3C_DISABLE),
+	DISABLED	= (0b1 << I3C_DISABLE)
+};
+
+// TAP_CFG0 (0x56)
+enum class Lsm6dsoSlopeFilterEn : uint8_t {
+	SLOPE_FILTER	= (0b0 << SLOPE_FDS),
+	HPF				= (0b1 << SLOPE_FDS)
+};
+
+// TAP_CFG2 (0x58)
+enum class Lsm6dsoIntEn : uint8_t {
+	DISABLED	= (0b0 << INT_EN),
+	ENABLED		= (0b1 << INT_EN)
+};
+
+// TAP_CFG2 (0x58)
+enum class Lsm6dsoInActEn : uint8_t {
+    XL_G_NOCHANGE	= (0b00 << INACT_EN1),
+    G_NOCHANGE		= (0b01 << INACT_EN1),
+    G_SLEEP	  		= (0b10 << INACT_EN1),
+    G_POWERDOWN	   	= (0b11 << INACT_EN1)
+};
+
+// WAKE_UP_THS (0x5B)
 enum class Lsm6dsoWakeThs : uint8_t {
     THS_DISABLE		= (0b000000  << WK_THS_5),
     THS_1 			= (0b000001  << WK_THS_5),
@@ -131,6 +175,7 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_63 			= (0b111111  << WK_THS_5)
 };
 
+// WAKE_UP_DUR (0x5C)
 enum class Lsm6dsoWakeDur : uint8_t {
 	ODR_0		= (0b00 << WK_DUR1),
     ODR_1		= (0b01 << WK_DUR1),
@@ -138,9 +183,10 @@ enum class Lsm6dsoWakeDur : uint8_t {
     ODR_3   	= (0b11 << WK_DUR1)
 };
 
+// WAKE_UP_DUR (0x5C)
 enum class Lsm6dsoWakeWeight : uint8_t {
-	FS_2_6		= (0b0 << WK_THS_W),
-    FS_2_8		= (0b1 << WK_THS_W)
+	FS_XL_2_6		= (0b0 << WK_THS_W),
+    FS_XL_2_8		= (0b1 << WK_THS_W)
 };
 
 //CHEQUEAR ESTOS VALORES... NO SÉ DE DONDE LOS SACÓ CHATTY.
@@ -166,6 +212,8 @@ enum class Lsm6dsoWakeWeight : uint8_t {
     DUR_15_512  = (0b1111 << SLEEP_DUR3)
 };
  */
+
+// WAKE_UP_DUR (0x5C)
 enum class Lsm6dsoSleepDur : uint8_t {
     DUR_16_ODR   = (0b0000 << SLEEP_DUR3),
     DUR_32_ODR   = (0b0001 << SLEEP_DUR3),
@@ -185,6 +233,12 @@ enum class Lsm6dsoSleepDur : uint8_t {
     DUR_256_ODR  = (0b1111 << SLEEP_DUR3)
 };
 
+// MD1_CFG (0x5E)
+enum class Lsm6dsoIntWU : uint8_t {
+	DISABLED	= (0b0 << INT1_WU),
+	ENABLED		= (0b1 << INT1_WU)
+};
+
 
 class Lsm6dso {
 public:
@@ -194,18 +248,19 @@ public:
 private:
 	bool configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
 			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
-	uint8_t setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c);
-    uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
+
+	uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
     uint8_t setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr);
-    uint8_t setConfigurationREG_CTRL6_C();	//PESSI: FALTA LA MASCARA
-    uint8_t setConfigurationREG_CTRL7_G();	//PESSI: FALTA LA MASCARA
-    uint8_t setConfigurationREG_WAKE_UP_THS(Lsm6dsoWakeThs wakeThs);
+    //uint8_t setConfigurationREG_CTRL3_C(); NACHO: No es necesario: => CONVIENE DEJAR EL IF_INC EN 1 PARA QUE LEA AUTOMÁTICAMENTE.
+    uint8_t setConfigurationREG_CTRL6_C(Lsm6dsoXlHm xlHm);
+    uint8_t setConfigurationREG_CTRL7_G(Lsm6dsoGHm gHm);
+	uint8_t setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c);
+    uint8_t setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn sF);
+    uint8_t setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn intEn, Lsm6dsoInactEn inActEn);
+	uint8_t setConfigurationREG_WAKE_UP_THS(Lsm6dsoWakeThs wakeThs);
     uint8_t setConfigurationREG_WAKE_UP_DUR(Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
-    uint8_t setConfigurationREG_TAP_CFG0();	//PESSI: FALTA LA MASCARA
-    uint8_t setConfigurationREG_TAP_CFG2();
-    uint8_t setConfigurationREG_MD1_CFG();	//PESSI: FALTA LA MASCARA
-    uint8_t setConfigurationREG_CTRL3_C();	//PESSI: FALTA LA MASCARA
-    //PESSI: FALTAN AGREGAR TODOS LOS SETS DE CONFIGURACIONES EN EL .CPP
+    uint8_t setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU);
+
     bool writeRegister(uint8_t reg, uint8_t value);
 
 private:
