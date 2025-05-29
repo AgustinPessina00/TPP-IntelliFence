@@ -36,6 +36,10 @@ uint8_t Lsm6dso::setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr 
 	       (static_cast<uint8_t>(fsGyr) & LSM6DSO_FS_G_MASK);
 }
 
+uint8_t Lsm6dso::setConfigurationREG_CTRL3_C(Lsm6dsoIfInc ifInc){
+	return (static_cast<uint8_t>(ifInc) & LSM6DSO_IF_INC_MASK);
+}
+
 uint8_t Lsm6dso::setConfigurationREG_CTRL6_C(Lsm6dsoXlHm xlHm){
 	return (static_cast<uint8_t>(XlHm) & LSM6DSO_XL_HM_MODE_MASK);
 }

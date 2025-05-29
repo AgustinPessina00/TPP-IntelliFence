@@ -9,6 +9,7 @@
 #define LSM6DSO_FS_XL_MASK			(0b11 		<< FS1_XL)		// CTRL1_XL (0x10)
 #define LSM6DSO_ODR_G_MASK			(0b1111 	<< ODR_G3)		// CTRL2_G (0x11)
 #define LSM6DSO_FS_G_MASK			(0b11 		<< FS1_G)		// CTRL2_G (0x11)
+#define LSM6DSO_IF_INC_MASK			(0b1 		<< IF_INC)		// CTRL3_C (0x12)
 #define LSM6DSO_XL_HM_MODE_MASK		(0b1		<< XL_HM_MODE)	// CTRL6_C (0x15)
 #define LSM6DSO_G_HM_MODE_MASK		(0b1		<< G_HM_MODE)	// CTRL7_G (0x16)
 #define LSM6DSO_I3C_DISABLE_MASK	(0b1 		<< I3C_DISABLE)	// CTRL9_XL (0x18)
@@ -67,6 +68,12 @@ enum class Lsm6dsoFsGyr : uint8_t {
     FS_500DPS		= (0b01 << FS1_G),
     FS_1KDPS	  	= (0b10 << FS1_G),
     FS_2KDPS	   	= (0b11 << FS1_G)
+};
+
+// CTRL3_C (0x12)
+enum class Lsm6dsoIfInc : uint8_t {
+	DISABLED	= (0b0 << IF_INC),
+	ENABLED		= (0b1 << IF_INC)
 };
 
 // CTRL6_C (0x15)
@@ -251,7 +258,7 @@ private:
 
 	uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
     uint8_t setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr);
-    //uint8_t setConfigurationREG_CTRL3_C(); NACHO: No es necesario: => CONVIENE DEJAR EL IF_INC EN 1 PARA QUE LEA AUTOMÁTICAMENTE.
+    uint8_t setConfigurationREG_CTRL3_C(Lsm6dsoIfInc ifInc);
     uint8_t setConfigurationREG_CTRL6_C(Lsm6dsoXlHm xlHm);
     uint8_t setConfigurationREG_CTRL7_G(Lsm6dsoGHm gHm);
 	uint8_t setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c);
