@@ -99,6 +99,8 @@
 #define REG_FIFO_DATA_OUT_Z_H      0x7E
 
 
+// ==== WRITE REGISTERS ====
+
 // ==== CTRL1_XL (0x10) ====
 #define ODR_XL3        	7
 #define ODR_XL2        	6
@@ -208,6 +210,69 @@
 #define INT1_6D				2
 #define INT1_EMB_FUNC		1
 #define INT1_SHUB			0
+
+
+// ==== READ REGISTERS ====
+
+// ==== OUTX_L_A (0x28) ====
+#define XLA_D7		7
+#define XLA_D6		6
+#define XLA_D5		5
+#define XLA_D4		4
+#define XLA_D3		3
+#define XLA_D2		2
+#define XLA_D1		1
+#define XLA_D0		0
+
+// ==== OUTX_H_A (0x29) ====
+#define XHA_D15		7
+#define XHA_D14		6
+#define XHA_D13		5
+#define XHA_D12		4
+#define XHA_D11		3
+#define XHA_D10		2
+#define XHA_D9		1
+#define XHA_D8		0
+
+// ==== OUTY_L_A (0x2A) ====
+#define YLA_D7		7
+#define YLA_D6		6
+#define YLA_D5		5
+#define YLA_D4		4
+#define YLA_D3		3
+#define YLA_D2		2
+#define YLA_D1		1
+#define YLA_D0		0
+
+// ==== OUTY_H_A (0x2B) ====
+#define YHA_D15		7
+#define YHA_D14		6
+#define YHA_D13		5
+#define YHA_D12		4
+#define YHA_D11		3
+#define YHA_D10		2
+#define YHA_D9		1
+#define YHA_D8		0
+
+// ==== OUTZ_L_A (0x2C) ====
+#define ZLA_D7		7
+#define ZLA_D6		6
+#define ZLA_D5		5
+#define ZLA_D4		4
+#define ZLA_D3		3
+#define ZLA_D2		2
+#define ZLA_D1		1
+#define ZLA_D0		0
+
+// ==== OUTZ_H_A (0x2D) ====
+#define ZHA_D15		7
+#define ZHA_D14		6
+#define ZHA_D13		5
+#define ZHA_D12		4
+#define ZHA_D11		3
+#define ZHA_D10		2
+#define ZHA_D9		1
+#define ZHA_D8		0
 
 
 #endif // LSM6DSO_REGISTERS_H
