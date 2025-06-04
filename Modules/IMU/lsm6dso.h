@@ -22,6 +22,9 @@
 #define LSM6DSO_WK_DUR_SLP_MASK		(0b1111 	<< SLEEP_DUR3)	// WAKE_UP_DUR (0x5C)
 #define LSM6DSO_INT1_WU_MASK		(0b1		<< INT1_WU)		// MD1_CFG (0x5E)
 
+// === Constantes ===
+#define LSM6DSO_WORD_SHIFT		8U     // To shift low byte into position
+
 
 // CTRL1_XL (0x10)
 enum class Lsm6dsoOdrAcc : uint8_t {
@@ -247,6 +250,212 @@ enum class Lsm6dsoIntWU : uint8_t {
 };
 
 
+// === OUTPUTS ===
+
+typedef int32_t (*stmdev_write_ptr)(void *, uint8_t, const uint8_t *, uint16_t);
+typedef int32_t (*stmdev_read_ptr)(void *, uint8_t, uint8_t *, uint16_t);
+typedef void (*stmdev_mdelay_ptr)(uint32_t millisec);
+
+typedef struct
+{
+  /** Component mandatory fields **/
+  stmdev_write_ptr  write_reg;
+  stmdev_read_ptr   read_reg;
+  /** Component optional fields **/
+  stmdev_mdelay_ptr   mdelay;
+  /** Customizable optional pointer **/
+  void *handle;
+} stmdev_ctx_t;
+
+typedef enum
+{
+  LSM6DSO_XL_UI_OFF       = 0x00, /* in power down */
+  LSM6DSO_XL_UI_1Hz6_LP   = 0x1B, /* @1Hz6 (low power) */
+  LSM6DSO_XL_UI_1Hz6_ULP  = 0x2B, /* @1Hz6 (ultra low/Gy, OIS imu off) */
+  LSM6DSO_XL_UI_12Hz5_HP  = 0x01, /* @12Hz5 (high performance) */
+  LSM6DSO_XL_UI_12Hz5_LP  = 0x11, /* @12Hz5 (low power) */
+  LSM6DSO_XL_UI_12Hz5_ULP = 0x21, /* @12Hz5 (ultra low/Gy, OIS imu off) */
+  LSM6DSO_XL_UI_26Hz_HP   = 0x02, /* @26Hz  (high performance) */
+  LSM6DSO_XL_UI_26Hz_LP   = 0x12, /* @26Hz  (low power) */
+  LSM6DSO_XL_UI_26Hz_ULP  = 0x22, /* @26Hz  (ultra low/Gy, OIS imu off) */
+  LSM6DSO_XL_UI_52Hz_HP   = 0x03, /* @52Hz  (high performance) */
+  LSM6DSO_XL_UI_52Hz_LP   = 0x13, /* @52Hz  (low power) */
+  LSM6DSO_XL_UI_52Hz_ULP  = 0x23, /* @52Hz  (ultra low/Gy, OIS imu off) */
+  LSM6DSO_XL_UI_104Hz_HP  = 0x04, /* @104Hz (high performance) */
+  LSM6DSO_XL_UI_104Hz_NM  = 0x14, /* @104Hz (normal mode) */
+  LSM6DSO_XL_UI_104Hz_ULP = 0x24, /* @104Hz (ultra low/Gy, OIS imu off) */
+  LSM6DSO_XL_UI_208Hz_HP  = 0x05, /* @208Hz (high performance) */
+  LSM6DSO_XL_UI_208Hz_NM  = 0x15, /* @208Hz (normal mode) */
+  LSM6DSO_XL_UI_208Hz_ULP = 0x25, /* @208Hz (ultra low/Gy, OIS imu off) */
+  LSM6DSO_XL_UI_416Hz_HP  = 0x06, /* @416Hz (high performance) */
+  LSM6DSO_XL_UI_833Hz_HP  = 0x07, /* @833Hz (high performance) */
+  LSM6DSO_XL_UI_1667Hz_HP = 0x08, /* @1kHz66 (high performance) */
+  LSM6DSO_XL_UI_3333Hz_HP = 0x09, /* @3kHz33 (high performance) */
+  LSM6DSO_XL_UI_6667Hz_HP = 0x0A, /* @6kHz66 (high performance) */
+} lsm6dso_odr_xl_ui_t;
+
+typedef enum
+{
+  LSM6DSO_XL_UI_2g   = 0,
+  LSM6DSO_XL_UI_4g   = 2,
+  LSM6DSO_XL_UI_8g   = 3,
+  LSM6DSO_XL_UI_16g  = 1, /* OIS full scale is also forced to be 16g */
+} lsm6dso_fs_xl_ui_t;
+
+typedef enum
+{
+  LSM6DSO_GY_UI_OFF       = 0x00, /* gy in power down */
+  LSM6DSO_GY_UI_12Hz5_LP  = 0x11, /* gy @12Hz5 (low power) */
+  LSM6DSO_GY_UI_12Hz5_HP  = 0x01, /* gy @12Hz5 (high performance) */
+  LSM6DSO_GY_UI_26Hz_LP   = 0x12, /* gy @26Hz  (low power) */
+  LSM6DSO_GY_UI_26Hz_HP   = 0x02, /* gy @26Hz  (high performance) */
+  LSM6DSO_GY_UI_52Hz_LP   = 0x13, /* gy @52Hz  (low power) */
+  LSM6DSO_GY_UI_52Hz_HP   = 0x03, /* gy @52Hz  (high performance) */
+  LSM6DSO_GY_UI_104Hz_NM  = 0x14, /* gy @104Hz (low power) */
+  LSM6DSO_GY_UI_104Hz_HP  = 0x04, /* gy @104Hz (high performance) */
+  LSM6DSO_GY_UI_208Hz_NM  = 0x15, /* gy @208Hz (low power) */
+  LSM6DSO_GY_UI_208Hz_HP  = 0x05, /* gy @208Hz (high performance) */
+  LSM6DSO_GY_UI_416Hz_HP  = 0x06, /* gy @416Hz (high performance) */
+  LSM6DSO_GY_UI_833Hz_HP  = 0x07, /* gy @833Hz (high performance) */
+  LSM6DSO_GY_UI_1667Hz_HP = 0x08, /* gy @1kHz66 (high performance) */
+  LSM6DSO_GY_UI_3333Hz_HP = 0x09, /* gy @3kHz33 (high performance) */
+  LSM6DSO_GY_UI_6667Hz_HP = 0x0A, /* gy @6kHz66 (high performance) */
+} lsm6dso_odr_g_ui_t;
+
+typedef enum
+{
+  LSM6DSO_GY_UI_250dps   = 0,
+  LSM6DSO_GY_UI_125dps   = 1,
+  LSM6DSO_GY_UI_500dps   = 2,
+  LSM6DSO_GY_UI_1000dps  = 4,
+  LSM6DSO_GY_UI_2000dps  = 6,
+} lsm6dso_fs_g_ui_t;
+
+typedef enum
+{
+  LSM6DSO_OIS_ONLY_AUX    = 0x00, /* Auxiliary SPI full control */
+  LSM6DSO_OIS_MIXED       = 0x01, /* Enabling by UI / read-config by AUX */
+} lsm6dso_ctrl_md_t;
+
+typedef enum
+{
+  LSM6DSO_XL_OIS_OFF       = 0x00, /* in power down */
+  LSM6DSO_XL_OIS_6667Hz_HP = 0x01, /* @6kHz OIS imu active/NO ULP on UI */
+} lsm6dso_odr_xl_ois_noaux_t;
+
+typedef enum
+{
+  LSM6DSO_XL_OIS_2g   = 0,
+  LSM6DSO_XL_OIS_4g   = 2,
+  LSM6DSO_XL_OIS_8g   = 3,
+  LSM6DSO_XL_OIS_16g  = 1, /* UI full scale is also forced to be 16g */
+} lsm6dso_fs_xl_ois_noaux_t;
+
+typedef enum
+{
+  LSM6DSO_GY_OIS_OFF       = 0x00, /* in power down */
+  LSM6DSO_GY_OIS_6667Hz_HP = 0x01, /* @6kHz No Ultra Low Power*/
+} lsm6dso_odr_g_ois_noaux_t;
+
+typedef enum
+{
+  LSM6DSO_GY_OIS_250dps   = 0,
+  LSM6DSO_GY_OIS_125dps   = 1,
+  LSM6DSO_GY_OIS_500dps   = 2,
+  LSM6DSO_GY_OIS_1000dps  = 4,
+  LSM6DSO_GY_OIS_2000dps  = 6,
+} lsm6dso_fs_g_ois_noaux_t;
+
+typedef enum
+{
+  LSM6DSO_FSM_DISABLE = 0x00,
+  LSM6DSO_FSM_XL      = 0x01,
+  LSM6DSO_FSM_GY      = 0x02,
+  LSM6DSO_FSM_XL_GY   = 0x03,
+} lsm6dso_sens_fsm_t;
+
+typedef enum
+{
+  LSM6DSO_FSM_12Hz5 = 0x00,
+  LSM6DSO_FSM_26Hz  = 0x01,
+  LSM6DSO_FSM_52Hz  = 0x02,
+  LSM6DSO_FSM_104Hz = 0x03,
+} lsm6dso_odr_fsm_t;
+
+typedef struct
+{
+  struct
+  {
+    struct
+    {
+      lsm6dso_odr_xl_ui_t odr;
+      lsm6dso_fs_xl_ui_t fs;
+    } xl;
+    struct
+    {
+      lsm6dso_odr_g_ui_t odr;
+      lsm6dso_fs_g_ui_t fs;
+    } gy;
+  } ui;
+  struct
+  {
+    lsm6dso_ctrl_md_t ctrl_md;
+    struct
+    {
+      lsm6dso_odr_xl_ois_noaux_t odr;
+      lsm6dso_fs_xl_ois_noaux_t fs;
+    } xl;
+    struct
+    {
+      lsm6dso_odr_g_ois_noaux_t odr;
+      lsm6dso_fs_g_ois_noaux_t fs;
+    } gy;
+  } ois;
+  struct
+  {
+    lsm6dso_sens_fsm_t sens;
+    lsm6dso_odr_fsm_t odr;
+  } fsm;
+} lsm6dso_md_t;
+
+typedef struct
+{
+  struct
+  {
+    struct
+    {
+      float_t mg[3];
+      int16_t raw[3];
+    } xl;
+    struct
+    {
+      float_t mdps[3];
+      int16_t raw[3];
+    } gy;
+    struct
+    {
+      float_t deg_c;
+      int16_t raw;
+    } heat;
+  } ui;
+  struct
+  {
+    struct
+    {
+      float_t mg[3];
+      int16_t raw[3];
+    } xl;
+    struct
+    {
+      float_t mdps[3];
+      int16_t raw[3];
+    } gy;
+  } ois;
+} lsm6dso_data_t;
+
+
+// == LSM6DSO ==
+
 class Lsm6dso {
 public:
 	Lsm6dso(uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
@@ -269,6 +478,19 @@ private:
     uint8_t setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU);
 
     bool writeRegister(uint8_t reg, uint8_t value);
+
+
+    float_t lsm6dso_from_fs2_to_mg(int16_t lsb);
+    float_t lsm6dso_from_fs4_to_mg(int16_t lsb);
+    float_t lsm6dso_from_fs8_to_mg(int16_t lsb);
+    float_t lsm6dso_from_fs16_to_mg(int16_t lsb);
+    float_t lsm6dso_from_lsb_to_celsius(int16_t lsb);
+    float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
+
+    int32_t lsm6dso_read_reg(const stmdev_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len);
+    int32_t lsm6dso_acceleration_raw_get (const stmdev_ctx_t *ctx, int16_t *val);
+    int32_t lsm6dso_data_get(const stmdev_ctx_t *ctx, const lsm6dso_md_t *md, lsm6dso_data_t *data);
+
 
 private:
     uint8_t i2cAddr;
