@@ -5,22 +5,22 @@
 #include "lsm6dso_registers.h"
 
 // === Máscaras de campos de los registros ===
-#define LSM6DSO_ODR_XL_MASK     	(0b1111 	<< ODR_XL3)		  // CTRL1_XL (0x10)
-#define LSM6DSO_FS_XL_MASK			  (0b11 		<< FS1_XL)		  // CTRL1_XL (0x10)
-#define LSM6DSO_ODR_G_MASK			  (0b1111 	<< ODR_G3)		  // CTRL2_G (0x11)
-#define LSM6DSO_FS_G_MASK		  	  (0b11 		<< FS1_G)		    // CTRL2_G (0x11)
-#define LSM6DSO_IF_INC_MASK			  (0b1 		<< IF_INC)		    // CTRL3_C (0x12)
-#define LSM6DSO_XL_HM_MODE_MASK		(0b1		<< XL_HM_MODE)	  // CTRL6_C (0x15)
-#define LSM6DSO_G_HM_MODE_MASK		(0b1		<< G_HM_MODE)	    // CTRL7_G (0x16)
-#define LSM6DSO_I3C_DISABLE_MASK	(0b1 		<< I3C_DISABLE)	  // CTRL9_XL (0x18)
-#define LSM6DSO_SLOPE_FDS_MASK		(0b1		<< SLOPE_FDS)	    // TAP_CFG0 (0x56)
-#define LSM6DSO_INT_EN_MASK			  (0b1		<< INT_EN)		    // TAP_CFG2 (0x58)
-#define LSM6DSO_INACT_MASK			  (0b11 		<< INACT_EN1)	  // TAP_CFG2 (0x58)
-#define LSM6DSO_WK_THS_MASK			  (0b111111	<< WK_THS5)		  // WAKE_UP_THS (0x5B)
-#define LSM6DSO_WK_DUR_MASK			  (0b11 		<< WK_DUR1)		  // WAKE_UP_DUR (0x5C)
-#define LSM6DSO_WK_DUR_THS_MASK		(0b1 		<< WAKE_THS_W)	  // WAKE_UP_DUR (0x5C)
-#define LSM6DSO_WK_DUR_SLP_MASK		(0b1111 	<< SLEEP_DUR3)	// WAKE_UP_DUR (0x5C)
-#define LSM6DSO_INT1_WU_MASK		  (0b1		<< INT1_WU)		    // MD1_CFG (0x5E)
+#define LSM6DSO_ODR_XL_MASK     	(0b1111 	<< ODR_XL3)		    // CTRL1_XL (0x10)
+#define LSM6DSO_FS_XL_MASK			  (0b11 		<< FS1_XL)		    // CTRL1_XL (0x10)
+#define LSM6DSO_ODR_G_MASK			  (0b1111 	<< ODR_G3)		    // CTRL2_G (0x11)
+#define LSM6DSO_FS_G_MASK		  	  (0b11 		<< FS1_G)		      // CTRL2_G (0x11)
+#define LSM6DSO_IF_INC_MASK			  (0b1 		  << IF_INC)		    // CTRL3_C (0x12)
+#define LSM6DSO_XL_HM_MODE_MASK		(0b1		  << XL_HM_MODE)	  // CTRL6_C (0x15)
+#define LSM6DSO_G_HM_MODE_MASK		(0b1		  << G_HM_MODE)	    // CTRL7_G (0x16)
+#define LSM6DSO_I3C_DISABLE_MASK	(0b1 		  << I3C_DISABLE)	  // CTRL9_XL (0x18)
+#define LSM6DSO_SLOPE_FDS_MASK		(0b1		  << SLOPE_FDS)	    // TAP_CFG0 (0x56)
+#define LSM6DSO_INT_EN_MASK			  (0b1		  << INT_EN)		    // TAP_CFG2 (0x58)
+#define LSM6DSO_INACT_MASK			  (0b11 		<< INACT_EN1)	    // TAP_CFG2 (0x58)
+#define LSM6DSO_WK_THS_MASK			  (0b111111	<< WK_THS5)		    // WAKE_UP_THS (0x5B)
+#define LSM6DSO_WK_DUR_MASK			  (0b11 		<< WK_DUR1)		    // WAKE_UP_DUR (0x5C)
+#define LSM6DSO_WK_DUR_THS_MASK		(0b1 		  << WAKE_THS_W)	  // WAKE_UP_DUR (0x5C)
+#define LSM6DSO_WK_DUR_SLP_MASK		(0b1111 	<< SLEEP_DUR3)	  // WAKE_UP_DUR (0x5C)
+#define LSM6DSO_INT1_WU_MASK		  (0b1		  << INT1_WU)		    // MD1_CFG (0x5E)
 
 // === Constantes ===
 #define LSM6DSO_WORD_SHIFT		8U     // To shift low byte into position
@@ -266,14 +266,14 @@ enum class Lsm6dsoOdrXlUi : uint8_t {
 	LSM6DSO_XL_UI_833Hz_HP    = 0x07, /* @833Hz (high performance) */
 	LSM6DSO_XL_UI_1667Hz_HP   = 0x08, /* @1kHz66 (high performance) */
 	LSM6DSO_XL_UI_3333Hz_HP   = 0x09, /* @3kHz33 (high performance) */
-	LSM6DSO_XL_UI_6667Hz_HP   = 0x0A, /* @6kHz66 (high performance) */
+	LSM6DSO_XL_UI_6667Hz_HP   = 0x0A /* @6kHz66 (high performance) */
 };
 
 enum class Lsm6dsoFsXlUi : uint8_t {
 	LSM6DSO_XL_UI_2g    = 0,
 	LSM6DSO_XL_UI_4g    = 2,
 	LSM6DSO_XL_UI_8g    = 3,
-	LSM6DSO_XL_UI_16g   = 1, /* OIS full scale is also forced to be 16g */
+	LSM6DSO_XL_UI_16g   = 1 /* OIS full scale is also forced to be 16g */
 };
 
 enum class Lsm6dsoOdrGUi : uint8_t {
@@ -292,7 +292,7 @@ enum class Lsm6dsoOdrGUi : uint8_t {
 	LSM6DSO_GY_UI_833Hz_HP    = 0x07, /* gy @833Hz (high performance) */
 	LSM6DSO_GY_UI_1667Hz_HP   = 0x08, /* gy @1kHz66 (high performance) */
 	LSM6DSO_GY_UI_3333Hz_HP   = 0x09, /* gy @3kHz33 (high performance) */
-	LSM6DSO_GY_UI_6667Hz_HP   = 0x0A, /* gy @6kHz66 (high performance) */
+	LSM6DSO_GY_UI_6667Hz_HP   = 0x0A  /* gy @6kHz66 (high performance) */
 };  
 
 enum class Lsm6dsoFsGUi : uint8_t {
@@ -305,24 +305,24 @@ enum class Lsm6dsoFsGUi : uint8_t {
 
 enum class Lsm6dsoCtrlMd : uint8_t {
   LSM6DSO_OIS_ONLY_AUX    = 0x00, /* Auxiliary SPI full control */
-  LSM6DSO_OIS_MIXED       = 0x01, /* Enabling by UI / read-config by AUX */
+  LSM6DSO_OIS_MIXED       = 0x01 /* Enabling by UI / read-config by AUX */
 };
 
 enum class Lsm6dsoOdrXlOisNoaux : uint8_t {
   LSM6DSO_XL_OIS_OFF        = 0x00, /* in power down */
-  LSM6DSO_XL_OIS_6667Hz_HP  = 0x01, /* @6kHz OIS imu active/NO ULP on UI */
+  LSM6DSO_XL_OIS_6667Hz_HP  = 0x01 /* @6kHz OIS imu active/NO ULP on UI */
 };
 
 enum class Lsm6dsoFsXlOisNoaux : uint8_t {
   LSM6DSO_XL_OIS_2g     = 0,
   LSM6DSO_XL_OIS_4g     = 2,
   LSM6DSO_XL_OIS_8g     = 3,
-  LSM6DSO_XL_OIS_16g    = 1, /* UI full scale is also forced to be 16g */
+  LSM6DSO_XL_OIS_16g    = 1   /* UI full scale is also forced to be 16g */
 };
 
 enum class Lsm6dsoOdrGOisNoaux : uint8_t {
   LSM6DSO_GY_OIS_OFF        = 0x00, /* in power down */
-  LSM6DSO_GY_OIS_6667Hz_HP  = 0x01, /* @6kHz No Ultra Low Power*/
+  LSM6DSO_GY_OIS_6667Hz_HP  = 0x01 /* @6kHz No Ultra Low Power*/
 };  
 
 enum class Lsm6dsoFsGOisNoaux : uint8_t {
@@ -330,21 +330,21 @@ enum class Lsm6dsoFsGOisNoaux : uint8_t {
   LSM6DSO_GY_OIS_125dps     = 1,
   LSM6DSO_GY_OIS_500dps     = 2,
   LSM6DSO_GY_OIS_1000dps    = 4,
-  LSM6DSO_GY_OIS_2000dps    = 6,
+  LSM6DSO_GY_OIS_2000dps    = 6
 };
 
 enum class Lsm6dsoSensFsm : uint8_t {
   LSM6DSO_FSM_DISABLE   = 0x00,
   LSM6DSO_FSM_XL        = 0x01,
   LSM6DSO_FSM_GY        = 0x02,
-  LSM6DSO_FSM_XL_GY     = 0x03,
+  LSM6DSO_FSM_XL_GY     = 0x03
 } ;
 
 enum class Lsm6dsoOdrFsm : uint8_t {
   LSM6DSO_FSM_12Hz5   = 0x00,
   LSM6DSO_FSM_26Hz    = 0x01,
   LSM6DSO_FSM_52Hz    = 0x02,
-  LSM6DSO_FSM_104Hz   = 0x03,
+  LSM6DSO_FSM_104Hz   = 0x03
 };
 
 // NACHO: Capaz podemos cambiar "typedef struct" por "struct Lsm6dsoMd" -> Recordar cambiarlo en .cpp
