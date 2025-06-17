@@ -160,7 +160,7 @@ int32_t Lsm6dso::lsm6dso_acceleration_raw_get (const stmdev_ctx_t *ctx, int16_t 
 	int32_t ret;
 
 	// Leemos 6 bytes desde el registro base de aceleración (OUTX_L_A)
-	ret = lsm6dso_read_reg(ctx, LSM6DSO_OUTX_L_A, buff, 6);
+	ret = lsm6dso_read_reg(ctx, REG_OUTX_L_A, buff, 6);
 
 	/*
 	val[0] = (int16_t)buff[1];
@@ -171,9 +171,9 @@ int32_t Lsm6dso::lsm6dso_acceleration_raw_get (const stmdev_ctx_t *ctx, int16_t 
 	val[2] = (val[2] * 256) + (int16_t)buff[4];
 	*/
 
-	val[0] = (int16_t)((int16_t)buff[1] << 8 | buff[0]);  // X
-	val[1] = (int16_t)((int16_t)buff[3] << 8 | buff[2]);  // Y
-	val[2] = (int16_t)((int16_t)buff[5] << 8 | buff[4]);  // Z
+	val[0] = (int16_t)((int16_t)buff[1] << LSM6DSO_WORD_SHIFT | buff[0]);  // X
+	val[1] = (int16_t)((int16_t)buff[3] << LSM6DSO_WORD_SHIFT | buff[2]);  // Y
+	val[2] = (int16_t)((int16_t)buff[5] << LSM6DSO_WORD_SHIFT | buff[4]);  // Z
 
 	return ret;
 }
@@ -193,7 +193,7 @@ int32_t Lsm6dso::lsm6dso_data_get(const stmdev_ctx_t *ctx, const lsm6dso_md_t *m
     /* read data */
      if (ctx != nullptr)
      {
-       ret = lsm6dso_read_reg(ctx, LSM6DSO_OUT_TEMP_L, buff, 14);
+       ret = lsm6dso_read_reg(ctx, REG_OUT_TEMP_L, buff, 14);
        if (ret != 0) { return ret; }
      }
 

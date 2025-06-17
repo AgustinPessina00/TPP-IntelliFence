@@ -199,12 +199,9 @@ enum class Lsm6dsoWakeWeight : uint8_t {
     FS_XL_2_8		= (0b1 << WK_THS_W)
 };
 
-//CHEQUEAR ESTOS VALORES... NO SÉ DE DONDE LOS SACÓ CHATTY.
-//PESSI: Te confirmo que esos valores no son correctos. Según la hoja de datos, SLEEP_DUR[3:0] representa múltiplos de 512 ODR_time, no de 16 ODR
-//como ahí dice.
-/*
- enum class Lsm6dsoSleepDur : uint8_t {
-    DUR_0_512   = (0b0000 << SLEEP_DUR3), // 0 * 512 * ODR_time = deshabilitado
+// WAKE_UP_DUR (0x5C)
+enum class Lsm6dsoSleepDur : uint8_t {
+    DUR_0_512   = (0b0000 << SLEEP_DUR3), // 0 * 512 * ODR_time = deshabilitado = 16 ODR
     DUR_1_512   = (0b0001 << SLEEP_DUR3),
     DUR_2_512   = (0b0010 << SLEEP_DUR3),
     DUR_3_512   = (0b0011 << SLEEP_DUR3),
@@ -220,27 +217,6 @@ enum class Lsm6dsoWakeWeight : uint8_t {
     DUR_13_512  = (0b1101 << SLEEP_DUR3),
     DUR_14_512  = (0b1110 << SLEEP_DUR3),
     DUR_15_512  = (0b1111 << SLEEP_DUR3)
-};
- */
-
-// WAKE_UP_DUR (0x5C)
-enum class Lsm6dsoSleepDur : uint8_t {
-    DUR_16_ODR   = (0b0000 << SLEEP_DUR3),
-    DUR_32_ODR   = (0b0001 << SLEEP_DUR3),
-    DUR_48_ODR   = (0b0010 << SLEEP_DUR3),
-    DUR_64_ODR   = (0b0011 << SLEEP_DUR3),
-    DUR_80_ODR   = (0b0100 << SLEEP_DUR3),
-    DUR_96_ODR   = (0b0101 << SLEEP_DUR3),
-    DUR_112_ODR  = (0b0110 << SLEEP_DUR3),
-    DUR_128_ODR  = (0b0111 << SLEEP_DUR3),
-    DUR_144_ODR  = (0b1000 << SLEEP_DUR3),
-    DUR_160_ODR  = (0b1001 << SLEEP_DUR3),
-    DUR_176_ODR  = (0b1010 << SLEEP_DUR3),
-    DUR_192_ODR  = (0b1011 << SLEEP_DUR3),
-    DUR_208_ODR  = (0b1100 << SLEEP_DUR3),
-    DUR_224_ODR  = (0b1101 << SLEEP_DUR3),
-    DUR_240_ODR  = (0b1110 << SLEEP_DUR3),
-    DUR_256_ODR  = (0b1111 << SLEEP_DUR3)
 };
 
 // MD1_CFG (0x5E)
@@ -267,157 +243,148 @@ typedef struct
   void *handle;
 } stmdev_ctx_t;
 
-typedef enum
-{
-  LSM6DSO_XL_UI_OFF       = 0x00, /* in power down */
-  LSM6DSO_XL_UI_1Hz6_LP   = 0x1B, /* @1Hz6 (low power) */
-  LSM6DSO_XL_UI_1Hz6_ULP  = 0x2B, /* @1Hz6 (ultra low/Gy, OIS imu off) */
-  LSM6DSO_XL_UI_12Hz5_HP  = 0x01, /* @12Hz5 (high performance) */
-  LSM6DSO_XL_UI_12Hz5_LP  = 0x11, /* @12Hz5 (low power) */
-  LSM6DSO_XL_UI_12Hz5_ULP = 0x21, /* @12Hz5 (ultra low/Gy, OIS imu off) */
-  LSM6DSO_XL_UI_26Hz_HP   = 0x02, /* @26Hz  (high performance) */
-  LSM6DSO_XL_UI_26Hz_LP   = 0x12, /* @26Hz  (low power) */
-  LSM6DSO_XL_UI_26Hz_ULP  = 0x22, /* @26Hz  (ultra low/Gy, OIS imu off) */
-  LSM6DSO_XL_UI_52Hz_HP   = 0x03, /* @52Hz  (high performance) */
-  LSM6DSO_XL_UI_52Hz_LP   = 0x13, /* @52Hz  (low power) */
-  LSM6DSO_XL_UI_52Hz_ULP  = 0x23, /* @52Hz  (ultra low/Gy, OIS imu off) */
-  LSM6DSO_XL_UI_104Hz_HP  = 0x04, /* @104Hz (high performance) */
-  LSM6DSO_XL_UI_104Hz_NM  = 0x14, /* @104Hz (normal mode) */
-  LSM6DSO_XL_UI_104Hz_ULP = 0x24, /* @104Hz (ultra low/Gy, OIS imu off) */
-  LSM6DSO_XL_UI_208Hz_HP  = 0x05, /* @208Hz (high performance) */
-  LSM6DSO_XL_UI_208Hz_NM  = 0x15, /* @208Hz (normal mode) */
-  LSM6DSO_XL_UI_208Hz_ULP = 0x25, /* @208Hz (ultra low/Gy, OIS imu off) */
-  LSM6DSO_XL_UI_416Hz_HP  = 0x06, /* @416Hz (high performance) */
-  LSM6DSO_XL_UI_833Hz_HP  = 0x07, /* @833Hz (high performance) */
-  LSM6DSO_XL_UI_1667Hz_HP = 0x08, /* @1kHz66 (high performance) */
-  LSM6DSO_XL_UI_3333Hz_HP = 0x09, /* @3kHz33 (high performance) */
-  LSM6DSO_XL_UI_6667Hz_HP = 0x0A, /* @6kHz66 (high performance) */
-} lsm6dso_odr_xl_ui_t;
+enum class Lsm6dsoOdrXlUi : uint8_t {
+	LSM6DSO_XL_UI_OFF       = 0x00, /* in power down */
+	LSM6DSO_XL_UI_1Hz6_LP   = 0x1B, /* @1Hz6 (low power) */
+	LSM6DSO_XL_UI_1Hz6_ULP  = 0x2B, /* @1Hz6 (ultra low/Gy, OIS imu off) */
+	LSM6DSO_XL_UI_12Hz5_HP  = 0x01, /* @12Hz5 (high performance) */
+	LSM6DSO_XL_UI_12Hz5_LP  = 0x11, /* @12Hz5 (low power) */
+	LSM6DSO_XL_UI_12Hz5_ULP = 0x21, /* @12Hz5 (ultra low/Gy, OIS imu off) */
+	LSM6DSO_XL_UI_26Hz_HP   = 0x02, /* @26Hz  (high performance) */
+	LSM6DSO_XL_UI_26Hz_LP   = 0x12, /* @26Hz  (low power) */
+	LSM6DSO_XL_UI_26Hz_ULP  = 0x22, /* @26Hz  (ultra low/Gy, OIS imu off) */
+	LSM6DSO_XL_UI_52Hz_HP   = 0x03, /* @52Hz  (high performance) */
+	LSM6DSO_XL_UI_52Hz_LP   = 0x13, /* @52Hz  (low power) */
+	LSM6DSO_XL_UI_52Hz_ULP  = 0x23, /* @52Hz  (ultra low/Gy, OIS imu off) */
+	LSM6DSO_XL_UI_104Hz_HP  = 0x04, /* @104Hz (high performance) */
+	LSM6DSO_XL_UI_104Hz_NM  = 0x14, /* @104Hz (normal mode) */
+	LSM6DSO_XL_UI_104Hz_ULP = 0x24, /* @104Hz (ultra low/Gy, OIS imu off) */
+	LSM6DSO_XL_UI_208Hz_HP  = 0x05, /* @208Hz (high performance) */
+  	LSM6DSO_XL_UI_208Hz_NM  = 0x15, /* @208Hz (normal mode) */
+	LSM6DSO_XL_UI_208Hz_ULP = 0x25, /* @208Hz (ultra low/Gy, OIS imu off) */
+	LSM6DSO_XL_UI_416Hz_HP  = 0x06, /* @416Hz (high performance) */
+	LSM6DSO_XL_UI_833Hz_HP  = 0x07, /* @833Hz (high performance) */
+	LSM6DSO_XL_UI_1667Hz_HP = 0x08, /* @1kHz66 (high performance) */
+	LSM6DSO_XL_UI_3333Hz_HP = 0x09, /* @3kHz33 (high performance) */
+	LSM6DSO_XL_UI_6667Hz_HP = 0x0A, /* @6kHz66 (high performance) */
+};
 
-typedef enum
-{
-  LSM6DSO_XL_UI_2g   = 0,
-  LSM6DSO_XL_UI_4g   = 2,
-  LSM6DSO_XL_UI_8g   = 3,
-  LSM6DSO_XL_UI_16g  = 1, /* OIS full scale is also forced to be 16g */
-} lsm6dso_fs_xl_ui_t;
+enum class Lsm6dsoFsXlUi : uint8_t {
+	LSM6DSO_XL_UI_2g   = 0,
+	LSM6DSO_XL_UI_4g   = 2,
+	LSM6DSO_XL_UI_8g   = 3,
+	LSM6DSO_XL_UI_16g  = 1, /* OIS full scale is also forced to be 16g */
+};
 
-typedef enum
-{
-  LSM6DSO_GY_UI_OFF       = 0x00, /* gy in power down */
-  LSM6DSO_GY_UI_12Hz5_LP  = 0x11, /* gy @12Hz5 (low power) */
-  LSM6DSO_GY_UI_12Hz5_HP  = 0x01, /* gy @12Hz5 (high performance) */
-  LSM6DSO_GY_UI_26Hz_LP   = 0x12, /* gy @26Hz  (low power) */
-  LSM6DSO_GY_UI_26Hz_HP   = 0x02, /* gy @26Hz  (high performance) */
-  LSM6DSO_GY_UI_52Hz_LP   = 0x13, /* gy @52Hz  (low power) */
-  LSM6DSO_GY_UI_52Hz_HP   = 0x03, /* gy @52Hz  (high performance) */
-  LSM6DSO_GY_UI_104Hz_NM  = 0x14, /* gy @104Hz (low power) */
-  LSM6DSO_GY_UI_104Hz_HP  = 0x04, /* gy @104Hz (high performance) */
-  LSM6DSO_GY_UI_208Hz_NM  = 0x15, /* gy @208Hz (low power) */
-  LSM6DSO_GY_UI_208Hz_HP  = 0x05, /* gy @208Hz (high performance) */
-  LSM6DSO_GY_UI_416Hz_HP  = 0x06, /* gy @416Hz (high performance) */
-  LSM6DSO_GY_UI_833Hz_HP  = 0x07, /* gy @833Hz (high performance) */
-  LSM6DSO_GY_UI_1667Hz_HP = 0x08, /* gy @1kHz66 (high performance) */
-  LSM6DSO_GY_UI_3333Hz_HP = 0x09, /* gy @3kHz33 (high performance) */
-  LSM6DSO_GY_UI_6667Hz_HP = 0x0A, /* gy @6kHz66 (high performance) */
-} lsm6dso_odr_g_ui_t;
+enum class Lsm6dsoOdrGUi : uint8_t {
+	LSM6DSO_GY_UI_OFF       = 0x00, /* gy in power down */
+	LSM6DSO_GY_UI_12Hz5_LP  = 0x11, /* gy @12Hz5 (low power) */
+	LSM6DSO_GY_UI_12Hz5_HP  = 0x01, /* gy @12Hz5 (high performance) */
+	LSM6DSO_GY_UI_26Hz_LP   = 0x12, /* gy @26Hz  (low power) */
+	LSM6DSO_GY_UI_26Hz_HP   = 0x02, /* gy @26Hz  (high performance) */
+	LSM6DSO_GY_UI_52Hz_LP   = 0x13, /* gy @52Hz  (low power) */
+	LSM6DSO_GY_UI_52Hz_HP   = 0x03, /* gy @52Hz  (high performance) */
+	LSM6DSO_GY_UI_104Hz_NM  = 0x14, /* gy @104Hz (low power) */
+	LSM6DSO_GY_UI_104Hz_HP  = 0x04, /* gy @104Hz (high performance) */
+	LSM6DSO_GY_UI_208Hz_NM  = 0x15, /* gy @208Hz (low power) */
+	LSM6DSO_GY_UI_208Hz_HP  = 0x05, /* gy @208Hz (high performance) */
+	LSM6DSO_GY_UI_416Hz_HP  = 0x06, /* gy @416Hz (high performance) */
+	LSM6DSO_GY_UI_833Hz_HP  = 0x07, /* gy @833Hz (high performance) */
+	LSM6DSO_GY_UI_1667Hz_HP = 0x08, /* gy @1kHz66 (high performance) */
+	LSM6DSO_GY_UI_3333Hz_HP = 0x09, /* gy @3kHz33 (high performance) */
+	LSM6DSO_GY_UI_6667Hz_HP = 0x0A, /* gy @6kHz66 (high performance) */
+};
 
-typedef enum
-{
-  LSM6DSO_GY_UI_250dps   = 0,
-  LSM6DSO_GY_UI_125dps   = 1,
-  LSM6DSO_GY_UI_500dps   = 2,
-  LSM6DSO_GY_UI_1000dps  = 4,
-  LSM6DSO_GY_UI_2000dps  = 6,
-} lsm6dso_fs_g_ui_t;
+enum class Lsm6dsoFsGUi : uint8_t {
+	LSM6DSO_GY_UI_250dps   = 0,
+	LSM6DSO_GY_UI_125dps   = 1,
+	LSM6DSO_GY_UI_500dps   = 2,
+	LSM6DSO_GY_UI_1000dps  = 4,
+	LSM6DSO_GY_UI_2000dps  = 6
+};
 
-typedef enum
-{
+enum class Lsm6dsoCtrlMd : uint8_t {
   LSM6DSO_OIS_ONLY_AUX    = 0x00, /* Auxiliary SPI full control */
   LSM6DSO_OIS_MIXED       = 0x01, /* Enabling by UI / read-config by AUX */
-} lsm6dso_ctrl_md_t;
+};
 
-typedef enum
-{
+enum class Lsm6dsoOdrXlOisNoaux : uint8_t {
   LSM6DSO_XL_OIS_OFF       = 0x00, /* in power down */
   LSM6DSO_XL_OIS_6667Hz_HP = 0x01, /* @6kHz OIS imu active/NO ULP on UI */
-} lsm6dso_odr_xl_ois_noaux_t;
+};
 
-typedef enum
-{
+enum class Lsm6dsoFsXlOisNoaux : uint8_t {
   LSM6DSO_XL_OIS_2g   = 0,
   LSM6DSO_XL_OIS_4g   = 2,
   LSM6DSO_XL_OIS_8g   = 3,
   LSM6DSO_XL_OIS_16g  = 1, /* UI full scale is also forced to be 16g */
-} lsm6dso_fs_xl_ois_noaux_t;
+};
 
-typedef enum
-{
+enum class Lsm6dsoOdrGOisNoaux : uint8_t {
   LSM6DSO_GY_OIS_OFF       = 0x00, /* in power down */
   LSM6DSO_GY_OIS_6667Hz_HP = 0x01, /* @6kHz No Ultra Low Power*/
-} lsm6dso_odr_g_ois_noaux_t;
+};
 
-typedef enum
-{
+enum class Lsm6dsoFsGOisNoaux : uint8_t {
   LSM6DSO_GY_OIS_250dps   = 0,
   LSM6DSO_GY_OIS_125dps   = 1,
   LSM6DSO_GY_OIS_500dps   = 2,
   LSM6DSO_GY_OIS_1000dps  = 4,
   LSM6DSO_GY_OIS_2000dps  = 6,
-} lsm6dso_fs_g_ois_noaux_t;
+};
 
-typedef enum
-{
+enum class Lsm6dsoSensFsm : uint8_t {
   LSM6DSO_FSM_DISABLE = 0x00,
   LSM6DSO_FSM_XL      = 0x01,
   LSM6DSO_FSM_GY      = 0x02,
   LSM6DSO_FSM_XL_GY   = 0x03,
-} lsm6dso_sens_fsm_t;
+} ;
 
-typedef enum
-{
+enum class Lsm6dsoOdrFsm : uint8_t {
   LSM6DSO_FSM_12Hz5 = 0x00,
   LSM6DSO_FSM_26Hz  = 0x01,
   LSM6DSO_FSM_52Hz  = 0x02,
   LSM6DSO_FSM_104Hz = 0x03,
-} lsm6dso_odr_fsm_t;
+};
 
+// NACHO: Capaz podemos cambiar "typedef struct" por "struct Lsm6dsoMd" -> Recordar cambiarlo en .cpp
 typedef struct
 {
   struct
   {
     struct
     {
-      lsm6dso_odr_xl_ui_t odr;
-      lsm6dso_fs_xl_ui_t fs;
+      Lsm6dsoOdrXlUi odr;
+      Lsm6dsoFsXlUi fs;
     } xl;
     struct
     {
-      lsm6dso_odr_g_ui_t odr;
-      lsm6dso_fs_g_ui_t fs;
+      Lsm6dsoOdrGUi odr;
+      Lsm6dsoFsGUi fs;
     } gy;
   } ui;
   struct
   {
-    lsm6dso_ctrl_md_t ctrl_md;
+    Lsm6dsoCtrlMd ctrl_md;
     struct
     {
-      lsm6dso_odr_xl_ois_noaux_t odr;
-      lsm6dso_fs_xl_ois_noaux_t fs;
+      Lsm6dsoOdrXlOisNoaux odr;
+      Lsm6dsoFsXlOisNoaux fs;
     } xl;
     struct
     {
-      lsm6dso_odr_g_ois_noaux_t odr;
-      lsm6dso_fs_g_ois_noaux_t fs;
+      Lsm6dsoOdrGOisNoaux odr;
+      Lsm6dsoFsGOisNoaux fs;
     } gy;
   } ois;
   struct
   {
-    lsm6dso_sens_fsm_t sens;
-    lsm6dso_odr_fsm_t odr;
+    Lsm6dsoSensFsm sens;
+    Lsm6dsoOdrFsm odr;
   } fsm;
 } lsm6dso_md_t;
 
+// NACHO: Capaz podemos cambiar "typedef struct" por "struct Lsm6dsoData" -> Recordar cambiarlo en .cpp
 typedef struct
 {
   struct
