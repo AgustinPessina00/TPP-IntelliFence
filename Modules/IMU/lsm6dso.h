@@ -67,10 +67,10 @@ enum class Lsm6dsoOdrGyr : uint8_t {
 
 // CTRL2_G (0x11)
 enum class Lsm6dsoFsGyr : uint8_t {
-    FS_250DPS		  = (0b00 << FS1_G),
-    FS_500DPS		  = (0b01 << FS1_G),
-    FS_1KDPS	  	= (0b10 << FS1_G),
-    FS_2KDPS	   	= (0b11 << FS1_G)
+  FS_250DPS		  = (0b00 << FS1_G),
+  FS_500DPS		  = (0b01 << FS1_G),
+  FS_1KDPS	  	= (0b10 << FS1_G),
+  FS_2KDPS	   	= (0b11 << FS1_G)
 };
 
 // CTRL3_C (0x12)
@@ -111,10 +111,10 @@ enum class Lsm6dsoIntEn : uint8_t {
 
 // TAP_CFG2 (0x58)
 enum class Lsm6dsoInActEn : uint8_t {
-    XL_G_NOCHANGE	  = (0b00 << INACT_EN1),
-    G_NOCHANGE		  = (0b01 << INACT_EN1),
-    G_SLEEP	  		  = (0b10 << INACT_EN1),
-    G_POWERDOWN	   	= (0b11 << INACT_EN1)
+  XL_G_NOCHANGE	  = (0b00 << INACT_EN1),
+  G_NOCHANGE		  = (0b01 << INACT_EN1),
+  G_SLEEP	  		  = (0b10 << INACT_EN1),
+  G_POWERDOWN	   	= (0b11 << INACT_EN1)
 };
 
 // WAKE_UP_THS (0x5B)
@@ -195,8 +195,8 @@ enum class Lsm6dsoWakeDur : uint8_t {
 
 // WAKE_UP_DUR (0x5C)
 enum class Lsm6dsoWakeWeight : uint8_t {
-	FS_XL_2_6		= (0b0 << WK_THS_W),
-  FS_XL_2_8		= (0b1 << WK_THS_W)
+	FS_XL_64		= (0b0 << WK_THS_W),
+  FS_XL_256		= (0b1 << WK_THS_W)
 };
 
 // WAKE_UP_DUR (0x5C)
@@ -347,78 +347,97 @@ enum class Lsm6dsoOdrFsm : uint8_t {
   LSM6DSO_FSM_104Hz   = 0x03
 };
 
-// NACHO: Capaz podemos cambiar "typedef struct" por "struct Lsm6dsoMd" -> Recordar cambiarlo en .cpp
-typedef struct
-{
-  struct
-  {
-    struct
-    {
-      Lsm6dsoOdrXlUi odr;
-      Lsm6dsoFsXlUi fs;
-    } xl;
-    struct
-    {
-      Lsm6dsoOdrGUi odr;
-      Lsm6dsoFsGUi fs;
-    } gy;
-  } ui;
-  struct
-  {
-    Lsm6dsoCtrlMd ctrl_md;
-    struct
-    {
-      Lsm6dsoOdrXlOisNoaux odr;
-      Lsm6dsoFsXlOisNoaux fs;
-    } xl;
-    struct
-    {
-      Lsm6dsoOdrGOisNoaux odr;
-      Lsm6dsoFsGOisNoaux fs;
-    } gy;
-  } ois;
-  struct
-  {
-    Lsm6dsoSensFsm sens;
-    Lsm6dsoOdrFsm odr;
-  } fsm;
+
+// Estructura Principal md
+typedef struct {
+  lsm6dso_ui_t ui;
+  lsm6dso_ois_t ois;
+  lsm6dso_fsm_t fsm;
 } lsm6dso_md_t;
 
-// NACHO: Capaz podemos cambiar "typedef struct" por "struct Lsm6dsoData" -> Recordar cambiarlo en .cpp
-typedef struct
-{
-  struct
-  {
-    struct
-    {
-      float_t mg[3];
-      int16_t raw[3];
-    } xl;
-    struct
-    {
-      float_t mdps[3];
-      int16_t raw[3];
-    } gy;
-    struct
-    {
-      float_t deg_c;
-      int16_t raw;
-    } heat;
-  } ui;
-  struct
-  {
-    struct
-    {
-      float_t mg[3];
-      int16_t raw[3];
-    } xl;
-    struct
-    {
-      float_t mdps[3];
-      int16_t raw[3];
-    } gy;
-  } ois;
+// UI completo
+typedef struct {
+  lsm6dso_ui_xl_t xl;
+  lsm6dso_ui_gy_t gy;
+} lsm6dso_ui_t;
+
+// Acelerómetro UI
+typedef struct {
+  Lsm6dsoOdrXlUi odr;
+  Lsm6dsoFsXlUi fs;
+} lsm6dso_ui_xl_t;
+
+// Giroscopio UI
+typedef struct {
+  Lsm6dsoOdrGUi odr;
+  Lsm6dsoFsGUi fs;
+} lsm6dso_ui_gy_t;
+
+
+// OIS completo
+typedef struct {
+  Lsm6dsoCtrlMd ctrl_md;
+  lsm6dso_ois_xl_t xl;
+  lsm6dso_ois_gy_t gy;
+} lsm6dso_ois_t;
+
+// Acelerómetro OIS
+typedef struct {
+  Lsm6dsoOdrXlOisNoaux odr;
+  Lsm6dsoFsXlOisNoaux fs;
+} lsm6dso_ois_xl_t;
+
+// Giroscopio OIS
+typedef struct {
+  Lsm6dsoOdrGOisNoaux odr;
+  Lsm6dsoFsGOisNoaux fs;
+} lsm6dso_ois_gy_t;
+
+// FSM
+typedef struct {
+  Lsm6dsoSensFsm sens;
+  Lsm6dsoOdrFsm odr;
+} lsm6dso_fsm_t;
+
+
+// Estructura Principal Data
+typedef struct {
+  lsm6dso_data_ui_t ui;
+  lsm6dso_data_ois_t ois;
 } lsm6dso_data_t;
+
+
+// UI completo
+typedef struct {
+  lsm6dso_data_xl_t xl;
+  lsm6dso_data_gy_t gy;
+  lsm6dso_data_heat_t heat;
+} lsm6dso_data_ui_t;
+
+// Acelerómetro UI
+typedef struct {
+  float_t mg[3];
+  int16_t raw[3];
+} lsm6dso_data_xl_t;
+
+// Giroscopio UI
+typedef struct {
+  float_t mdps[3];
+  int16_t raw[3];
+} lsm6dso_data_gy_t;
+
+// Temperatura UI
+typedef struct {
+  float_t deg_c;
+  int16_t raw;
+} lsm6dso_data_heat_t;
+
+
+// OIS completo
+typedef struct {
+  lsm6dso_data_xl_t xl;
+  lsm6dso_data_gy_t gy;
+} lsm6dso_data_ois_t;
 
 
 // == LSM6DSO ==
@@ -429,38 +448,36 @@ public:
 			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
 
 private:
-	bool configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
-			Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+	bool configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
 
 	uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
-    uint8_t setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr);
-    uint8_t setConfigurationREG_CTRL3_C(Lsm6dsoIfInc ifInc);
-    uint8_t setConfigurationREG_CTRL6_C(Lsm6dsoXlHm xlHm);
-    uint8_t setConfigurationREG_CTRL7_G(Lsm6dsoGHm gHm);
+  uint8_t setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr);
+  uint8_t setConfigurationREG_CTRL3_C(Lsm6dsoIfInc ifInc);
+  uint8_t setConfigurationREG_CTRL6_C(Lsm6dsoXlHm xlHm);
+  uint8_t setConfigurationREG_CTRL7_G(Lsm6dsoGHm gHm);
 	uint8_t setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c);
-    uint8_t setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn sF);
-    uint8_t setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn intEn, Lsm6dsoInactEn inActEn);
+  uint8_t setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn sF);
+  uint8_t setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn intEn, Lsm6dsoInactEn inActEn);
 	uint8_t setConfigurationREG_WAKE_UP_THS(Lsm6dsoWakeThs wakeThs);
-    uint8_t setConfigurationREG_WAKE_UP_DUR(Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
-    uint8_t setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU);
+  uint8_t setConfigurationREG_WAKE_UP_DUR(Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+  uint8_t setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU);
 
-    bool writeRegister(uint8_t reg, uint8_t value);
+  bool writeRegister(uint8_t reg, uint8_t value);
 
 
-    float_t lsm6dso_from_fs2_to_mg(int16_t lsb);
-    float_t lsm6dso_from_fs4_to_mg(int16_t lsb);
-    float_t lsm6dso_from_fs8_to_mg(int16_t lsb);
-    float_t lsm6dso_from_fs16_to_mg(int16_t lsb);
-    float_t lsm6dso_from_lsb_to_celsius(int16_t lsb);
-    float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
-
-    int32_t lsm6dso_read_reg(const stmdev_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len);
-    int32_t lsm6dso_acceleration_raw_get (const stmdev_ctx_t *ctx, int16_t *val);
-    int32_t lsm6dso_data_get(const stmdev_ctx_t *ctx, const lsm6dso_md_t *md, lsm6dso_data_t *data);
+  float_t lsm6dso_from_fs2_to_mg(int16_t lsb);
+  float_t lsm6dso_from_fs4_to_mg(int16_t lsb);
+  float_t lsm6dso_from_fs8_to_mg(int16_t lsb);
+  float_t lsm6dso_from_fs16_to_mg(int16_t lsb);
+  float_t lsm6dso_from_lsb_to_celsius(int16_t lsb);
+  float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
+  int32_t lsm6dso_read_reg(const stmdev_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len);
+  int32_t lsm6dso_acceleration_raw_get (const stmdev_ctx_t *ctx, int16_t *val);
+  int32_t lsm6dso_data_get(const stmdev_ctx_t *ctx, const lsm6dso_md_t *md, lsm6dso_data_t *data);
 
 
 private:
-    uint8_t i2cAddr;
+  uint8_t i2cAddr;
 };
 
 
