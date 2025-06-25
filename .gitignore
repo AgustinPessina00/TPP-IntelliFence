@@ -29,7 +29,6 @@
 *.mxproject
 *.mxboard
 # VS Code & otros editores
-.vscode/
 *.code-workspace
 # Archivos swap/backup
 *~
@@ -50,12 +49,6 @@ Release/
 out/
 obj/
 
-# --- 6. Archivos generados por CubeMX -------
-Drivers/
-Middlewares/
-Core/Inc/stm32wlxx_hal_conf.h
-#. . . (si preferís trackear alguno, quitalo de aquí)
-
 # --- 7. Otros útiles ------------------------
 # Archivos temporales del sistema
 .DS_Store
@@ -70,5 +63,4 @@ Thumbs.db
 *.ninja
 *.check_cache
 /CMakeFiles/
-CMake*.txt
 *dirinfo.txt
