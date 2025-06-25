@@ -32,14 +32,20 @@ HeaderFiles#3=..\CM4\Core\Inc\main.h
 HeaderFolderListSize=1
 HeaderPath#0=..\CM4\Core\Inc
 HeaderFiles=;
-SourceFileListSize=4
+SourceFileListSize=5
 SourceFiles#0=..\CM4\Core\Src\app_freertos.c
 SourceFiles#1=..\CM4\Core\Src\stm32wlxx_it.c
 SourceFiles#2=..\CM4\Core\Src\stm32wlxx_hal_msp.c
-SourceFiles#3=..\CM4\Core\Src\main.c
+SourceFiles#3=..\CM4\Core\Src\stm32wlxx_hal_timebase_tim.c
+SourceFiles#4=..\CM4\Core\Src\main.c
 SourceFolderListSize=1
 SourcePath#0=..\CM4\Core\Src
 SourceFiles=;
+
+[CortexM4:PreviousUsedCMakes]
+SourceFiles=CM4\Core\Src\main.c;CM4\Core\Src\app_freertos.c;CM4\Core\Src\stm32wlxx_it.c;CM4\Core\Src\stm32wlxx_hal_msp.c;CM4\Core\Src\stm32wlxx_hal_timebase_tim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_adc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_adc_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_ll_adc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_gpio.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_cortex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_exti.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_lptim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_uart.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_uart_ex.c;Middlewares\Third_Party\FreeRTOS\Source\croutine.c;Middlewares\Third_Party\FreeRTOS\Source\event_groups.c;Middlewares\Third_Party\FreeRTOS\Source\list.c;Middlewares\Third_Party\FreeRTOS\Source\queue.c;Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c;Middlewares\Third_Party\FreeRTOS\Source\tasks.c;Middlewares\Third_Party\FreeRTOS\Source\timers.c;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c;Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3\port.c;Drivers\CMSIS\Device\ST\STM32WLxx\Source\Templates\system_stm32wlxx.c;;;Middlewares\Third_Party\FreeRTOS\Source\croutine.c;Middlewares\Third_Party\FreeRTOS\Source\event_groups.c;Middlewares\Third_Party\FreeRTOS\Source\list.c;Middlewares\Third_Party\FreeRTOS\Source\queue.c;Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c;Middlewares\Third_Party\FreeRTOS\Source\tasks.c;Middlewares\Third_Party\FreeRTOS\Source\timers.c;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c;Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3\port.c;
+HeaderPath=Drivers\STM32WLxx_HAL_Driver\Inc;Drivers\STM32WLxx_HAL_Driver\Inc\Legacy;Middlewares\Third_Party\FreeRTOS\Source\include;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3;Drivers\CMSIS\Device\ST\STM32WLxx\Include;Drivers\CMSIS\Include;CM4\Core\Inc;Drivers\STM32WLxx_HAL_Driver\Inc;Drivers\STM32WLxx_HAL_Driver\Inc\Legacy;Middlewares\Third_Party\FreeRTOS\Source\include;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3;Drivers\CMSIS\Device\ST\STM32WLxx\Include;Drivers\CMSIS\Include;
+CDefines=CORE_CM4;USE_HAL_DRIVER;STM32WL55xx;USE_HAL_DRIVER;USE_HAL_DRIVER;USE_HAL_DRIVER;
 
 [CortexM0Plus:PreviousGenFiles]
 AdvancedFolderStructure=true
@@ -58,6 +64,11 @@ SourceFolderListSize=1
 SourcePath#0=..\CM0PLUS\Core\Src
 SourceFiles=;
 
+[CortexM0Plus:PreviousUsedCMakes]
+SourceFiles=CM0PLUS\Core\Src\main.c;CM0PLUS\Core\Src\stm32wlxx_it.c;CM0PLUS\Core\Src\stm32wlxx_hal_msp.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_gpio.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_cortex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_exti.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim_ex.c;Drivers\CMSIS\Device\ST\STM32WLxx\Source\Templates\system_stm32wlxx.c;;;Middlewares\Third_Party\FreeRTOS\Source\croutine.c;Middlewares\Third_Party\FreeRTOS\Source\event_groups.c;Middlewares\Third_Party\FreeRTOS\Source\list.c;Middlewares\Third_Party\FreeRTOS\Source\queue.c;Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c;Middlewares\Third_Party\FreeRTOS\Source\tasks.c;Middlewares\Third_Party\FreeRTOS\Source\timers.c;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c;Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3\port.c;
+HeaderPath=Drivers\STM32WLxx_HAL_Driver\Inc;Drivers\STM32WLxx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32WLxx\Include;Drivers\CMSIS\Include;CM0PLUS\Core\Inc;Drivers\STM32WLxx_HAL_Driver\Inc;Drivers\STM32WLxx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32WLxx\Include;Drivers\CMSIS\Include;
+CDefines=CORE_CM0+;USE_HAL_DRIVER;STM32WL55xx;USE_HAL_DRIVER;USE_HAL_DRIVER;USE_HAL_DRIVER;
+
 [PreviousGenFiles]
 AdvancedFolderStructure=true
 HeaderFileListSize=7
@@ -72,16 +83,22 @@ HeaderFolderListSize=2
 HeaderPath#0=..\CM4\Core\Inc
 HeaderPath#1=..\CM0PLUS\Core\Inc
 HeaderFiles=;
-SourceFileListSize=7
+SourceFileListSize=8
 SourceFiles#0=..\CM4\Core\Src\app_freertos.c
 SourceFiles#1=..\CM4\Core\Src\stm32wlxx_it.c
 SourceFiles#2=..\CM4\Core\Src\stm32wlxx_hal_msp.c
-SourceFiles#3=..\CM4\Core\Src\main.c
-SourceFiles#4=..\CM0PLUS\Core\Src\stm32wlxx_it.c
-SourceFiles#5=..\CM0PLUS\Core\Src\stm32wlxx_hal_msp.c
-SourceFiles#6=..\CM0PLUS\Core\Src\main.c
+SourceFiles#3=..\CM4\Core\Src\stm32wlxx_hal_timebase_tim.c
+SourceFiles#4=..\CM4\Core\Src\main.c
+SourceFiles#5=..\CM0PLUS\Core\Src\stm32wlxx_it.c
+SourceFiles#6=..\CM0PLUS\Core\Src\stm32wlxx_hal_msp.c
+SourceFiles#7=..\CM0PLUS\Core\Src\main.c
 SourceFolderListSize=2
 SourcePath#0=..\CM4\Core\Src
 SourcePath#1=..\CM0PLUS\Core\Src
 SourceFiles=;
+
+[PreviousUsedCMakes]
+SourceFiles=CM0PLUS\Core\Src\main.c;CM4\Core\Src\main.c;CM4\Core\Src\app_freertos.c;CM4\Core\Src\stm32wlxx_it.c;CM4\Core\Src\stm32wlxx_hal_msp.c;CM4\Core\Src\stm32wlxx_hal_timebase_tim.c;CM0PLUS\Core\Src\stm32wlxx_it.c;CM0PLUS\Core\Src\stm32wlxx_hal_msp.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_adc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_adc_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_ll_adc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_gpio.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_cortex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_exti.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_lptim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_uart.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_uart_ex.c;Middlewares\Third_Party\FreeRTOS\Source\croutine.c;Middlewares\Third_Party\FreeRTOS\Source\event_groups.c;Middlewares\Third_Party\FreeRTOS\Source\list.c;Middlewares\Third_Party\FreeRTOS\Source\queue.c;Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c;Middlewares\Third_Party\FreeRTOS\Source\tasks.c;Middlewares\Third_Party\FreeRTOS\Source\timers.c;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c;Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3\port.c;Drivers\CMSIS\Device\ST\STM32WLxx\Source\Templates\system_stm32wlxx.c;Common\System\system_stm32wlxx.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_adc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_adc_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_ll_adc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_rcc_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_flash_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_gpio.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_dma_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_pwr_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_cortex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_exti.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_i2c_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_lptim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_tim_ex.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_uart.c;Drivers\STM32WLxx_HAL_Driver\Src\stm32wlxx_hal_uart_ex.c;Middlewares\Third_Party\FreeRTOS\Source\croutine.c;Middlewares\Third_Party\FreeRTOS\Source\event_groups.c;Middlewares\Third_Party\FreeRTOS\Source\list.c;Middlewares\Third_Party\FreeRTOS\Source\queue.c;Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c;Middlewares\Third_Party\FreeRTOS\Source\tasks.c;Middlewares\Third_Party\FreeRTOS\Source\timers.c;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c;Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3\port.c;Drivers\CMSIS\Device\ST\STM32WLxx\Source\Templates\system_stm32wlxx.c;Common\System\system_stm32wlxx.c;Common\System\system_stm32wlxx.c;Common\System\system_stm32wlxx.c;;;Middlewares\Third_Party\FreeRTOS\Source\croutine.c;Middlewares\Third_Party\FreeRTOS\Source\event_groups.c;Middlewares\Third_Party\FreeRTOS\Source\list.c;Middlewares\Third_Party\FreeRTOS\Source\queue.c;Middlewares\Third_Party\FreeRTOS\Source\stream_buffer.c;Middlewares\Third_Party\FreeRTOS\Source\tasks.c;Middlewares\Third_Party\FreeRTOS\Source\timers.c;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c;Middlewares\Third_Party\FreeRTOS\Source\portable\MemMang\heap_4.c;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3\port.c;
+HeaderPath=Drivers\STM32WLxx_HAL_Driver\Inc;Drivers\STM32WLxx_HAL_Driver\Inc\Legacy;Middlewares\Third_Party\FreeRTOS\Source\include;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM3;Drivers\CMSIS\Device\ST\STM32WLxx\Include;Drivers\CMSIS\Include;CM4\Core\Inc;CM0PLUS\Core\Inc;
+CDefines=CORE_CM0+;CORE_CM4;CORE_CM4;USE_HAL_DRIVER;STM32WL55xx;USE_HAL_DRIVER;USE_HAL_DRIVER;USE_HAL_DRIVER;CORE_CM0+;CORE_CM0+;USE_HAL_DRIVER;STM32WL55xx;USE_HAL_DRIVER;USE_HAL_DRIVER;USE_HAL_DRIVER;USE_HAL_DRIVER;
 

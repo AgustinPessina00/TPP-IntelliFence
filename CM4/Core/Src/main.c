@@ -49,7 +49,6 @@ LPTIM_HandleTypeDef hlptim1;
 LPTIM_HandleTypeDef hlptim2;
 
 TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim16;
 TIM_HandleTypeDef htim17;
 
@@ -68,7 +67,6 @@ osThreadId StimulusTaskHandle;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM17_Init(void);
 static void MX_ADC_Init(void);
@@ -79,47 +77,6 @@ static void MX_LPTIM2_Init(void);
 static void MX_TIM1_Init(void);
 void StartSensorAcqTask(void const * argument);
 void StartStimulusTask(void const * argument);
-
-void enterLowPowerSleep(void)
-{
-  // Asegurarse de limpiar interrupciones previas
-  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
-
-  // Deshabilitar SysTick para que no interrumpa durante el stop
-  HAL_SuspendTick();
-
-  // Habilitar wake-up por EXTI (ya debe estar configurado en NVIC / GPIO)
-  // No es necesario hacerlo explícitamente si CubeMX lo generó bien
-
-  // Entrar a modo STOP2
-  // HAL_PWREx_EnterSTOP2Mode(PWR_STOPENTRY_WFI);
-
-  // Entrar en modo SLEEP. El micro se detiene hasta que ocurra una interrupción.
-  // Cuando estás en HAL_PWR_EnterSLEEPMode(...), el micro queda esperando con la instrucción WFI (Wait For Interrupt).
-  /* Cuando el pin PA7 genera una interrupción (porque la IMU superó el umbral), STM32:
-      1. Salta a EXTI9_5_IRQHandler()
-      2. Vuelve a correr FreeRTOS
-      3. Sigue ejecutando la task donde se había detenido (SensorAcquisition)
-  */
-  HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-
-  // (Cuando una interrupción ocurre —ej: WAKE_UP de la IMU— el micro continúa aquí)
-
-  // Reanudar SysTick para que FreeRTOS vuelva a funcionar
-  HAL_ResumeTick();
-
-  // Reconfigurar el reloj si hace falta - Si vamos  STOP 2
-  // SystemClock_Config();  // Necesario si usás HSE/HSEBYP/HSE+PLL
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  if (GPIO_Pin == GPIO_PIN_7)
-  {
-    // Aquí te despertó la IMU por WAKE_UP
-    // Podés poner flags, logs, etc.
-  }
-}
 
 /* USER CODE BEGIN PFP */
 
@@ -159,7 +116,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
   MX_ADC_Init();
@@ -495,55 +451,6 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
-
-}
-
-/**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM2_Init(void)
-{
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-
-  /* USER CODE END TIM2_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
-  HAL_TIM_MspPostInit(&htim2);
 
 }
 
@@ -894,6 +801,27 @@ void StartStimulusTask(void const * argument)
     }
   }
   /* USER CODE END StartStimulusTask */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM2 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM2) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
 }
 
 /**

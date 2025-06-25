@@ -93,8 +93,6 @@ void Error_Handler(void);
 #define GPS_TIMEPULSE_GPIO_Port GPIOC
 #define ENABLE_LDO2_Pin GPIO_PIN_1
 #define ENABLE_LDO2_GPIO_Port GPIOA
-#define SIG_ELECTRICAL_Pin GPIO_PIN_11
-#define SIG_ELECTRICAL_GPIO_Port GPIOB
 #define RX_Pin GPIO_PIN_3
 #define RX_GPIO_Port GPIOA
 #define TX_Pin GPIO_PIN_2

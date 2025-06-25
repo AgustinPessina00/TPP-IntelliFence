@@ -1,1 +1,74 @@
-/Debug/
+# ─────────────────────────────────────────────
+# ░▒▓█  STM32WL55JC – dual core  █▓▒░
+# ─────────────────────────────────────────────
+# Mantén solo el código fuente y los archivos
+# de proyecto esenciales.  Todo lo generado o
+# específico de IDE/compilador queda fuera.
+# --------------------------------------------
+
+# --- 1. Salida de build (ambos cores) -------
+/CM0_PLUS/build/
+/CM4/build/
+**/build/
+
+# --- 2. Binarios y objetos -------------------
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.obj        # lo que pediste
+*.o
+
+# --- 3. Carpetas de configuración IDE -------
+# STM32CubeIDE / Eclipse
+.cproject
+.project
+.settings/
+*.launch
+*.mxproject
+*.mxboard
+# VS Code & otros editores
+.vscode/
+*.code-workspace
+# Archivos swap/backup
+*~
+*.swp
+*.swo
+*.bak
+
+# --- 4. Archivos de depuración --------------
+*.log
+*.d
+*.dep
+*.su
+
+# --- 5. Salidas intermedias de toolchain ----
+Debug/
+Release/
+# Carpetas generadas por make o ninja
+out/
+obj/
+
+# --- 6. Archivos generados por CubeMX -------
+Drivers/
+Middlewares/
+Core/Inc/stm32wlxx_hal_conf.h
+#. . . (si preferís trackear alguno, quitalo de aquí)
+
+# --- 7. Otros útiles ------------------------
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos temporales de CMake ExternalProject
+*.stamp
+*_info.txt
+*-info.txt
+*-cfgcmd.txt
+*.cmake
+*.ninja
+*.check_cache
+/CMakeFiles/
+CMake*.txt
+*dirinfo.txt
