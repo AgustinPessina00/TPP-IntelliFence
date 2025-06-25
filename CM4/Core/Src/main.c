@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -54,6 +55,8 @@ TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart2;
 
+osThreadId SensorAcqTaskHandle;
+osThreadId StimulusTaskHandle;
 /* USER CODE BEGIN PV */
 //static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
 
@@ -74,6 +77,50 @@ static void MX_USART2_UART_Init(void);
 static void MX_LPTIM1_Init(void);
 static void MX_LPTIM2_Init(void);
 static void MX_TIM1_Init(void);
+void StartSensorAcqTask(void const * argument);
+void StartStimulusTask(void const * argument);
+
+void enterLowPowerSleep(void)
+{
+  // Asegurarse de limpiar interrupciones previas
+  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+
+  // Deshabilitar SysTick para que no interrumpa durante el stop
+  HAL_SuspendTick();
+
+  // Habilitar wake-up por EXTI (ya debe estar configurado en NVIC / GPIO)
+  // No es necesario hacerlo explícitamente si CubeMX lo generó bien
+
+  // Entrar a modo STOP2
+  // HAL_PWREx_EnterSTOP2Mode(PWR_STOPENTRY_WFI);
+
+  // Entrar en modo SLEEP. El micro se detiene hasta que ocurra una interrupción.
+  // Cuando estás en HAL_PWR_EnterSLEEPMode(...), el micro queda esperando con la instrucción WFI (Wait For Interrupt).
+  /* Cuando el pin PA7 genera una interrupción (porque la IMU superó el umbral), STM32:
+      1. Salta a EXTI9_5_IRQHandler()
+      2. Vuelve a correr FreeRTOS
+      3. Sigue ejecutando la task donde se había detenido (SensorAcquisition)
+  */
+  HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+
+  // (Cuando una interrupción ocurre —ej: WAKE_UP de la IMU— el micro continúa aquí)
+
+  // Reanudar SysTick para que FreeRTOS vuelva a funcionar
+  HAL_ResumeTick();
+
+  // Reconfigurar el reloj si hace falta - Si vamos  STOP 2
+  // SystemClock_Config();  // Necesario si usás HSE/HSEBYP/HSE+PLL
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == GPIO_PIN_7)
+  {
+    // Aquí te despertó la IMU por WAKE_UP
+    // Podés poner flags, logs, etc.
+  }
+}
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -121,12 +168,44 @@ int main(void)
   MX_LPTIM1_Init();
   MX_LPTIM2_Init();
   MX_TIM1_Init();
-
   /* USER CODE BEGIN 2 */
   uint8_t txData[] = "Hola!\r\n";
   uint8_t rxData[10]; // Buffer para la respuesta del esclavo
   /* USER CODE END 2 */
 
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of SensorAcqTask */
+  osThreadDef(SensorAcqTask, StartSensorAcqTask, osPriorityNormal, 0, 128);
+  SensorAcqTaskHandle = osThreadCreate(osThread(SensorAcqTask), NULL);
+
+  /* definition and creation of StimulusTask */
+  osThreadDef(StimulusTask, StartStimulusTask, osPriorityNormal, 0, 128);
+  StimulusTaskHandle = osThreadCreate(osThread(StimulusTask), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Boot CPU2 */
   HAL_PWREx_ReleaseCore(PWR_CORE_CPU2);
 
@@ -135,18 +214,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
-	// Enviar datos al esclavo
-	if (HAL_I2C_Master_Transmit(&hi2c2, GPS_ADDRESS, txData, sizeof(txData), TIMEOUT) != HAL_OK) {
-		// Manejo de error
-
-	}
-	// Esperar respuesta del esclavo
-	if (HAL_I2C_Master_Receive(&hi2c1, GPS_ADDRESS, rxData, sizeof(rxData), TIMEOUT) == HAL_OK) {
-		// Procesar respuesta
-
-	}
-	HAL_Delay(1000); // Esperar antes de volver a enviar
 
     /* USER CODE BEGIN 3 */
   }
@@ -712,6 +779,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -719,6 +790,111 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartSensorAcqTask */
+/**
+  * @brief  Function implementing the SensorAcqTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartSensorAcqTask */
+void StartSensorAcqTask(void const * argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  gps_data_t gps;
+  zone_t zone;
+  imu_data_t imu;
+  distance_t dist;
+
+  for (;;)
+  {
+    // === 1. Leer GPS ===
+    if (GPS_ReadPosition(&gps) != HAL_OK)
+    {
+      gps_error_count++;
+      continue;  // volver a intentar luego
+    }
+
+    // === 2. Determinar distancia a cerca virtual y zona ===
+    dist = calculateDistanceToFence(gps); // función tuya
+    zone = determineZoneFromDistance(dist); // BLUE, YELLOW, RED, GREEN
+
+    // === 3. Si no está en GREEN_ZONE, mandar estímulo ===
+    if (zone != GREEN_ZONE)
+    {
+      xQueueSend(StimulusQueueHandle, &zone, 0); // Despierta StimulusTask
+    }
+    else
+    {
+      // === 4. Leer IMU ===
+      if (LSM6DSO_ReadAccelGyro(&imu) == HAL_OK)
+      {
+        state_t state = classifyMotion(imu);  // GRAZING, SLEEP, MOVEMENT
+
+        switch (state)
+        {
+          case GRAZING:
+            GPS_SetAcquisitionRate(SLOW); // p.ej. 1 muestra/30 min
+            break;
+
+          case SLEEP:
+            GPS_SetAcquisitionRate(VERY_SLOW);  // 1 muestra/hora
+            enterLowPowerSleep();  // El micro se duerme, IMU genera WAKE_UP
+            break;
+
+          case MOVEMENT:
+            if (dist < NEAR_LIMIT)
+              GPS_SetAcquisitionRate(MEDIUM);
+            else
+              GPS_SetAcquisitionRate(FAST);  // para saber si se acerca al límite
+            break;
+        }
+      }
+    }
+
+    osDelay(GPS_SAMPLE_RATE);  // p.ej. 1 vez por minuto o lo que hayas configurado
+  }
+
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartStimulusTask */
+/**
+* @brief Function implementing the StimulusTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartStimulusTask */
+void StartStimulusTask(void const * argument)
+{
+  /* USER CODE BEGIN StartStimulusTask */
+  /* Infinite loop */
+  zone_t zone;
+
+  for (;;)
+  {
+    if (xQueueReceive(StimulusQueueHandle, &zone, portMAX_DELAY) == pdPASS)
+    {
+      switch (zone)
+      {
+        case BLUE_ZONE:
+          activateSoundStimulus();
+          break;
+
+        case YELLOW_ZONE:
+          activateSoundStimulus();
+          activateVibrationStimulus();
+          break;
+
+        case RED_ZONE:
+          activateShockStimulus();
+          break;
+      }
+    }
+  }
+  /* USER CODE END StartStimulusTask */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
