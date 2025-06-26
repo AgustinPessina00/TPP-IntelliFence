@@ -93,20 +93,20 @@ void Error_Handler(void);
 #define GPS_TIMEPULSE_GPIO_Port GPIOC
 #define ENABLE_LDO2_Pin GPIO_PIN_1
 #define ENABLE_LDO2_GPIO_Port GPIOA
-#define SIG_ELECTRICAL_Pin GPIO_PIN_11
-#define SIG_ELECTRICAL_GPIO_Port GPIOB
 #define RX_Pin GPIO_PIN_3
 #define RX_GPIO_Port GPIOA
 #define TX_Pin GPIO_PIN_2
 #define TX_GPIO_Port GPIOA
 #define IMU_INT1_Pin GPIO_PIN_7
 #define IMU_INT1_GPIO_Port GPIOA
+#define IMU_INT1_EXTI_IRQn EXTI9_5_IRQn
 #define LPTIM2_OUT_Pin GPIO_PIN_4
 #define LPTIM2_OUT_GPIO_Port GPIOA
 #define GPS_SAFEBOOT_N_Pin GPIO_PIN_5
 #define GPS_SAFEBOOT_N_GPIO_Port GPIOA
 #define IMU_INT2_Pin GPIO_PIN_8
 #define IMU_INT2_GPIO_Port GPIOA
+#define IMU_INT2_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
 

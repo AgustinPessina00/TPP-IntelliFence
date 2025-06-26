@@ -65,6 +65,7 @@ void Error_Handler(void);
 #define ALERT_IMU_GPIO_Port GPIOB
 #define ALERT_GPS_Pin GPIO_PIN_5
 #define ALERT_GPS_GPIO_Port GPIOB
+#define ALERT_GPS_EXTI_IRQn EXTI9_5_IRQn
 #define ALERT_MCU_Pin GPIO_PIN_12
 #define ALERT_MCU_GPIO_Port GPIOB
 
