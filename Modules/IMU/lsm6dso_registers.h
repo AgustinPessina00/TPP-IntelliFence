@@ -1,4 +1,3 @@
-
 #ifndef LSM6DSO_REGISTERS_H
 #define LSM6DSO_REGISTERS_H
 
