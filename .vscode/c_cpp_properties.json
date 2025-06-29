@@ -1,0 +1,19 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "STM32",
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "intelliSenseMode": "${default}",
+            "includePath": [
+                "${default}",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}",
+                "${workspaceFolder}/CM4/Core/Inc",
+                "${workspaceFolder}/Drivers/STM32WLxx_HAL_Driver/Inc",
+                "${workspaceFolder}/Drivers/CMSIS/Include",
+                "C:/ST/STM32CubeCLT_1.18.0/GNU-tools-for-STM32/"
+            ]
+        }
+    ]
+}
