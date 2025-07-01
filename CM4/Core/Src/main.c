@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -57,11 +56,7 @@ UART_HandleTypeDef huart2;
 osThreadId SensorAcqTaskHandle;
 osThreadId StimulusTaskHandle;
 /* USER CODE BEGIN PV */
-//static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
 
-//static const uint8_t IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
-
-#define TIMEOUT 100 // Timeout en ms
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,6 +72,46 @@ static void MX_LPTIM2_Init(void);
 static void MX_TIM1_Init(void);
 void StartSensorAcqTask(void const * argument);
 void StartStimulusTask(void const * argument);
+
+void enterLowPowerSleep(void)
+{
+  // Asegurarse de limpiar interrupciones previas
+  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+
+  // Deshabilitar SysTick para que no interrumpa durante el stop
+  HAL_SuspendTick();
+
+  // Habilitar wake-up por EXTI (ya debe estar configurado en NVIC / GPIO)
+  // No es necesario hacerlo explícitamente si CubeMX lo generó bien
+
+  // Entrar a modo STOP2
+  //HAL_PWREx_EnterSTOP2Mode(PWR_STOPENTRY_WFI);
+
+  // Entrar en modo SLEEP. El micro se detiene hasta que ocurra una interrupción.
+  HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+
+  // (El micro ahora está detenido. Al despertar vuelve desde aquí)
+
+  // Reanudar SysTick para que FreeRTOS vuelva a funcionar
+  HAL_ResumeTick();
+
+  // Reconfigurar el reloj si hace falta
+  SystemClock_Config();  // Necesario si usás HSE/HSEBYP/HSE+PLL
+}
+
+state_t classifyMotion(imu_data_t imu)
+{
+  float abs_ax = fabsf(imu.ax);
+  float abs_ay = fabsf(imu.ay);
+  float abs_az = fabsf(imu.az);
+
+  if (abs_ax < 0.05f && abs_ay < 0.05f && abs_az < 0.05f)
+    return SLEEP;
+  else if (abs_ax < 0.05f && abs_ay < 0.05f && abs_az > 0.1f)
+    return GRAZING;
+  else
+    return MOVEMENT;
+}
 
 /* USER CODE BEGIN PFP */
 
@@ -723,9 +758,15 @@ void StartSensorAcqTask(void const * argument)
       continue;  // volver a intentar luego
     }
 
+    // Mostrar GPS Read por UART
+    printf("GPS read: lat=%.5f, lon=%.5f\r\n", gps.latitude, gps.longitude);
+
     // === 2. Determinar distancia a cerca virtual y zona ===
     dist = calculateDistanceToFence(gps); // función tuya
     zone = determineZoneFromDistance(dist); // BLUE, YELLOW, RED, GREEN
+
+    // Mostrar Zona por UART
+    printf("Zone: %d, Distance: %.2f m\r\n", zone, dist);
 
     // === 3. Si no está en GREEN_ZONE, mandar estímulo ===
     if (zone != GREEN_ZONE)
@@ -737,6 +778,9 @@ void StartSensorAcqTask(void const * argument)
       // === 4. Leer IMU ===
       if (LSM6DSO_ReadAccelGyro(&imu) == HAL_OK)
       {
+        // Mostrar IMU Read por UART
+        printf("IMU: ax=%.2f, ay=%.2f, az=%.2f -> State: %d\r\n", imu.ax, imu.ay, imu.az, state);
+
         state_t state = classifyMotion(imu);  // GRAZING, SLEEP, MOVEMENT
 
         switch (state)
