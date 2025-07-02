@@ -160,8 +160,6 @@ int main(void)
   MX_LPTIM2_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t txData[] = "Hola!\r\n";
-  uint8_t rxData[10]; // Buffer para la respuesta del esclavo
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
