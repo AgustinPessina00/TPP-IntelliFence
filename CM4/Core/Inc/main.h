@@ -32,7 +32,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "cow.h"
+#include "fence.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -116,44 +117,6 @@ void Error_Handler(void);
 //static const uint8_t IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
 
 #define TIMEOUT 100                   // Timeout en ms
-#define NEAR_LIMIT  10.0f             // en metros
-#define GPS_SAMPLE_RATE  (60 * 1000)  // en milisegundos (ej: 60s)
-
-typedef struct {
-  float latitude;
-  float longitude;
-} gps_data_t;
-
-typedef enum {
-  GREEN_ZONE,
-  BLUE_ZONE,
-  YELLOW_ZONE,
-  RED_ZONE
-} zone_t;
-
-typedef struct {
-  float ax; // aceleración eje X
-  float ay; // aceleración eje Y
-  float az; // aceleración eje Z
-} imu_data_t;
-
-typedef enum {
-  GRAZING,
-  SLEEP,
-  MOVEMENT
-} state_t;
-
-typedef float distance_t;
-
-typedef enum {
-  VERY_SLOW,
-  SLOW,
-  MEDIUM,
-  FAST
-} gps_rate_t;
-
-void enterLowPowerSleep(void);
-state_t classifyMotion(imu_data_t imu);
 
 /* USER CODE END Private defines */
 
