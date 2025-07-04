@@ -7,8 +7,7 @@
 enum class CowState {
     SLEEP,
     GRAZING,
-    NEAR_FENCE,
-    FAR_FENCE
+    MOVEMENT
 };
 
 struct Position {

@@ -8,24 +8,30 @@ void stimulusTask(void *argument) {
 
     for (;;) 
     {
-        if (xQueueReceive(StimulusQueueHandle, &zone, portMAX_DELAY) == pdPASS)
+        if (xQueueReceive(StimulusQueueHandle, &zone, 0) == pdPASS)
         {
             switch (zone)
             {
                 case BLUE_ZONE:
-                    activateSoundStimulus();
+                    activateSoundStimulus(); //TODO: crear función. 
                     break;
 
                 case YELLOW_ZONE:
-                    activateSoundStimulus();
-                    activateVibrationStimulus();
+                    activateSoundStimulus(); 
+                    activateVibrationStimulus(); //TODO: crear función. 
                     break;
 
                 case RED_ZONE:
-                    activateShockStimulus();
+                    activateShockStimulus(); //TODO: crear función.
+                    break;
+
+                case BLACK_ZONE:
+                    sendScapedMessage(); //TODO: crear función.
                     break;
             }
         }
+
+        osDelay(50);  // esperar 50 ms antes de volver a revisar
     }
     /* USER CODE END StartStimulusTask */
 }

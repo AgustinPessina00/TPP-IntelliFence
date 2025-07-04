@@ -9,17 +9,9 @@ extern "C" {
 #include "task.h"
 
 #include "cow.h"
-// #include "fence.h"
+#include "fence.h"
 
-enum zone_t {
-    GREEN_ZONE,
-    BLUE_ZONE,
-    YELLOW_ZONE,
-    RED_ZONE,
-    BLACK_ZONE
-};
-
-void stimulusTask(Cow *cow);
+void stimulusTask(void *argument);
 
 #ifdef __cplusplus
 }
