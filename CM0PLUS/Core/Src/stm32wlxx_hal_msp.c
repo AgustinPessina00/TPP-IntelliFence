@@ -1,4 +1,3 @@
-
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -76,19 +75,19 @@ void HAL_MspInit(void)
 }
 
 /**
-* @brief I2C MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hi2c: I2C handle pointer
-* @retval None
-*/
+  * @brief I2C MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param hi2c: I2C handle pointer
+  * @retval None
+  */
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 {
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
   if(hi2c->Instance==I2C2)
   {
-  /* USER CODE BEGIN I2C2_MspInit 0 */
+    /* USER CODE BEGIN I2C2_MspInit 0 */
 
-  /* USER CODE END I2C2_MspInit 0 */
+    /* USER CODE END I2C2_MspInit 0 */
 
   /** Initializes the peripherals clocks
   */
@@ -101,33 +100,128 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 
     /* Peripheral clock enable */
     __HAL_RCC_I2C2_CLK_ENABLE();
-  /* USER CODE BEGIN I2C2_MspInit 1 */
+    /* USER CODE BEGIN I2C2_MspInit 1 */
 
-  /* USER CODE END I2C2_MspInit 1 */
+    /* USER CODE END I2C2_MspInit 1 */
 
   }
 
 }
 
 /**
-* @brief I2C MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hi2c: I2C handle pointer
-* @retval None
-*/
+  * @brief I2C MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param hi2c: I2C handle pointer
+  * @retval None
+  */
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 {
   if(hi2c->Instance==I2C2)
   {
-  /* USER CODE BEGIN I2C2_MspDeInit 0 */
+    /* USER CODE BEGIN I2C2_MspDeInit 0 */
 
-  /* USER CODE END I2C2_MspDeInit 0 */
+    /* USER CODE END I2C2_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_I2C2_CLK_DISABLE();
-  /* USER CODE BEGIN I2C2_MspDeInit 1 */
+    /* USER CODE BEGIN I2C2_MspDeInit 1 */
 
-  /* USER CODE END I2C2_MspDeInit 1 */
+    /* USER CODE END I2C2_MspDeInit 1 */
   }
+
+}
+
+/**
+  * @brief IPCC MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param hipcc: IPCC handle pointer
+  * @retval None
+  */
+void HAL_IPCC_MspInit(IPCC_HandleTypeDef* hipcc)
+{
+  if(hipcc->Instance==IPCC)
+  {
+    /* USER CODE BEGIN IPCC_MspInit 0 */
+
+    /* USER CODE END IPCC_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_IPCC_CLK_ENABLE();
+    /* IPCC interrupt Init */
+    HAL_NVIC_SetPriority(IPCC_C2_RX_C2_TX_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(IPCC_C2_RX_C2_TX_IRQn);
+    /* USER CODE BEGIN IPCC_MspInit 1 */
+
+    /* USER CODE END IPCC_MspInit 1 */
+
+  }
+
+}
+
+/**
+  * @brief IPCC MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param hipcc: IPCC handle pointer
+  * @retval None
+  */
+void HAL_IPCC_MspDeInit(IPCC_HandleTypeDef* hipcc)
+{
+  if(hipcc->Instance==IPCC)
+  {
+    /* USER CODE BEGIN IPCC_MspDeInit 0 */
+
+    /* USER CODE END IPCC_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_IPCC_CLK_DISABLE();
+
+    /* IPCC interrupt DeInit */
+    HAL_NVIC_DisableIRQ(IPCC_C2_RX_C2_TX_IRQn);
+    /* USER CODE BEGIN IPCC_MspDeInit 1 */
+
+    /* USER CODE END IPCC_MspDeInit 1 */
+  }
+
+}
+
+/**
+  * @brief SUBGHZ MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param hsubghz: SUBGHZ handle pointer
+  * @retval None
+  */
+void HAL_SUBGHZ_MspInit(SUBGHZ_HandleTypeDef* hsubghz)
+{
+    /* USER CODE BEGIN SUBGHZ_MspInit 0 */
+
+    /* USER CODE END SUBGHZ_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_SUBGHZSPI_CLK_ENABLE();
+    /* SUBGHZ interrupt Init */
+    HAL_NVIC_SetPriority(SUBGHZ_Radio_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(SUBGHZ_Radio_IRQn);
+    /* USER CODE BEGIN SUBGHZ_MspInit 1 */
+
+    /* USER CODE END SUBGHZ_MspInit 1 */
+
+}
+
+/**
+  * @brief SUBGHZ MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param hsubghz: SUBGHZ handle pointer
+  * @retval None
+  */
+void HAL_SUBGHZ_MspDeInit(SUBGHZ_HandleTypeDef* hsubghz)
+{
+    /* USER CODE BEGIN SUBGHZ_MspDeInit 0 */
+
+    /* USER CODE END SUBGHZ_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_SUBGHZSPI_CLK_DISABLE();
+
+    /* SUBGHZ interrupt DeInit */
+    HAL_NVIC_DisableIRQ(SUBGHZ_Radio_IRQn);
+    /* USER CODE BEGIN SUBGHZ_MspDeInit 1 */
+
+    /* USER CODE END SUBGHZ_MspDeInit 1 */
 
 }
 
