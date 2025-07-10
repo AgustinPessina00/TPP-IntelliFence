@@ -229,29 +229,6 @@ enum class Lsm6dsoIntWU : uint8_t {
 
 // === OUTPUTS ===
 
-/* ¿Cuándo conviene eliminar ctx?
-Si sólo vas a usar I2C (y no SPI).
-Si siempre usás el mismo hi2cX (como hi2c2).
-Si no querés usar callbacks genéricos y preferís llamadas directas a HAL_I2C_Mem_Read y Write.
-*/
-
-/*
-typedef int32_t (*stmdev_write_ptr)(void *, uint8_t, const uint8_t *, uint16_t);
-typedef int32_t (*stmdev_read_ptr)(void *, uint8_t, uint8_t *, uint16_t);
-typedef void (*stmdev_mdelay_ptr)(uint32_t millisec);
-
-typedef struct
-{
-  // Component mandatory fields 
-  stmdev_write_ptr  write_reg;
-  stmdev_read_ptr   read_reg;
-  // Component optional fields 
-  stmdev_mdelay_ptr   mdelay;
-  // Customizable optional pointer 
-  void *handle;
-} stmdev_ctx_t;
-*/
-
 enum class Lsm6dsoOdrXlUi : uint8_t {
 	LSM6DSO_XL_UI_OFF         = 0x00, /* in power down */
 	LSM6DSO_XL_UI_1Hz6_LP     = 0x1B, /* @1Hz6 (low power) */
@@ -482,11 +459,8 @@ private:
   float_t lsm6dso_from_fs16_to_mg(int16_t lsb);
   float_t lsm6dso_from_lsb_to_celsius(int16_t lsb);
   float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
-  // int32_t lsm6dso_read_reg(const stmdev_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len);
   int32_t lsm6dso_read_reg(uint8_t reg, uint8_t *data, uint16_t len);
-  // int32_t lsm6dso_acceleration_raw_get (const stmdev_ctx_t *ctx, int16_t *val);
   int32_t lsm6dso_acceleration_raw_get(int16_t *val);
-  // int32_t lsm6dso_data_get(const stmdev_ctx_t *ctx, const lsm6dso_md_t *md, lsm6dso_data_t *data);
   int32_t lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data);
 
   uint8_t i2cAddr;
