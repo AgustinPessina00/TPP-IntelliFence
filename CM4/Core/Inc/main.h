@@ -55,6 +55,8 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
+void MX_IPCC_Init(void);
+void MX_RTC_Init(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -95,10 +97,6 @@ void Error_Handler(void);
 #define GPS_TIMEPULSE_GPIO_Port GPIOC
 #define ENABLE_LDO2_Pin GPIO_PIN_1
 #define ENABLE_LDO2_GPIO_Port GPIOA
-#define RX_Pin GPIO_PIN_3
-#define RX_GPIO_Port GPIOA
-#define TX_Pin GPIO_PIN_2
-#define TX_GPIO_Port GPIOA
 #define IMU_INT1_Pin GPIO_PIN_7
 #define IMU_INT1_GPIO_Port GPIOA
 #define IMU_INT1_EXTI_IRQn EXTI9_5_IRQn

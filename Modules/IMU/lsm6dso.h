@@ -2,6 +2,8 @@
 #define MODULES_IMU_LSM6DSO_H_
 
 #include "lsm6dso_registers.h"
+#include "stm32wlxx_hal.h"
+#include "sensorDataType.h"
 
 // === Máscaras de campos de los registros ===
 #define LSM6DSO_ODR_XL_MASK     	(0b1111 	<< ODR_XL3)		    // CTRL1_XL (0x10)
@@ -227,21 +229,6 @@ enum class Lsm6dsoIntWU : uint8_t {
 
 // === OUTPUTS ===
 
-typedef int32_t (*stmdev_write_ptr)(void *, uint8_t, const uint8_t *, uint16_t);
-typedef int32_t (*stmdev_read_ptr)(void *, uint8_t, uint8_t *, uint16_t);
-typedef void (*stmdev_mdelay_ptr)(uint32_t millisec);
-
-typedef struct
-{
-  /** Component mandatory fields **/
-  stmdev_write_ptr  write_reg;
-  stmdev_read_ptr   read_reg;
-  /** Component optional fields **/
-  stmdev_mdelay_ptr   mdelay;
-  /** Customizable optional pointer **/
-  void *handle;
-} stmdev_ctx_t;
-
 enum class Lsm6dsoOdrXlUi : uint8_t {
 	LSM6DSO_XL_UI_OFF         = 0x00, /* in power down */
 	LSM6DSO_XL_UI_1Hz6_LP     = 0x1B, /* @1Hz6 (low power) */
@@ -443,8 +430,10 @@ typedef struct {
 
 class Lsm6dso {
 public:
-	Lsm6dso(uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
+	Lsm6dso(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
 			    Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+
+	HAL_StatusTypeDef readAcceleration(Acceleration *accel);
 
 private:
 	bool configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
@@ -470,13 +459,12 @@ private:
   float_t lsm6dso_from_fs16_to_mg(int16_t lsb);
   float_t lsm6dso_from_lsb_to_celsius(int16_t lsb);
   float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
-  int32_t lsm6dso_read_reg(const stmdev_ctx_t *ctx, uint8_t reg, uint8_t *data, uint16_t len);
-  int32_t lsm6dso_acceleration_raw_get (const stmdev_ctx_t *ctx, int16_t *val);
-  int32_t lsm6dso_data_get(const stmdev_ctx_t *ctx, const lsm6dso_md_t *md, lsm6dso_data_t *data);
+  int32_t lsm6dso_read_reg(uint8_t reg, uint8_t *data, uint16_t len);
+  int32_t lsm6dso_acceleration_raw_get(int16_t *val);
+  int32_t lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data);
 
-
-private:
   uint8_t i2cAddr;
+  I2C_HandleTypeDef *hi2c2;
 };
 
 

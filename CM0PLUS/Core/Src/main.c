@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "app_lorawan.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -41,6 +42,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c2;
+
+IPCC_HandleTypeDef hipcc;
+
+SUBGHZ_HandleTypeDef hsubghz;
 
 /* USER CODE BEGIN PV */
 
@@ -93,6 +98,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+    MX_LoRaWAN_Process();
 
     /* USER CODE BEGIN 3 */
   }
@@ -148,6 +154,58 @@ static void MX_I2C2_Init(void)
 }
 
 /**
+  * @brief IPCC Initialization Function
+  * @param None
+  * @retval None
+  */
+void MX_IPCC_Init(void)
+{
+
+  /* USER CODE BEGIN IPCC_Init 0 */
+
+  /* USER CODE END IPCC_Init 0 */
+
+  /* USER CODE BEGIN IPCC_Init 1 */
+
+  /* USER CODE END IPCC_Init 1 */
+  hipcc.Instance = IPCC;
+  if (HAL_IPCC_Init(&hipcc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IPCC_Init 2 */
+
+  /* USER CODE END IPCC_Init 2 */
+
+}
+
+/**
+  * @brief SUBGHZ Initialization Function
+  * @param None
+  * @retval None
+  */
+void MX_SUBGHZ_Init(void)
+{
+
+  /* USER CODE BEGIN SUBGHZ_Init 0 */
+
+  /* USER CODE END SUBGHZ_Init 0 */
+
+  /* USER CODE BEGIN SUBGHZ_Init 1 */
+
+  /* USER CODE END SUBGHZ_Init 1 */
+  hsubghz.Init.BaudratePrescaler = SUBGHZSPI_BAUDRATEPRESCALER_8;
+  if (HAL_SUBGHZ_Init(&hsubghz) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SUBGHZ_Init 2 */
+
+  /* USER CODE END SUBGHZ_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -155,8 +213,8 @@ static void MX_I2C2_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOB_CLK_ENABLE();
@@ -167,8 +225,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
