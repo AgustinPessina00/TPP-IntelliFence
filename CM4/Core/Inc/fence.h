@@ -7,11 +7,11 @@
 typedef float threshold_t;
 
 enum zone_t {
-    GREEN_ZONE,
-    BLUE_ZONE,
-    YELLOW_ZONE,
-    RED_ZONE,
-    BLACK_ZONE
+    GREEN_ZONE = 0,
+    BLUE_ZONE = 1,
+    YELLOW_ZONE = 2,
+    RED_ZONE = 3,
+    BLACK_ZONE = 4
 };
 
 struct Vertex {
@@ -29,10 +29,10 @@ public:
     Fence();
 
     void addVertex(const Vertex& v);
-    void updateLimites();  // recalcula segmentos a partir de vértices
+    void updateLimits();  // recalcula segmentos a partir de vértices
 
     const std::vector<Vertex>& getVertices() const;
-    const std::vector<Line>& getlimites() const;
+    const std::vector<Line>& getLimits() const;
 
     // Setea umbrales para cada zona desde el límite del polígono
     void setZoneThresholds(threshold_t blue, threshold_t yellow, threshold_t red);

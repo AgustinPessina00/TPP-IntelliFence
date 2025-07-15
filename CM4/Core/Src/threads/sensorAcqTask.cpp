@@ -34,16 +34,16 @@ CowState classifyMotion(Acceleration imu)
   float abs_az = fabsf(imu.az);
 
   if (abs_ax < 0.05f && abs_ay < 0.05f && abs_az < 0.05f)
-    return SLEEP;
+    return CowState::SLEEP;
   else if (abs_ax < 0.05f && abs_ay < 0.05f && abs_az > 0.1f)
-    return GRAZING;
+    return CowState::GRAZING;
   else
-    return MOVEMENT;
+    return CowState::MOVEMENT;
 }
 
 zone_t getZoneForDistance(distance_t dist, Fence fence)
 {
-    for (int i = 0; i < BLACK_ZONE; i++)
+    for (int i = GREEN_ZONE; i < BLACK_ZONE; i++)
     {
       if (dist < fence.getThresholds[i])
         return static_cast<zone_t>(i - 1);  // zona anterior
@@ -52,12 +52,12 @@ zone_t getZoneForDistance(distance_t dist, Fence fence)
     return BLACK_ZONE;
 }
 
-// TODO: Deberíamos pasar como argumento Cow *cow y Fence *fence o se hace mediante una QUEUE?
-void sensorAcqTask(void *argument) {
+// TODO: Deberíamos pasar como argumento Cow cow y Fence fence o se hace mediante una QUEUE?
+void sensorAcqTask(Cow cow, Fence fence, lsm6dso imu, samm10q gps) {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
-  Position gps;
-  Acceleration imu;
+  Position pos;
+  Acceleration acc;
   distance_t dist;
   zone_t zone; 
   CowState state;
@@ -65,7 +65,8 @@ void sensorAcqTask(void *argument) {
   for (;;)
   {
     // === 1. Leer GPS ===
-    if (GPS_ReadPosition(&gps) != HAL_OK)
+    // TODO: Cambiar GPS_ReadPosition por la que va
+    if (gps.GPS_ReadPosition(&pos) != HAL_OK)
     {
       gps_error_count++;
       continue;  // volver a intentar luego
@@ -77,7 +78,7 @@ void sensorAcqTask(void *argument) {
     printf("GPS read: lat=%.5f, lon=%.5f\r\n", gps.latitude, gps.longitude);
 
     // === 2. Determinar distancia a cerca virtual y zona ===
-    dist = calculateDistanceToLimit(cow.getPosition(), fence.getSegments()); // TODO: Implementar esta función.
+    dist = calculateDistanceToLimit(cow.getPosition(), fence.getLimits()); // TODO: Implementar esta función.
     zone = getZoneFromDistance(dist, fence); // GREEN, BLUE, YELLOW, RED, BLACK
 
     // Mostrar Zona por UART
@@ -92,7 +93,7 @@ void sensorAcqTask(void *argument) {
     else
     {
       // === 4. Leer IMU ===
-      if (LSM6DSO_ReadAccelGyro(&imu) == HAL_OK)
+      if (imu.readAcceleration(&acc) == HAL_OK)
       {
         cow.updateAcceleration(imu);
         
@@ -103,22 +104,20 @@ void sensorAcqTask(void *argument) {
 
         cow.updateState(state);
 
-        // TODO: REVISAR para que funcione con CowState
-        if (cow.getState() == SLEEP)
+        switch (state)
         {
-          GPS_SetAcquisitionRate(VERY_SLOW);  // 1 muestra/hora
-          enterLowPowerSleep();  // El micro se duerme, IMU genera WAKE_UP
-        }
-        elseif(cow.getState() == GRAZING)
-        {
-          GPS_SetAcquisitionRate(SLOW); // p.ej. 1 muestra/30 min
-        }
-        elseif(cow.getState() == MOVEMENT)
-        {
-          if (dist < NEAR_LIMIT)
-            GPS_SetAcquisitionRate(MEDIUM);
-          else
-            GPS_SetAcquisitionRate(FAST);  // para saber si se acerca al límite
+          case CowState::SLEEP:
+            GPS_SetAcquisitionRate(GpsRate::VERY_SLOW); // 1 muestra/hora
+            enterLowPowerSleep(); // El micro se duerme, IMU genera WAKE_UP
+            break;
+
+          case CowState::GRAZING:
+            GPS_SetAcquisitionRate(GpsRate::SLOW); // p.ej. 1 muestra/30 min
+            break;
+
+          case CowState::MOVEMENT:
+            GPS_SetAcquisitionRate((dist < NEAR_LIMIT) ? GpsRate::MEDIUM : GpsRate::FAST);
+            break;
         }
       }
     }

@@ -28,6 +28,7 @@ void stimulusTask(void *argument) {
                 case BLACK_ZONE:
                     sendScapedMessage(); //TODO: crear función.
                     break;
+                default:
             }
         }
 

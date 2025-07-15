@@ -9,7 +9,7 @@ void Fence::addVertex(const Vertex& v)
     updateLimites();  // Siempre actualizamos las líneas
 }
 
-void Fence::updateLimites()
+void Fence::updateLimits()
 {
     limites.clear();
     if (vertices.size() < 2) return; // Podemos agregar algún manejo de error.
@@ -28,7 +28,7 @@ const std::vector<Vertex>& Fence::getVertices() const
     return vertices;
 }
 
-const std::vector<Line>& Fence::getLimites() const
+const std::vector<Line>& Fence::getLimits() const
 {
     return limites;
 }

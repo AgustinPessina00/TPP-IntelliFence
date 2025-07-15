@@ -1,5 +1,5 @@
-#ifndef SENSORTASK_H
-#define SENSORTASK_H
+#ifndef SENSORACQTASK_H
+#define SENSORACQTASK_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,6 +7,7 @@ extern "C" {
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "lsm6dso.h"
 
 #include "cow.h"
 #include "fence.h"
@@ -16,12 +17,12 @@ extern "C" {
 
 typedef float distance_t;
 
-typedef enum {
+enum class GpsRate {
   VERY_SLOW,
   SLOW,
   MEDIUM,
   FAST
-} gps_rate_t;
+};
 
 void enterLowPowerSleep(void);
 CowState classifyMotion(Acceleration imu);
@@ -29,10 +30,10 @@ CowState classifyMotion(Acceleration imu);
 distance_t calculateDistanceToLimit(cow.getPosition(), fence.getSegments());
 zone_t getZoneForDistance(distance_t dist, Fence fence);
 
-void sensorAcqTask(void *argument);
+void sensorAcqTask(Cow cow, Fence fence);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // SENSORTASK_H
+#endif // SENSORACQTASK_H
