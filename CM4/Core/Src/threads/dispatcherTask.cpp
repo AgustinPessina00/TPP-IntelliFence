@@ -1,8 +1,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
-#include "distanceTask.h"
+#include "dispatcherTask.h"
 
-void distanceToLimitTask(void *argument) {
+void dispatcherTask(void *argument) {
     for (;;) {
         // TODO: implementar l�gica de la tarea
         vTaskDelay(pdMS_TO_TICKS(1000));

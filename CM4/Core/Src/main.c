@@ -20,7 +20,16 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "app_lorawan.h"
-
+#include "dispatcherTask.h"
+#include "distanceTask.h"
+#include "fenceUpdateTask.h"
+#include "fsmTask.h"
+#include "gpsTask.h"
+#include "loraTxTask.h"
+#include "loraRxTask.h"
+#include "sensorAcqTask.h"
+#include "stimulusTask.h"
+#include "messages.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -115,10 +124,57 @@ const osThreadAttr_t fenceUpdateTask_attributes = {
   .priority = (osPriority_t) osPriorityBelowNormal7,
   .stack_size = 128 * 4
 };
-/* Definitions for systemQueue */
-osMessageQueueId_t systemQueueHandle;
-const osMessageQueueAttr_t systemQueue_attributes = {
-  .name = "systemQueue"
+/* Definitions for dispatcherTask */
+osThreadId_t dispatcherTaskHandle;
+const osThreadAttr_t dispatcherTask_attributes = {
+  .name = "dispatcherTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for dispatcherQueue */
+osMessageQueueId_t dispatcherQueueHandle;
+const osMessageQueueAttr_t dispatcherQueue_attributes = {
+  .name = "dispatcherQueue"
+};
+/* Definitions for sensorAcqQueue */
+osMessageQueueId_t sensorAcqQueueHandle;
+const osMessageQueueAttr_t sensorAcqQueue_attributes = {
+  .name = "sensorAcqQueue"
+};
+/* Definitions for stimulusQueue */
+osMessageQueueId_t stimulusQueueHandle;
+const osMessageQueueAttr_t stimulusQueue_attributes = {
+  .name = "stimulusQueue"
+};
+/* Definitions for gpsQueue */
+osMessageQueueId_t gpsQueueHandle;
+const osMessageQueueAttr_t gpsQueue_attributes = {
+  .name = "gpsQueue"
+};
+/* Definitions for loraTxQueue */
+osMessageQueueId_t loraTxQueueHandle;
+const osMessageQueueAttr_t loraTxQueue_attributes = {
+  .name = "loraTxQueue"
+};
+/* Definitions for loraRxQueue */
+osMessageQueueId_t loraRxQueueHandle;
+const osMessageQueueAttr_t loraRxQueue_attributes = {
+  .name = "loraRxQueue"
+};
+/* Definitions for fsmQueue */
+osMessageQueueId_t fsmQueueHandle;
+const osMessageQueueAttr_t fsmQueue_attributes = {
+  .name = "fsmQueue"
+};
+/* Definitions for distanceToLimitQueue */
+osMessageQueueId_t distanceToLimitQueueHandle;
+const osMessageQueueAttr_t distanceToLimitQueue_attributes = {
+  .name = "distanceToLimitQueue"
+};
+/* Definitions for fenceUpdateQueue */
+osMessageQueueId_t fenceUpdateQueueHandle;
+const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
+  .name = "fenceUpdateQueue"
 };
 /* USER CODE BEGIN PV */
 //static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
@@ -139,14 +195,6 @@ static void MX_USART2_UART_Init(void);
 static void MX_LPTIM1_Init(void);
 static void MX_LPTIM2_Init(void);
 static void MX_TIM1_Init(void);
-void startSensorAcqTask(void *argument);
-void startStimulousTask(void *argument);
-void startGpsTask(void *argument);
-void startLoraTxTask(void *argument);
-void startLoraRxTask(void *argument);
-void startFsmTask(void *argument);
-void startDistanceToLimitTask(void *argument);
-void startFenceUpdateTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -213,8 +261,32 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* creation of systemQueue */
-  systemQueueHandle = osMessageQueueNew (32, sizeof(uint16_t), &systemQueue_attributes);
+  /* creation of dispatcherQueue */
+  dispatcherQueueHandle = osMessageQueueNew (256, sizeof(Messages_t), &dispatcherQueue_attributes);
+
+  /* creation of sensorAcqQueue */
+  sensorAcqQueueHandle = osMessageQueueNew (16, sizeof(Messages_t), &sensorAcqQueue_attributes);
+
+  /* creation of stimulusQueue */
+  stimulusQueueHandle = osMessageQueueNew (16, sizeof(Messages_t), &stimulusQueue_attributes);
+
+  /* creation of gpsQueue */
+  gpsQueueHandle = osMessageQueueNew (16, sizeof(Messages_t), &gpsQueue_attributes);
+
+  /* creation of loraTxQueue */
+  loraTxQueueHandle = osMessageQueueNew (16, sizeof(Messages_t), &loraTxQueue_attributes);
+
+  /* creation of loraRxQueue */
+  loraRxQueueHandle = osMessageQueueNew (16, sizeof(Messages_t), &loraRxQueue_attributes);
+
+  /* creation of fsmQueue */
+  fsmQueueHandle = osMessageQueueNew (128, sizeof(Messages_t), &fsmQueue_attributes);
+
+  /* creation of distanceToLimitQueue */
+  distanceToLimitQueueHandle = osMessageQueueNew (16, sizeof(Messages_t), &distanceToLimitQueue_attributes);
+
+  /* creation of fenceUpdateQueue */
+  fenceUpdateQueueHandle = osMessageQueueNew (16, sizeof(Messages_t), &fenceUpdateQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -222,28 +294,31 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of sensorAcqTask */
-  sensorAcqTaskHandle = osThreadNew(startSensorAcqTask, NULL, &sensorAcqTask_attributes);
+  sensorAcqTaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcqTask_attributes);
 
   /* creation of stimulusTask */
-  stimulusTaskHandle = osThreadNew(startStimulousTask, NULL, &stimulusTask_attributes);
+  stimulusTaskHandle = osThreadNew(stimulusTask, NULL, &stimulusTask_attributes);
 
   /* creation of gpsTask */
-  gpsTaskHandle = osThreadNew(startGpsTask, NULL, &gpsTask_attributes);
+  gpsTaskHandle = osThreadNew(gpsTask, NULL, &gpsTask_attributes);
 
   /* creation of loraTxTask */
-  loraTxTaskHandle = osThreadNew(startLoraTxTask, NULL, &loraTxTask_attributes);
+  loraTxTaskHandle = osThreadNew(loraTxTask, NULL, &loraTxTask_attributes);
 
   /* creation of loraRxTask */
-  loraRxTaskHandle = osThreadNew(startLoraRxTask, NULL, &loraRxTask_attributes);
+  loraRxTaskHandle = osThreadNew(loraRxTask, NULL, &loraRxTask_attributes);
 
   /* creation of fsmTask */
-  fsmTaskHandle = osThreadNew(startFsmTask, NULL, &fsmTask_attributes);
+  fsmTaskHandle = osThreadNew(fsmTask, NULL, &fsmTask_attributes);
 
   /* creation of distanceToLimit */
-  distanceToLimitHandle = osThreadNew(startDistanceToLimitTask, NULL, &distanceToLimit_attributes);
+  distanceToLimitHandle = osThreadNew(distanceToLimitTask, NULL, &distanceToLimit_attributes);
 
   /* creation of fenceUpdateTask */
-  fenceUpdateTaskHandle = osThreadNew(startFenceUpdateTask, NULL, &fenceUpdateTask_attributes);
+  fenceUpdateTaskHandle = osThreadNew(fenceUpdateTask, NULL, &fenceUpdateTask_attributes);
+
+  /* creation of dispatcherTask */
+  dispatcherTaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcherTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -886,202 +961,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_startSensorAcqTask */
-/**
-  * @brief  Function implementing the sensorAcqTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_startSensorAcqTask */
-void startSensorAcqTask(void *argument)
-{
-  /* init code for LoRaWAN */
-  MX_LoRaWAN_Init();
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  gps_data_t gps;
-  zone_t zone;
-  imu_data_t imu;
-  distance_t dist;
-
-  for (;;)
-  {
-    // === 1. Leer GPS ===
-    if (GPS_ReadPosition(&gps) != HAL_OK)
-    {
-      gps_error_count++;
-      continue;  // volver a intentar luego
-    }
-
-    // === 2. Determinar distancia a cerca virtual y zona ===
-    dist = calculateDistanceToFence(gps); // función tuya
-    zone = determineZoneFromDistance(dist); // BLUE, YELLOW, RED, GREEN
-
-    // === 3. Si no está en GREEN_ZONE, mandar estímulo ===
-    if (zone != GREEN_ZONE)
-    {
-      xQueueSend(StimulusQueueHandle, &zone, 0); // Despierta StimulusTask
-    }
-    else
-    {
-      // === 4. Leer IMU ===
-      if (LSM6DSO_ReadAccelGyro(&imu) == HAL_OK)
-      {
-        state_t state = classifyMotion(imu);  // GRAZING, SLEEP, MOVEMENT
-
-        switch (state)
-        {
-          case GRAZING:
-            GPS_SetAcquisitionRate(SLOW); // p.ej. 1 muestra/30 min
-            break;
-
-          case SLEEP:
-            GPS_SetAcquisitionRate(VERY_SLOW);  // 1 muestra/hora
-            enterLowPowerSleep();  // El micro se duerme, IMU genera WAKE_UP
-            break;
-
-          case MOVEMENT:
-            if (dist < NEAR_LIMIT)
-              GPS_SetAcquisitionRate(MEDIUM);
-            else
-              GPS_SetAcquisitionRate(FAST);  // para saber si se acerca al límite
-            break;
-        }
-      }
-    }
-
-    osDelay(GPS_SAMPLE_RATE);  // p.ej. 1 vez por minuto o lo que hayas configurado
-  }
-
-  /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_startStimulousTask */
-/**
-* @brief Function implementing the stimulusTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startStimulousTask */
-void startStimulousTask(void *argument)
-{
-  /* USER CODE BEGIN startStimulousTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startStimulousTask */
-}
-
-/* USER CODE BEGIN Header_startGpsTask */
-/**
-* @brief Function implementing the gpsTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startGpsTask */
-void startGpsTask(void *argument)
-{
-  /* USER CODE BEGIN startGpsTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startGpsTask */
-}
-
-/* USER CODE BEGIN Header_startLoraTxTask */
-/**
-* @brief Function implementing the loraTxTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startLoraTxTask */
-void startLoraTxTask(void *argument)
-{
-  /* USER CODE BEGIN startLoraTxTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startLoraTxTask */
-}
-
-/* USER CODE BEGIN Header_startLoraRxTask */
-/**
-* @brief Function implementing the loraRxTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startLoraRxTask */
-void startLoraRxTask(void *argument)
-{
-  /* USER CODE BEGIN startLoraRxTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startLoraRxTask */
-}
-
-/* USER CODE BEGIN Header_startFsmTask */
-/**
-* @brief Function implementing the fsmTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startFsmTask */
-void startFsmTask(void *argument)
-{
-  /* USER CODE BEGIN startFsmTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startFsmTask */
-}
-
-/* USER CODE BEGIN Header_startDistanceToLimitTask */
-/**
-* @brief Function implementing the distanceToLimit thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startDistanceToLimitTask */
-void startDistanceToLimitTask(void *argument)
-{
-  /* USER CODE BEGIN startDistanceToLimitTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startDistanceToLimitTask */
-}
-
-/* USER CODE BEGIN Header_startFenceUpdateTask */
-/**
-* @brief Function implementing the fenceUpdateTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startFenceUpdateTask */
-void startFenceUpdateTask(void *argument)
-{
-  /* USER CODE BEGIN startFenceUpdateTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startFenceUpdateTask */
-}
 
 /**
   * @brief  Period elapsed callback in non blocking mode

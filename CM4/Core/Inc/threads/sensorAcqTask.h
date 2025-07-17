@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void sensorTask(void *argument);
+void sensorAcqTask(void *argument);
 
 #ifdef __cplusplus
 }

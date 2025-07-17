@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-void distanceTask(void *argument);
+void distanceToLimitTask(void *argument);
 
 #ifdef __cplusplus
 }
