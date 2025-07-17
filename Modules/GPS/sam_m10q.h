@@ -2,7 +2,7 @@
 #define MODULES_GPS_SAM_M10Q_H_
 
 #include "sam_m10q_KEYID.h"
-#inclde "TinyGPSPlus/TinyGPS++.h"
+#include "TinyGPSPlus/TinyGPS++.h"
 
 #define UBX_HEADER1  0xB5
 #define UBX_HEADER2  0x62
@@ -17,17 +17,17 @@
 
 class SamM10q {
 public:
-	SamM10q(uint8_t i2cAddr, TinyGPSPlus *trackerGPS);
+	SamM10q(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr);
 
-	void read_nmea_stream(I2C_HandleTypeDef *hi2c);
+	void read_nmea_stream();
 	void update_location_and_time();
 
 private:
 	void configure_gps();
-	std::vector<uint8_t> build_full_message_from_index(size_t i);
+	std::vector<uint8_t> build_full_message_from_index(size_t i, uint8_t layer);
 	std::vector<uint8_t> build_ubx_message(uint8_t layer, const std::vector<uint8_t> payload, const std::vector<uint8_t> checksum);
-	HAL_StatusTypeDef send_message(I2C_HandleTypeDef *hi2c, const std::vector<uint8_t> &message, uitn32_t delay_ms);
-	void ubx_calculate_checksum(UBX_Message *msg)
+	HAL_StatusTypeDef send_message(const std::vector<uint8_t> &message, uint32_t delay_ms);
+	void ubx_calculate_checksum(UBX_Message *msg);
 
 public:
 	double latitude = 0.0;
@@ -37,13 +37,14 @@ public:
 
 private:
     uint8_t i2cAddr;
-	TinyGPSPlus *trackerGPS;
+	TinyGPSPlus trackerGPS;
 	uint8_t header[2];
 	uint8_t msgClass;
 	uint8_t msgID;
 //	uint16_t length;	Ahora que tenemos el KEYID en un vector podemos calcularlo haciendo m10q_data.size().
 	uint8_t version;
 	uint16_t reserved;
+	I2C_HandleTypeDef *hi2c;
 };
 
 #endif /* MODULES_GPS_SAM_M10Q_H_ */

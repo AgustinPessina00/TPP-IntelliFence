@@ -30,6 +30,7 @@ extern "C" {
 #include "stm32wlxx_hal.h"
 #include "cmsis_os.h"
 
+#include "sensorAcqTask.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "cow.h"
@@ -110,12 +111,11 @@ void MX_RTC_Init(void);
 
 /* USER CODE BEGIN Private defines */
 
-//static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
-
-//static const uint8_t IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
-
-#define TIMEOUT 100                   // Timeout en ms
-
+static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
+static const uint8_t IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
+static const uint8_t INA_MCU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
+static const uint8_t INA_GPS_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
+static const uint8_t INA_IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -11,8 +11,8 @@ enum class CowState {
 };
 
 struct Position {
-    float latitude;
-    float longitude;
+    double latitude;
+    double longitude;
 };
 
 struct Acceleration {

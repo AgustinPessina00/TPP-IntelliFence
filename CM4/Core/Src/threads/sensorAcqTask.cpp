@@ -52,10 +52,11 @@ zone_t getZoneForDistance(distance_t dist, Fence fence)
     return BLACK_ZONE;
 }
 
-// TODO: Deberíamos pasar como argumento Cow cow y Fence fence o se hace mediante una QUEUE?
-void sensorAcqTask(Cow cow, Fence fence, lsm6dso imu, samm10q gps) {
+void startSensorAcqTask(void *argument) {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
+  sensorAcqTaskParams *sensorParams = static_cast<sensorAcqTaskParams *>(argument);
+
   Position pos;
   Acceleration acc;
   distance_t dist;
@@ -66,11 +67,52 @@ void sensorAcqTask(Cow cow, Fence fence, lsm6dso imu, samm10q gps) {
   {
     // === 1. Leer GPS ===
     // TODO: Cambiar GPS_ReadPosition por la que va
-    if (gps.GPS_ReadPosition(&pos) != HAL_OK)
+    if (sensorParams->gps->read_nmea_stream() != HAL_OK)
     {
       gps_error_count++;
       continue;  // volver a intentar luego
     }
+    else
+    {
+      sensorParams->gps->update_location_and_time();
+      pos.latitude = sensorParams->gps->latitude;
+      pos.longitude = sensorParams->gps->longitude;
+    }
+
+    // === 4. Leer IMU ===
+    // TODO: ARREGLAR LO DE LEER IMU.
+      if (imu.readAcceleration(&acc) == HAL_OK)
+      {
+        cow.updateAcceleration(imu);
+        
+        state = classifyMotion(imu);  // GRAZING, SLEEP, MOVEMENT
+
+        // Mostrar IMU Read por UART
+        printf("IMU: ax=%.2f, ay=%.2f, az=%.2f -> State: %d\r\n", imu.ax, imu.ay, imu.az, state);
+
+        cow.updateState(state);
+
+        switch (state)
+        {
+          case CowState::SLEEP:
+            GPS_SetAcquisitionRate(GpsRate::VERY_SLOW); // 1 muestra/hora
+            enterLowPowerSleep(); // El micro se duerme, IMU genera WAKE_UP
+            break;
+
+          case CowState::GRAZING:
+            GPS_SetAcquisitionRate(GpsRate::SLOW); // p.ej. 1 muestra/30 min
+            break;
+
+          case CowState::MOVEMENT:
+            GPS_SetAcquisitionRate((dist < NEAR_LIMIT) ? GpsRate::MEDIUM : GpsRate::FAST);
+            break;
+        }
+      }
+
+
+
+
+
 
     cow.updatePosition(gps);
 

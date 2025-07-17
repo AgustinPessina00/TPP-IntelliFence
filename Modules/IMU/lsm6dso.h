@@ -464,7 +464,7 @@ private:
   int32_t lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data);
 
   uint8_t i2cAddr;
-  I2C_HandleTypeDef *hi2c2;
+  I2C_HandleTypeDef *hi2c;
 };
 
 

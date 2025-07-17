@@ -15,8 +15,8 @@ enum zone_t {
 };
 
 struct Vertex {
-    float latitude;
-    float longitude;
+    double latitude;
+    double longitude;
 };
 
 struct Line {
