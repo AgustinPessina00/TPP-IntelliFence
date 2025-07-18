@@ -26,7 +26,6 @@ struct typedef
   Ina226 *inaImu;
 }sensorAcqTaskParams;
 
-
 typedef float distance_t;
 
 enum class GpsRate {
@@ -35,6 +34,8 @@ enum class GpsRate {
   MEDIUM,
   FAST
 };
+
+int error_count;
 
 void enterLowPowerSleep(void);
 CowState classifyMotion(Acceleration imu);

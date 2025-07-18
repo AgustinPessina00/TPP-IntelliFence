@@ -53,35 +53,83 @@ zone_t getZoneForDistance(distance_t dist, Fence fence)
 }
 
 void startSensorAcqTask(void *argument) {
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
   sensorAcqTaskParams *sensorParams = static_cast<sensorAcqTaskParams *>(argument);
 
-  Position pos;
-  Acceleration acc;
-  distance_t dist;
-  zone_t zone; 
-  CowState state;
-
+  float currentMcu;
+  float currentGps;
+  float currentImu;
+  
   for (;;)
   {
-    // === 1. Leer GPS ===
-    // TODO: Cambiar GPS_ReadPosition por la que va
+    // === Leer GPS ===
     if (sensorParams->gps->read_nmea_stream() != HAL_OK)
     {
-      gps_error_count++;
+      error_count++;
       continue;  // volver a intentar luego
     }
     else
     {
       sensorParams->gps->update_location_and_time();
-      pos.latitude = sensorParams->gps->latitude;
-      pos.longitude = sensorParams->gps->longitude;
+      // TODO: Pasar estos datos a la cola
+      // sensorParams->gps->latitude;
+      // sensorParams->gps->longitude;
     }
 
-    // === 4. Leer IMU ===
-    // TODO: ARREGLAR LO DE LEER IMU.
-      if (imu.readAcceleration(&acc) == HAL_OK)
+    // === Leer IMU ===
+    if (sensorParams->imu->readAcceleration(&acc) =! HAL_OK){
+      error_count++;
+      continue;  // volver a intentar luego
+    }
+
+    // === Leer INA_MCU ===
+    if (sensorParams->inaMcu->readCurrent_mA(&currentMcu) =! HAL_OK){
+      error_count++;
+      continue;  // volver a intentar luego
+    }
+    
+    // === Leer INA_GPS ===
+    if (sensorParams->inaGps->readCurrent_mA(&currentGps) =! HAL_OK){
+      error_count++;
+      continue;  // volver a intentar luego
+    }
+    
+    // === Leer INA_IMU ===
+    if (sensorParams->inaImu->readCurrent_mA(&currentImu) =! HAL_OK){
+      error_count++;
+      continue;  // volver a intentar luego
+    }
+
+    // TODO: Armar los mensaje_t y cambiarlo en "&zone"
+    // RECIBE FLAGS DE LA COLA QUE LE MANDA fsmTask A sensorAcqTask
+    switch (expression)
+    {
+    case SEND_GPS_DATA:
+      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
+      break;
+    case SEND_IMU_DATA:
+      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
+      break;
+    case SEND_INA_MCU_DATA:
+      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
+      break;
+    case SEND_INA_GPS_DATA:
+      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
+      break;
+    case SEND_INA_IMU_DATA:
+      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
+      break;
+    
+    default:
+      // TODO: printf si queremos debuggear.
+      break;
+    }
+  }
+}
+
+
+/*
+    // TODO: pasar esto a fsmTask
+      if (sensorParams->imu->readAcceleration(&acc) == HAL_OK)
       {
         cow.updateAcceleration(imu);
         
@@ -108,11 +156,6 @@ void startSensorAcqTask(void *argument) {
             break;
         }
       }
-
-
-
-
-
 
     cow.updatePosition(gps);
 
@@ -166,8 +209,5 @@ void startSensorAcqTask(void *argument) {
 
     // TODO: REVISAR, queremos que esto varíe?? 
     osDelay(GPS_SAMPLE_RATE);  // p.ej. 1 vez por minuto o lo que hayas configurado
-  }
+*/
 
-  /* USER CODE END 5 */
-
-}

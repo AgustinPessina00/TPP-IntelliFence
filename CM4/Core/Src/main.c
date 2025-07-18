@@ -195,10 +195,9 @@ int main(void)
   SamM10q gps(&hi2c2, GPS_ADDRESS);
   // TODO: Chequear Params de la imu y de los INA.
   Lsm6dso imu(&hi2c2, LSM6DSO_ADDRESS, DISABLE, ODR_52, FS_4, POWER_DOWN, FS_250DPS, THS_1, ODR_1, FS_XL_64, DUR_1_512);
-  // TODO: Chequear si usar extern o pasar como parámetro el hi2c2 en el constructor.
-  Ina226 inaMcu(INA_MCU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
-  Ina226 inaGps(INA_GPS_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
-  Ina226 inaImu(INA_IMU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
+  Ina226 inaMcu(&hi2c2, INA_MCU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
+  Ina226 inaGps(&hi2c2, INA_GPS_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
+  Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
   /* USER CODE END 2 */
 
   /* Init scheduler */

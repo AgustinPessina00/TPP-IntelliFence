@@ -12,7 +12,7 @@ Lsm6dso::Lsm6dso(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6d
 	configure(odrAcc, fsAcc, odrGyr, fsGyr, wakeThs, wakeDur, wakeWeight, sleepDur);
 }
 
-HAL_StatusTypeDef Lsm6dso::readAcceleration(Acceleration *accel)
+HAL_StatusTypeDef Lsm6dso::readAcceleration()
 {
   lsm6dso_data_t data;
   lsm6dso_md_t md;
@@ -22,9 +22,9 @@ HAL_StatusTypeDef Lsm6dso::readAcceleration(Acceleration *accel)
     return HAL_ERROR;
 
   // Copiar los mg convertidos
-  accel->ax = data.ui.xl.mg[0];
-  accel->ay = data.ui.xl.mg[1];
-  accel->az = data.ui.xl.mg[2];
+  this->ax = data.ui.xl.mg[0];
+  this->ay = data.ui.xl.mg[1];
+  this->az = data.ui.xl.mg[2];
 
   return HAL_OK;
 }
