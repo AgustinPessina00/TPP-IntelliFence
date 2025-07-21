@@ -2,7 +2,7 @@
 #include "messages.h"
 //#include "main.h"
 extern osMessageQueueId_t stimulusQueueHandle;
-extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim1; // BUZZER
 extern LED_ELECTRICAL_Pin;
 extern GPIOB;
 extern TIM_HandleTypeDef htim16;  // VIB_MOTOR_R
