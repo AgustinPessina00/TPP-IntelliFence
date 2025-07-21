@@ -5,6 +5,12 @@
 extern "C" {
 #endif
 
+#include "FreeRTOS.h"
+#include "task.h"
+
+#include "cow.h"
+#include "fence.h"
+
 void stimulusTask(void *argument);
 
 #ifdef __cplusplus

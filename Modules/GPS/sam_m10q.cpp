@@ -5,51 +5,55 @@
 
 /* Private includes ----------------------------------------------------------*/
 
-SamM10q::SamM10q(uint8_t i2cAddr, TinyGPSPlus *trackerGPS) {
+SamM10q::SamM10q(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr) {
 	this->i2cAddr = i2cAddr;
-    this->trackerGPS = trackerGPS;  // Debo declarar previamente:: TinyGPSPlus gps; -> SamM10q gpsModule(0x42, &gps);
-	this->header[0] = UBX_HEADER1;
+    this->hi2c = hi2c;
+    this->header[0] = UBX_HEADER1;
 	this->header[1] = UBX_HEADER2;
     this->msgClass 	= VALSET_CLASS;
 	this->msgID		= VALSET_ID;
 //	this->length 	= Dejo vacio por ahora ya que pensamos hacer lo que dice en el .h.
 	this->version	= VALSET_VERSION;
     this->reserved	= RESERVED;
+    configure_gps();
 }
 
-void SamM10q::read_nmea_stream(I2C_HandleTypeDef *hi2c) {
+HAL_StatusTypeDef SamM10q::read_nmea_stream() {
     uint8_t buffer[NMEA_BUFFER_SIZE];
 
     HAL_StatusTypeDef status = HAL_I2C_Mem_Read(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, buffer, NMEA_BUFFER_SIZE, HAL_MAX_DELAY);
 
     if (status != HAL_OK) {
         // Podés agregar manejo de error acá si querés
-        return;
+        return HAL_ERROR;
     }
 
     for (uint8_t i = 0; i < NMEA_BUFFER_SIZE; ++i) {
-        gps->encode(buffer[i]); // Podemos hacer también (*gps).encode(buffer[i])
+        trackerGPS.encode(buffer[i]); // Podemos hacer también (*gps).encode(buffer[i])
     }
+
+    return HAL_OK;
 }
 
 void SamM10q::update_location_and_time() {
-    if (trackerGPS->location.isUpdated() && trackerGPS->location.isValid()) {
-        latitude = trackerGPS->location.lat();
-        longitude = trackerGPS->location.lng();
+    if (trackerGPS.location.isUpdated() && trackerGPS.location.isValid()) {
+        latitude = trackerGPS.location.lat();
+        longitude = trackerGPS.location.lng();
     }
+    
 
-    if (trackerGPS->date.isUpdated() && trackerGPS->date.isValid()) {
-        uint16_t year = trackerGPS->date.year();   // Ej: 2025
-        uint8_t month = trackerGPS->date.month();  // Ej: 6
-        uint8_t day   = trackerGPS->date.day();    // Ej: 12
+    if (trackerGPS.date.isUpdated() && trackerGPS.date.isValid()) {
+        uint16_t year = trackerGPS.date.year();   // Ej: 2025
+        uint8_t month = trackerGPS.date.month();  // Ej: 6
+        uint8_t day   = trackerGPS.date.day();    // Ej: 12
 
         fechaUTC = (year % 100) * 10000 + month * 100 + day; // yymmdd
     }
 
-    if (trackerGPS->time.isUpdated() && trackerGPS->time.isValid()) {
-        uint8_t hour = trackerGPS->time.hour();
-        uint8_t minute = trackerGPS->time.minute();
-        uint8_t second = trackerGPS->time.second();
+    if (trackerGPS.time.isUpdated() && trackerGPS.time.isValid()) {
+        uint8_t hour = trackerGPS.time.hour();
+        uint8_t minute = trackerGPS.time.minute();
+        uint8_t second = trackerGPS.time.second();
         horaUTC = hour * 10000 + minute * 100 + second; // hhmmss como entero
     }
 }
@@ -66,8 +70,9 @@ void SamM10q::configure_gps() {
         // NACHO: ¡¡ RECORDAR EL TIEMPO ENTRE MSG DE SIGNAL Y MSG DE SIGNAL!! Ver Interface Description.
         //PESSI: AGREGO EL DELAY EN LA FUNCIÓN send_message.
 
-		send_message(&hi2c2, sendMsgRAM, 15);
-		send_message(&hi2c2, sendMsgBBR, 15);
+        // TODO: sacar números mágicos/hardcodeados.
+		send_message(hi2c, sendMsgRAM, 15);
+		send_message(hi2c, sendMsgBBR, 15);
     }
 }
 
@@ -119,8 +124,8 @@ vector<uint8_t> SamM10q::build_ubx_message(uint8_t layer, const std::vector<uint
 	return message;
 }
 
-HAL_StatusTypeDef SamM10q::send_message(I2C_HandleTypeDef* hi2c, const std::vector<uint8_t>& message, uint32_t delay_ms) {
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Write(hi2c,i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, message.data(), message.size(), HAL_MAX_DELAY);
+HAL_StatusTypeDef SamM10q::send_message(const std::vector<uint8_t>& message, uint32_t delay_ms) {
+    HAL_StatusTypeDef status = HAL_I2C_Mem_Write(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, message.data(), message.size(), HAL_MAX_DELAY);
 
     // Delay para que el módulo procese
     HAL_Delay(delay_ms);

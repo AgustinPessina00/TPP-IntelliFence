@@ -46,21 +46,22 @@ enum class Ina226Mode : uint16_t {
 
 class Ina226 {
 public:
-	Ina226(uint8_t i2cAddr, float rShunt, float currentLSB, Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
-    bool readShuntVoltage_mV(float &voltage);
-    bool readBusVoltage_mV(float &voltage);
-    bool readCurrent_mA(float &current);
-    bool readPower_mW(float &power);
+	Ina226(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, float rShunt, float currentLSB, Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
+    HAL_StatusTypeDef readShuntVoltage_mV(float &voltage);
+    HAL_StatusTypeDef readBusVoltage_mV(float &voltage);
+    HAL_StatusTypeDef readCurrent_mA(float &current);
+    HAL_StatusTypeDef readPower_mW(float &power);
 
 private:
     bool configure(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
     uint16_t setConfiguration(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
     bool writeRegister(uint8_t reg, uint16_t value);
     bool readRegister(uint8_t reg, uint16_t &value);
-    uint16_t calculateCalibration(float lsb);
+    uint16_t calculateCalibration();
 
 private:
     uint8_t i2cAddr;
+    I2C_HandleTypeDef *hi2c;
     float rShunt;
     float currentLSB; //PESSI: Agrego currentLSB para calibrar.
 };

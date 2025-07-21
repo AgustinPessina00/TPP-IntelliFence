@@ -30,7 +30,7 @@
 // CTRL1_XL (0x10)
 enum class Lsm6dsoOdrAcc : uint8_t {
 	POWER_DOWN	= (0b0000 << ODR_XL3),
-  ODR_1_6		  = (0b1011 << ODR_XL3),
+	ODR_1_6		  = (0b1011 << ODR_XL3),
 	ODR_12_5   	= (0b0001 << ODR_XL3),
 	ODR_26   	  = (0b0010 << ODR_XL3),
 	ODR_52  	  = (0b0011 << ODR_XL3),
@@ -120,15 +120,15 @@ enum class Lsm6dsoInActEn : uint8_t {
 
 // WAKE_UP_THS (0x5B)
 enum class Lsm6dsoWakeThs : uint8_t {
-  THS_DISABLE   = (0b000000  << WK_THS_5),
-  THS_1 			  = (0b000001  << WK_THS_5),
-  THS_2 			  = (0b000010  << WK_THS_5),
+	THS_DISABLE   = (0b000000  << WK_THS_5),
+	THS_1 			  = (0b000001  << WK_THS_5),
+	THS_2 			  = (0b000010  << WK_THS_5),
 	THS_3 			  = (0b000011  << WK_THS_5),
 	THS_4 			  = (0b000100  << WK_THS_5),
 	THS_5 			  = (0b000101  << WK_THS_5),
 	THS_6 			  = (0b000110  << WK_THS_5),
 	THS_7 			  = (0b000111  << WK_THS_5),
-  THS_8 			  = (0b001000  << WK_THS_5),
+	THS_8 			  = (0b001000  << WK_THS_5),
 	THS_9 			  = (0b001001  << WK_THS_5),
 	THS_10 			  = (0b001010  << WK_THS_5),
 	THS_11 			  = (0b001011  << WK_THS_5),
@@ -136,15 +136,15 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_13 			  = (0b001101  << WK_THS_5),
 	THS_14 			  = (0b001110  << WK_THS_5),
 	THS_15 			  = (0b001111  << WK_THS_5),
-  THS_16 			  = (0b010000  << WK_THS_5),
-  THS_17 			  = (0b010001  << WK_THS_5),
-  THS_18 			  = (0b010010  << WK_THS_5),
+	THS_16 			  = (0b010000  << WK_THS_5),
+	THS_17 			  = (0b010001  << WK_THS_5),
+	THS_18 			  = (0b010010  << WK_THS_5),
 	THS_19 			  = (0b010011  << WK_THS_5),
 	THS_20 			  = (0b010100  << WK_THS_5),
 	THS_21 			  = (0b010101  << WK_THS_5),
 	THS_22 			  = (0b010110  << WK_THS_5),
 	THS_23 			  = (0b010111  << WK_THS_5),
-  THS_24 			  = (0b011000  << WK_THS_5),
+	THS_24 			  = (0b011000  << WK_THS_5),
 	THS_25 			  = (0b011001  << WK_THS_5),
 	THS_26 			  = (0b011010  << WK_THS_5),
 	THS_27 			  = (0b011011  << WK_THS_5),
@@ -152,15 +152,15 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_29 			  = (0b011101  << WK_THS_5),
 	THS_30 			  = (0b011110  << WK_THS_5),
 	THS_31 			  = (0b011111  << WK_THS_5),
-  THS_32 			  = (0b100000  << WK_THS_5),
-  THS_33 			  = (0b100001  << WK_THS_5),
-  THS_34 			  = (0b100010  << WK_THS_5),
+	THS_32 			  = (0b100000  << WK_THS_5),
+	THS_33 			  = (0b100001  << WK_THS_5),
+	THS_34 			  = (0b100010  << WK_THS_5),
 	THS_35 			  = (0b100011  << WK_THS_5),
 	THS_36 			  = (0b100100  << WK_THS_5),
 	THS_37 			  = (0b100101  << WK_THS_5),
 	THS_38 			  = (0b100110  << WK_THS_5),
 	THS_39 			  = (0b100111  << WK_THS_5),
-  THS_40 			  = (0b101000  << WK_THS_5),
+	THS_40 			  = (0b101000  << WK_THS_5),
 	THS_41 			  = (0b101001  << WK_THS_5),
 	THS_42 			  = (0b101010  << WK_THS_5),
 	THS_43 			  = (0b101011  << WK_THS_5),
@@ -168,15 +168,15 @@ enum class Lsm6dsoWakeThs : uint8_t {
 	THS_45 			  = (0b101101  << WK_THS_5),
 	THS_46			  = (0b101110  << WK_THS_5),
 	THS_47 			  = (0b101111  << WK_THS_5),
-  THS_48 			  = (0b110000  << WK_THS_5),
-  THS_49 			  = (0b110001  << WK_THS_5),
-  THS_50 			  = (0b110010  << WK_THS_5),
+	THS_48 			  = (0b110000  << WK_THS_5),
+	THS_49 			  = (0b110001  << WK_THS_5),
+	THS_50 			  = (0b110010  << WK_THS_5),
 	THS_51 			  = (0b110011  << WK_THS_5),
 	THS_52 			  = (0b110100  << WK_THS_5),
 	THS_53 			  = (0b110101  << WK_THS_5),
 	THS_54			  = (0b110110  << WK_THS_5),
 	THS_55 			  = (0b110111  << WK_THS_5),
-  THS_56 			  = (0b111000  << WK_THS_5),
+	THS_56 			  = (0b111000  << WK_THS_5),
 	THS_57 			  = (0b111001  << WK_THS_5),
 	THS_58 			  = (0b111010  << WK_THS_5),
 	THS_59 			  = (0b111011  << WK_THS_5),
@@ -189,15 +189,15 @@ enum class Lsm6dsoWakeThs : uint8_t {
 // WAKE_UP_DUR (0x5C)
 enum class Lsm6dsoWakeDur : uint8_t {
 	ODR_0		= (0b00 << WK_DUR1),
-  ODR_1		= (0b01 << WK_DUR1),
-  ODR_2	  = (0b10 << WK_DUR1),
-  ODR_3   = (0b11 << WK_DUR1)
+	ODR_1		= (0b01 << WK_DUR1),
+	ODR_2	  = (0b10 << WK_DUR1),
+	ODR_3   = (0b11 << WK_DUR1)
 };
 
 // WAKE_UP_DUR (0x5C)
 enum class Lsm6dsoWakeWeight : uint8_t {
 	FS_XL_64		= (0b0 << WK_THS_W),
-  FS_XL_256		= (0b1 << WK_THS_W)
+	FS_XL_256		= (0b1 << WK_THS_W)
 };
 
 // WAKE_UP_DUR (0x5C)
@@ -246,7 +246,7 @@ enum class Lsm6dsoOdrXlUi : uint8_t {
 	LSM6DSO_XL_UI_104Hz_NM    = 0x14, /* @104Hz (normal mode) */
 	LSM6DSO_XL_UI_104Hz_ULP   = 0x24, /* @104Hz (ultra low/Gy, OIS imu off) */
 	LSM6DSO_XL_UI_208Hz_HP    = 0x05, /* @208Hz (high performance) */
-  LSM6DSO_XL_UI_208Hz_NM    = 0x15, /* @208Hz (normal mode) */
+	LSM6DSO_XL_UI_208Hz_NM    = 0x15, /* @208Hz (normal mode) */
 	LSM6DSO_XL_UI_208Hz_ULP   = 0x25, /* @208Hz (ultra low/Gy, OIS imu off) */
 	LSM6DSO_XL_UI_416Hz_HP    = 0x06, /* @416Hz (high performance) */
 	LSM6DSO_XL_UI_833Hz_HP    = 0x07, /* @833Hz (high performance) */
@@ -430,41 +430,43 @@ typedef struct {
 
 class Lsm6dso {
 public:
-	Lsm6dso(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,
-			    Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+	Lsm6dso(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs, Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
 
-	HAL_StatusTypeDef readAcceleration(Acceleration *accel);
+	HAL_StatusTypeDef readAcceleration();
+
+	float ax;
+    float ay;
+    float az;
 
 private:
 	bool configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
 
 	uint8_t setConfigurationREG_CTRL1_XL(Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc);
-  uint8_t setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr);
-  uint8_t setConfigurationREG_CTRL3_C(Lsm6dsoIfInc ifInc);
-  uint8_t setConfigurationREG_CTRL6_C(Lsm6dsoXlHm xlHm);
-  uint8_t setConfigurationREG_CTRL7_G(Lsm6dsoGHm gHm);
+	uint8_t setConfigurationREG_CTRL2_G(Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr);
+	uint8_t setConfigurationREG_CTRL3_C(Lsm6dsoIfInc ifInc);
+	uint8_t setConfigurationREG_CTRL6_C(Lsm6dsoXlHm xlHm);
+	uint8_t setConfigurationREG_CTRL7_G(Lsm6dsoGHm gHm);
 	uint8_t setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c);
-  uint8_t setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn sF);
-  uint8_t setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn intEn, Lsm6dsoInactEn inActEn);
+	uint8_t setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn sF);
+	uint8_t setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn intEn, Lsm6dsoInactEn inActEn);
 	uint8_t setConfigurationREG_WAKE_UP_THS(Lsm6dsoWakeThs wakeThs);
-  uint8_t setConfigurationREG_WAKE_UP_DUR(Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
-  uint8_t setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU);
+	uint8_t setConfigurationREG_WAKE_UP_DUR(Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);
+	uint8_t setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU);
 
-  bool writeRegister(uint8_t reg, uint8_t value);
+	bool writeRegister(uint8_t reg, uint8_t value);
 
+	float_t lsm6dso_from_fs2_to_mg(int16_t lsb);
+	float_t lsm6dso_from_fs4_to_mg(int16_t lsb);
+	float_t lsm6dso_from_fs8_to_mg(int16_t lsb);
+	float_t lsm6dso_from_fs16_to_mg(int16_t lsb);
+	float_t lsm6dso_from_lsb_to_celsius(int16_t lsb);
+	float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
+	int32_t lsm6dso_read_reg(uint8_t reg, uint8_t *data, uint16_t len);
+	int32_t lsm6dso_acceleration_raw_get(int16_t *val);
+	int32_t lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data);
 
-  float_t lsm6dso_from_fs2_to_mg(int16_t lsb);
-  float_t lsm6dso_from_fs4_to_mg(int16_t lsb);
-  float_t lsm6dso_from_fs8_to_mg(int16_t lsb);
-  float_t lsm6dso_from_fs16_to_mg(int16_t lsb);
-  float_t lsm6dso_from_lsb_to_celsius(int16_t lsb);
-  float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
-  int32_t lsm6dso_read_reg(uint8_t reg, uint8_t *data, uint16_t len);
-  int32_t lsm6dso_acceleration_raw_get(int16_t *val);
-  int32_t lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data);
-
-  uint8_t i2cAddr;
-  I2C_HandleTypeDef *hi2c2;
+	uint8_t i2cAddr;
+	I2C_HandleTypeDef *hi2c;
 };
 
 

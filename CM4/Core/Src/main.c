@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 #include "app_lorawan.h"
 #include "dispatcherTask.h"
 #include "distanceTask.h"
@@ -30,6 +29,8 @@
 #include "sensorAcqTask.h"
 #include "stimulusTask.h"
 #include "messages.h"
+#include "cmsis_os.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -177,11 +178,7 @@ const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
   .name = "fenceUpdateQueue"
 };
 /* USER CODE BEGIN PV */
-//static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
 
-//static const uint8_t IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
-
-#define TIMEOUT 100 // Timeout en ms
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -242,7 +239,14 @@ int main(void)
   MX_LPTIM1_Init();
   MX_LPTIM2_Init();
   MX_TIM1_Init();
+  
   /* USER CODE BEGIN 2 */
+  SamM10q gps(&hi2c2, GPS_ADDRESS);
+  // TODO: Chequear Params de la imu y de los INA.
+  Lsm6dso imu(&hi2c2, LSM6DSO_ADDRESS, DISABLE, ODR_52, FS_4, POWER_DOWN, FS_250DPS, THS_1, ODR_1, FS_XL_64, DUR_1_512);
+  Ina226 inaMcu(&hi2c2, INA_MCU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
+  Ina226 inaGps(&hi2c2, INA_GPS_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
+  Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -294,7 +298,14 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of sensorAcqTask */
-  sensorAcqTaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcqTask_attributes);
+  sensorAcqTaskParams sensorParams = {
+    .gps = &gps,
+    .imu = &imu,
+    .inaMcu = &inaMcu,
+    .inaGps = &inaGps,
+    .inaImu = &inaImu
+  };
+  sensorAcqTaskHandle = osThreadNew(sensorAcqTask, &sensorParams, &sensorAcqTask_attributes);
 
   /* creation of stimulusTask */
   stimulusTaskHandle = osThreadNew(stimulusTask, NULL, &stimulusTask_attributes);
