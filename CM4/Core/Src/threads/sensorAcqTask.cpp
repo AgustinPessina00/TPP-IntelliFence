@@ -43,7 +43,7 @@ CowState classifyMotion(Acceleration imu)
 
 zone_t getZoneForDistance(distance_t dist, Fence fence)
 {
-    for (int i = GREEN_ZONE; i < BLACK_ZONE; i++)
+    for (zone_t i = GREEN_ZONE; i < BLACK_ZONE; i++)
     {
       if (dist < fence.getThresholds[i])
         return static_cast<zone_t>(i - 1);  // zona anterior
@@ -59,16 +59,13 @@ void startSensorAcqTask(void *argument) {
   float currentGps;
   float currentImu;
   
-  for (;;)
-  {
+  for (;;) {
     // === Leer GPS ===
-    if (sensorParams->gps->read_nmea_stream() != HAL_OK)
-    {
+    if (sensorParams->gps->read_nmea_stream() != HAL_OK) {
       error_count++;
       continue;  // volver a intentar luego
     }
-    else
-    {
+    else {
       sensorParams->gps->update_location_and_time();
       // TODO: Pasar estos datos a la cola
       // sensorParams->gps->latitude;
@@ -76,53 +73,55 @@ void startSensorAcqTask(void *argument) {
     }
 
     // === Leer IMU ===
-    if (sensorParams->imu->readAcceleration(&acc) =! HAL_OK){
+    if (sensorParams->imu->readAcceleration(&acc) =! HAL_OK) {
       error_count++;
       continue;  // volver a intentar luego
     }
 
     // === Leer INA_MCU ===
-    if (sensorParams->inaMcu->readCurrent_mA(&currentMcu) =! HAL_OK){
+    if (sensorParams->inaMcu->readCurrent_mA(&currentMcu) =! HAL_OK) {
       error_count++;
       continue;  // volver a intentar luego
     }
     
     // === Leer INA_GPS ===
-    if (sensorParams->inaGps->readCurrent_mA(&currentGps) =! HAL_OK){
+    if (sensorParams->inaGps->readCurrent_mA(&currentGps) =! HAL_OK) {
       error_count++;
       continue;  // volver a intentar luego
     }
     
     // === Leer INA_IMU ===
-    if (sensorParams->inaImu->readCurrent_mA(&currentImu) =! HAL_OK){
+    if (sensorParams->inaImu->readCurrent_mA(&currentImu) =! HAL_OK) {
       error_count++;
       continue;  // volver a intentar luego
     }
 
     // TODO: Armar los mensaje_t y cambiarlo en "&zone"
     // RECIBE FLAGS DE LA COLA QUE LE MANDA fsmTask A sensorAcqTask
-    switch (expression)
-    {
-    case SEND_GPS_DATA:
-      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
-      break;
-    case SEND_IMU_DATA:
-      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
-      break;
-    case SEND_INA_MCU_DATA:
-      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
-      break;
-    case SEND_INA_GPS_DATA:
-      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
-      break;
-    case SEND_INA_IMU_DATA:
-      osMessageQueuePut(brokerQueueHandle, &message, 0, 0);
-      break;
-    
-    default:
-      // TODO: printf si queremos debuggear.
-      break;
+    if (osMessageQueueGet(sensorAcqQueueHandle, &msg, NULL, 0) == osOK) {
+        switch (msg.id) {
+            case SEND_GPS_DATA:
+            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
+            break;
+            case SEND_IMU_DATA:
+            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
+            break;
+            case SEND_INA_MCU_DATA:
+            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
+            break;
+            case SEND_INA_GPS_DATA:
+            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
+            break;
+            case SEND_INA_IMU_DATA:
+            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
+            break;
+            
+            default:
+            // TODO: printf si queremos debuggear.
+            break;
+        }
     }
+    
   }
 }
 
