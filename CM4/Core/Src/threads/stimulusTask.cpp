@@ -20,6 +20,7 @@ void stimulusTask(void *argument) {
         if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
             if (msg->id == MSG_ID_ZONE_CHANGE) {
                 currentZone = (zone_t) msg->payload[0];
+                delete msg;
             }
         }
         // Configurar PWM si corresponde
