@@ -59,6 +59,8 @@ void startSensorAcqTask(void *argument) {
   float currentMcu;
   float currentGps;
   float currentImu;
+
+  Message* msgReceived = nullptr;
   
   for (;;) {
     // === Leer GPS ===
@@ -96,8 +98,9 @@ void startSensorAcqTask(void *argument) {
 
     // TODO: Armar los mensaje_t y cambiarlo en "&zone"
     // RECIBE FLAGS DE LA COLA QUE LE MANDA fsmTask A sensorAcqTask
-    if (osMessageQueueGet(sensorAcqQueueHandle, &msg, NULL, 0) == osOK) {
-      switch (msg.id) {
+
+    if (osMessageQueueGet(sensorAcqQueueHandle, &msgReceived, NULL, 0) == osOK) {
+      switch (msgReceived->id) {
         case SEND_GPS_DATA:
           Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(float));  //[latitud, longitud]
           std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(float));
@@ -138,6 +141,7 @@ void startSensorAcqTask(void *argument) {
       }
     }
     
+    delete msgReceived;
   }
 }
 
