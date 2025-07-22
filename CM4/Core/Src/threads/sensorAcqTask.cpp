@@ -1,6 +1,7 @@
 
 #include "sensorAcqTask.h"
-
+extern sensorAcqQueueHandle;
+extern dispatcherQueueHandle;
 void enterLowPowerSleep(void)
 {
   // Asegurarse de limpiar interrupciones previas
@@ -67,9 +68,6 @@ void startSensorAcqTask(void *argument) {
     }
     else {
       sensorParams->gps->update_location_and_time();
-      // TODO: Pasar estos datos a la cola
-      // sensorParams->gps->latitude;
-      // sensorParams->gps->longitude;
     }
 
     // === Leer IMU ===
@@ -99,27 +97,45 @@ void startSensorAcqTask(void *argument) {
     // TODO: Armar los mensaje_t y cambiarlo en "&zone"
     // RECIBE FLAGS DE LA COLA QUE LE MANDA fsmTask A sensorAcqTask
     if (osMessageQueueGet(sensorAcqQueueHandle, &msg, NULL, 0) == osOK) {
-        switch (msg.id) {
-            case SEND_GPS_DATA:
-            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
-            break;
-            case SEND_IMU_DATA:
-            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
-            break;
-            case SEND_INA_MCU_DATA:
-            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
-            break;
-            case SEND_INA_GPS_DATA:
-            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
-            break;
-            case SEND_INA_IMU_DATA:
-            osMessageQueuePut(dispatcherQueueHandle, &sensorDataToSend, 0, 0);
-            break;
-            
-            default:
-            // TODO: printf si queremos debuggear.
-            break;
-        }
+      switch (msg.id) {
+        case SEND_GPS_DATA:
+          Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(float));  //[latitud, longitud]
+          std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(float));
+          std::memcpy(msg->payload + sizeof(float), &(sensorParams->gps->longitude), sizeof(float));
+          osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+          break;
+        case SEND_IMU_DATA:
+          // TODO: COMPLETAR CON EL MENSAJE DE LA IMU
+          // Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(float));  //[latitud, longitud]
+          // std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(float));
+          // std::memcpy(msg->payload + sizeof(float), &(sensorParams->gps->longitude), sizeof(float));
+          // osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+          break;
+        case SEND_INA_MCU_DATA:
+          // TODO: COMPLETAR CON EL MENSAJE DEL INA
+          // Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(float));  //[latitud, longitud]
+          // std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(float));
+          // std::memcpy(msg->payload + sizeof(float), &(sensorParams->gps->longitude), sizeof(float));
+          // osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+          break;
+        case SEND_INA_GPS_DATA:
+          // TODO: COMPLETAR CON EL MENSAJE DEL INA
+          // Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(float));  //[latitud, longitud]
+          // std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(float));
+          // std::memcpy(msg->payload + sizeof(float), &(sensorParams->gps->longitude), sizeof(float));
+          // osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+          break;
+        case SEND_INA_IMU_DATA:
+          // TODO: COMPLETAR CON EL MENSAJE DEL INA
+          // Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(float));  //[latitud, longitud]
+          // std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(float));
+          // std::memcpy(msg->payload + sizeof(float), &(sensorParams->gps->longitude), sizeof(float));
+          // osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+          break;
+        default:
+        // TODO: printf si queremos debuggear.
+          break;
+      }
     }
     
   }
