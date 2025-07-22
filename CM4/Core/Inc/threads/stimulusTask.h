@@ -11,6 +11,8 @@ extern "C" {
 #include "cow.h"
 #include "fence.h"
 
+#include "messages.h"
+
 void stimulusTask(void *argument);
 
 #ifdef __cplusplus
