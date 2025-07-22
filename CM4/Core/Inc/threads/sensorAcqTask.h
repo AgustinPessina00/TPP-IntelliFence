@@ -13,7 +13,7 @@ extern "C" {
 
 #include "cow.h"
 #include "fence.h"
-
+#include "messages.h"
 #define NEAR_LIMIT  10.0f             // en metros
 #define GPS_SAMPLE_RATE  (1 * 1000)  // en milisegundos (ej: 1s)
 

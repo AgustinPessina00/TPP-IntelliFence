@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "messages.h"
+
 void gpsTask(void *argument);
 
 #ifdef __cplusplus
