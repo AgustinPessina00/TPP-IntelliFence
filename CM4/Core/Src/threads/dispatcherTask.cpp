@@ -15,34 +15,34 @@ extern osMessageQueueId_t distanceToLimitQueueHandle;
 extern osMessageQueueId_t fenceUpdateQueueHandle;
 
 void dispatcherTask(void *argument) {
-    Messages_t msg;
+    Message* msg;
 
     while(1) {
         if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, osWaitForever) == osOK) {
-            switch (msg.receiver) {
+            switch (msg->receiver) {
                 case MODULE_SENSOR_ACQ:
-                    osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(sensorAcqQueueHandle, msg, 0, 0);
                     break;
                 case MODULE_STIMULUS:
-                    osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(stimulusQueueHandle, msg, 0, 0);
                     break;
                 case MODULE_GPS:
-                    osMessageQueuePut(gpsQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(gpsQueueHandle, msg, 0, 0);
                     break;
                 case MODULE_LORA_TX:
-                    osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(loraTxQueueHandle, msg, 0, 0);
                     break;
                 case MODULE_LORA_RX:
-                    osMessageQueuePut(loraRxQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(loraRxQueueHandle, msg, 0, 0);
                     break;
                 case MODULE_FSM:
-                    osMessageQueuePut(fsmQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(fsmQueueHandle, msg, 0, 0);
                     break;
                 case MODULE_DISTANCE:
-                    osMessageQueuePut(distanceToLimitQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(distanceToLimitQueueHandle, msg, 0, 0);
                     break;
                 case MODULE_FENCE_UPDATE:
-                    osMessageQueuePut(fenceUpdateQueueHandle, &msg, 0, 0);
+                    osMessageQueuePut(fenceUpdateQueueHandle, msg, 0, 0);
                     break;
                 default:
                     break;
