@@ -14,12 +14,12 @@ static uint16_t vibrationFreq = 100;  // Frecuencia efectiva para motores
 static uint8_t vibrationDuty = 90;  // Duty Cycle para motores
 
 void stimulusTask(void *argument) {
-    Messages_t msg;
+    Message* msg;
     
     while (1) {
         if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
-            if (msg.id == MSG_ID_ZONE_CHANGE) {
-                currentZone = (zone_t) msg.payload[0];
+            if (msg->id == MSG_ID_ZONE_CHANGE) {
+                currentZone = (zone_t) msg->payload[0];
             }
         }
         // Configurar PWM si corresponde
