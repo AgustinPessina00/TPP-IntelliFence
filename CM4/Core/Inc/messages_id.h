@@ -18,7 +18,11 @@
 #define MSG_ID_SEND_INA_MCU      0x22
 #define MSG_ID_SEND_INA_GPS      0x23
 #define MSG_ID_SEND_INA_IMU      0x24
-
+#define MSG_ID_REQUEST_GPS       0x25
+#define MSG_ID_REQUEST_IMU       0x26
+#define MSG_ID_REQUEST_INA_MCU   0x27
+#define MSG_ID_REQUEST_INA_GPS   0x28
+#define MSG_ID_REQUEST_INA_IMU   0x29
 
 // Cerca virtual
 #define MSG_ID_FENCE_UPDATE      0x30  // Nueva cerca virtual enviada
