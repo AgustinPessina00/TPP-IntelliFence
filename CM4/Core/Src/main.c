@@ -323,7 +323,11 @@ int main(void)
   fsmTaskHandle = osThreadNew(fsmTask, NULL, &fsmTask_attributes);
 
   /* creation of distanceToLimit */
-  distanceToLimitHandle = osThreadNew(distanceToLimitTask, NULL, &distanceToLimit_attributes);
+  distanceTaskParams distanceParams = {
+    .cow = &cow,
+    .fence = &fence
+  };
+  distanceToLimitHandle = osThreadNew(distanceToLimitTask, &distanceTaskParams, &distanceToLimit_attributes);
 
   /* creation of fenceUpdateTask */
   fenceUpdateTaskHandle = osThreadNew(fenceUpdateTask, NULL, &fenceUpdateTask_attributes);

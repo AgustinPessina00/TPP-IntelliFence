@@ -35,10 +35,12 @@ public:
     Fence();
 
     void addVertex(const Vertex& v);
-    void updateLimits();  // recalcula segmentos a partir de vértices
+    void updateLimits();    // recalcula segmentos a partir de vértices
+    void clearVertex();     // Elimina los vertices para luego cargar los nuevos cuando actualizamos el cerco
 
     const std::vector<Vertex>& getVertices() const;
     const std::vector<Line>& getLimits() const;
+    const Vertex getCenterFence();
 
     // Setea umbrales para cada zona desde el límite del polígono
     void setZoneThresholds(threshold_t blue, threshold_t yellow, threshold_t red);
@@ -47,8 +49,12 @@ public:
     float getThreshold(zone_t zone) const;
 
 private:
+    void updateCenterFence();
+
     std::vector<Vertex> vertices;
     std::vector<Line> limites;
+
+    Vertex centerFence;     // Centro promedio de los vertices.
 
     float thresholds[BLACK_ZONE];
 

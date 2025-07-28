@@ -5,9 +5,31 @@
 extern "C" {
 #endif
 
+#include "FreeRTOS.h"
+#include "task.h"
+
+#include "cow.h"
+#include "fence.h"
 #include "messages.h"
 
+typedef struct
+{
+  Cow *cow;
+  Fence *fence;
+}distanceTaskParams;
+
+struct XY {
+    double x;
+    double y;
+};
+
 void distanceToLimitTask(void *argument);
+
+distance_t calculateMinDistanceToFence(const Cow *cow, const Fence *fence);
+
+float pointToSegmentDistance(const XY& p, const XY& a, const XY& b);
+
+XY latLonToXY(double lat, double lon, double lat0, double lon0);
 
 #ifdef __cplusplus
 }

@@ -21,6 +21,15 @@ void Fence::updateLimits()
         lim.end = vertices[(i + 1) % vertices.size()];  // cierre del polígono
         limites.push_back(lim);
     }
+
+    updateCenterFence();
+}
+
+void Fence::clearVertex()
+{
+    vertices.clear();
+    limites.clear();
+    centerFence = {0.0, 0.0};
 }
 
 const std::vector<Vertex>& Fence::getVertices() const
@@ -31,6 +40,28 @@ const std::vector<Vertex>& Fence::getVertices() const
 const std::vector<Line>& Fence::getLimits() const
 {
     return limites;
+}
+
+const Vertex Fence::getCenterFence()
+{
+    return centerFence;
+}
+
+void Fence::updateCenterFence()
+{
+    if(vertices.empty())
+        return;
+
+    double latSum = 0.0;
+    double lonSum = 0.0;
+
+    for(size_t i = 0; i < vertices.size(); i++) {
+        latSum += vertices[i].latitude
+        lonSum += vertices[i].longitude;
+    }
+
+    center.latitude = latSum / vertices.size();
+    center.longitude = lonSum / vertices.size();    
 }
 
 void Fence::setZoneThresholds(threshold_t blue, threshold_t yellow, threshold_t red)
