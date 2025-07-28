@@ -7,9 +7,12 @@ extern dispatcherQueueHandle;
 void sensorAcqTask(void *argument) {
   sensorAcqTaskParams *sensorParams = static_cast<sensorAcqTaskParams *>(argument);
 
-  Message* msgReceived = nullptr;
+  Message* msgReceived;
   
   while (1){
+
+    msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
+
     // === Leer GPS ===
     if (sensorParams->gps->read_nmea_stream() != HAL_OK) {
       error_count++;
@@ -53,9 +56,9 @@ void sensorAcqTask(void *argument) {
     if (osMessageQueueGet(sensorAcqQueueHandle, &msgReceived, NULL, 0) == osOK) {
       switch (msgReceived->id) {
         case MSG_ID_REQUEST_GPS:
-          Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(float));  // [latitud, longitud] = 2 floats
-          std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(float));
-          std::memcpy(msg->payload + sizeof(float), &(sensorParams->gps->longitude), sizeof(float));
+          Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(double));  // [latitud, longitud] = 2 doubles
+          std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(double));
+          std::memcpy(msg->payload + sizeof(double), &(sensorParams->gps->longitude), sizeof(double));
           osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
           break;
 
