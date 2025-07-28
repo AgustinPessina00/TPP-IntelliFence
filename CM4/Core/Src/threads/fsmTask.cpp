@@ -1,6 +1,9 @@
 
 #include "fsmTask.h"
 
+extern fsmQueueHandle;
+extern dispatcherQueueHandle;
+
 void enterLowPowerSleep(void) {
   // Asegurarse de limpiar interrupciones previas
   __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
@@ -39,7 +42,7 @@ CowState classifyMotion(Acceleration imu) {
     return CowState::MOVEMENT;
 }
 
-zone_t getZoneForDistance(distance_t dist, Fence fence) {
+/*zone_t getZoneForDistance(distance_t dist, Fence fence) {
     for (zone_t i = GREEN_ZONE; i < BLACK_ZONE; i++)
     {
       if (dist < fence.getThresholds[i])
@@ -47,13 +50,50 @@ zone_t getZoneForDistance(distance_t dist, Fence fence) {
     }
 
     return BLACK_ZONE;
-}
+}*/
 
 
 void fsmTask(void *argument) {
+    Message* msgReceived;
+
+    Position pos;
+    
     while (1) {
-        // TODO: implementar l�gica de la tarea
-        vTaskDelay(pdMS_TO_TICKS(1000));
+    
+    msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
+
+    // === Solicitar Mensaje de GPS ===
+    Message* msg = new Message(MSG_ID_REQUEST_GPS, ModuleId_t::FSM, ModuleId_t::SENSOR_ACQ, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
+    osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+
+    if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
+    switch (msgReceived->id) {
+        case MSG_ID_SEND_GPS: {
+            if (msgReceived->length == 2 * sizeof(double) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
+                std::memcpy(&pos.latitude, msgReceived->payload, sizeof(double));
+                std::memcpy(&pos.latitude, msgReceived->payload + sizeof(double), sizeof(double));
+
+                // printf("FSM recibió GPS: lat=%.5f, lon=%.5f\r\n", latitude, longitude);
+
+                cow.updatePosition(pos);
+
+                
+
+            } else {
+                // Manejo de mensaje corrupto o malformado
+                printf("FSM recibió GPS con payload inválido.\r\n");
+            }
+            break;
+        }
+
+        // Otros casos futuros...
+    }
+
+        // Importante: liberar memoria del mensaje recibido
+        delete msgReceived;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
