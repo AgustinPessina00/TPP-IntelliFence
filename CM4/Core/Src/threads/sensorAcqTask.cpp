@@ -92,9 +92,9 @@ void sensorAcqTask(void *argument) {
         // TODO: printf si queremos debuggear.
           break;
       }
+      
+      delete msgReceived;
     }
-    
-    delete msgReceived;
     
     // Delay de adquisión de muestras.
     osDelay(pdMS_TO_TICKS(SAMPLE_RATE)); 
