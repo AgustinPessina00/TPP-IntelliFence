@@ -4,6 +4,8 @@
 extern fsmQueueHandle;
 extern dispatcherQueueHandle;
 
+// TODO: VER COMO MANEJAMOS EL TEMA DE PASAR COMO PARÁMETROS COW Y FENCE PARA ESTA TASK. LO NECESITAN MÁS TASKS?
+
 void enterLowPowerSleep(void) {
   // Asegurarse de limpiar interrupciones previas
   __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
@@ -55,45 +57,114 @@ CowState classifyMotion(Acceleration imu) {
 
 void fsmTask(void *argument) {
     Message* msgReceived;
-
-    Position pos;
     
     while (1) {
     
-    msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
+      msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
 
-    // === Solicitar Mensaje de GPS ===
-    Message* msg = new Message(MSG_ID_REQUEST_GPS, ModuleId_t::FSM, ModuleId_t::SENSOR_ACQ, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
-    osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+      // === Solicitar Mensaje de GPS ===
+      Message* msg = new Message(MSG_ID_REQUEST_GPS, ModuleId_t::FSM, ModuleId_t::SENSOR_ACQ, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
+      osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 
-    if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
-    switch (msgReceived->id) {
-        case MSG_ID_SEND_GPS: {
+      if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
+        switch (msgReceived->id) {
+          case MSG_ID_SEND_GPS: {
+            Position pos;
             if (msgReceived->length == 2 * sizeof(double) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
-                std::memcpy(&pos.latitude, msgReceived->payload, sizeof(double));
-                std::memcpy(&pos.latitude, msgReceived->payload + sizeof(double), sizeof(double));
+              std::memcpy(&pos.latitude, msgReceived->payload, sizeof(double));
+              std::memcpy(&pos.longitude, msgReceived->payload + sizeof(double), sizeof(double));
 
-                // printf("FSM recibió GPS: lat=%.5f, lon=%.5f\r\n", latitude, longitude);
+              // printf("FSM recibió GPS: lat=%.5f, lon=%.5f\r\n", latitude, longitude);
 
-                cow.updatePosition(pos);
-
-                
+              cow.updatePosition(pos);
 
             } else {
-                // Manejo de mensaje corrupto o malformado
-                printf("FSM recibió GPS con payload inválido.\r\n");
+              // Manejo de mensaje corrupto o malformado
+              printf("FSM recibió GPS con payload inválido.\r\n");
             }
+            
             break;
-        }
+          }
 
-        // Otros casos futuros...
-    }
+          // Otros casos futuros...
+        }
 
         // Importante: liberar memoria del mensaje recibido
         delete msgReceived;
-    }
+      }
 
-    vTaskDelay(pdMS_TO_TICKS(1000));
+      // === Solicitar Mensaje de Distancia al Cerco ===
+      Message* msg = new Message(MSG_ID_REQUEST_DISTANCE_TO_FENCE, ModuleId_t::FSM, ModuleId_t::DISTANCE, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
+      osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+
+      if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
+        switch (msgReceived->id) {
+          case MSG_ID_SEND_DISTANCE_TO_FENCE: {
+            if (msgReceived->length == 3 * sizeof(zone_t) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
+              zone_t zone;
+              std::memcpy(&zone, msgReceived->payload, sizeof(zone_t));
+              
+              // printf("FSM recibió ZONA: zone=%d\r\n", zone);
+
+              switch () {
+                case constant expression:
+                  /* code */
+                  break;
+              
+                default:
+                  break;
+              }
+              
+            } else {
+              // Manejo de mensaje corrupto o malformado
+              printf("FSM recibió ZONE con payload inválido.\r\n");
+            }
+            
+            break;
+          }
+
+          // Otros casos futuros...
+        }
+
+        // Importante: liberar memoria del mensaje recibido
+        delete msgReceived;
+      }
+
+
+
+      // === Solicitar Mensaje de IMU ===
+      Message* msg = new Message(MSG_ID_REQUEST_IMU, ModuleId_t::FSM, ModuleId_t::SENSOR_ACQ, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
+      osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+
+      if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
+        switch (msgReceived->id) {
+          case MSG_ID_SEND_IMU: {
+            if (msgReceived->length == 3 * sizeof(float) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
+              Acceleration acc;
+              std::memcpy(&acc.ax, msgReceived->payload, sizeof(float));
+              std::memcpy(&acc.ay, msgReceived->payload, sizeof(float));
+              std::memcpy(&acc.az, msgReceived->payload, sizeof(float));
+              
+              // printf("FSM recibió IMU: ax=%.5f, ay=%.5f, az=%.5f\r\n", ax, ay, az);
+
+              cow.updateAcceleration(acc);
+
+            } else {
+              // Manejo de mensaje corrupto o malformado
+              printf("FSM recibió IMU con payload inválido.\r\n");
+            }
+            
+            break;
+          }
+
+          // Otros casos futuros...
+        }
+
+        // Importante: liberar memoria del mensaje recibido
+        delete msgReceived;
+      }
+
+      vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
