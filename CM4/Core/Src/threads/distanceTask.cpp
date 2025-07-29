@@ -1,40 +1,61 @@
 #include "distanceTask.h"
+#include "math.h"
 
+extern distanceToLimitQueueHandle;
+extern dispatcherQueueHandle;
+
+// TODO: Cambiar nombres de la task a getZoneTask.
 
 void distanceToLimitTask(void *argument) {
     distanceTaskParams *distanceParams = static_cast<distanceTaskParams *>(argument);
 
-    while(1) {
-        // TODO: implementar lógica de la tarea
-        
-        float minDistance = calculateMinDistanceToFence(distanceParams->cow, distanceParams->fence);
+    while(1) {        
+        zone_t zone = getZoneFromDistance(distanceParams->cow, distanceParams->fence);
 
         Message* msgReceived = nullptr;
 
-        if (osMessageQueueGet(distanceToLimitQueueHandle, &msgReceived, NULL, 0) == osOK) {     // TODO: ¿POR QUÉ FIGURA EN BLANCO?
-            Message* msg = new Message(MSG_ID_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(float));  //[latitud, longitud]
-            
-            std::memcpy(msg->payload, &minDistance, sizeof(float));
-            
-            osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);    // TODO: ¿POR QUÉ FIGURA EN BLANCO?
+        if (osMessageQueueGet(distanceToLimitQueueHandle, &msgReceived, NULL, 0) == osOK) {
 
-            delete msgReceived;
+            switch (msgReceived->id) {
+            case MSG_ID_REQUEST_DISTANCE_TO_FENCE:
+                Message* msg = new Message(MSG_ID_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(zone_t));
+                std::memcpy(msg->payload, &zone, sizeof(zone_t));
+                osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+                break;
+            default:
+                break;
+            }
+            delete msg;
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
-distance_t calculateMinDistanceToFence(const Cow *cow, const Fence *fence) {
+zone_t getZoneFromDistance(const Cow *cow, const Fence *fence) {
+
     Position pos = cow.getPosition();
     Vertex center = fence.getCenter();
 
-    // Convertir posición del animal a coordenadas XY relativas al centro del cerco
     XY cowXY = latLonToXY(pos.latitude, pos.longitude, center.latitude, center.longitude);
 
-    float minDist = std::numeric_limits<float>::max();  // Inicializa la distancia minima con el máximo valor posible.
-
     const std::vector<Line>& limites = fence.getLimits();
+
+    if(isPointInsideFence(cowXY, limites, center)) {
+        float minDistance = calculateMinDistanceToFence(cowXY, center, limites);
+        
+        if (minDistance > thresholds[LIGHT_BLUE_ZONE]) return GREEN_ZONE; 
+        else if (minDistance > thresholds[BLUE_ZONE]) return LIGHT_BLUE_ZONE;
+        else if (minDistance > thresholds[DARK_BLUE_ZONE]) return BLUE_ZONE;
+        else if (minDistance > thresholds[YELLOW_ZONE]) return DARK_BLUE_ZONE;
+        else if (minDistance > thresholds[RED_ZONE]) return YELLOW_ZONE;
+        else return RED_ZONE;
+    }
+    else return BLACK_ZONE;
+}
+
+distance_t calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites) {
+    float minDist = std::numeric_limits<float>::max();  // Inicializa la distancia minima con el máximo valor posible.
 
     for (size_t i = 0; i < limites.size(); ++i) {
         const Line& seg = limites[i];
@@ -47,9 +68,32 @@ distance_t calculateMinDistanceToFence(const Cow *cow, const Fence *fence) {
             minDist = dist;
         }
     }
-    
+
     return minDist;
 }
+
+    
+bool isPointInsideFence(const XY& pointXY, const std::vector<Line>& limites, const Vertex& center) {
+    bool inside = false;
+
+    for (size_t i = 0; i < limites.size() ; i++) {
+        const Line& seg = limites[i];
+
+        // Convertir los dos vértices del segmento a XY
+        XY vi = latLonToXY(seg.start.latitude, seg.start.longitude, center.latitude, center.longitude);
+        XY vj = latLonToXY(seg.end.latitude, seg.end.longitude, center.latitude, center.longitude);
+
+        // Verificar si el segmento [vj, vi] cruza una línea horizontal desde pointXY
+        bool intersect = ((vi.y > pointXY.y) != (vj.y > pointXY.y)) &&
+                         (pointXY.x < (vj.x - vi.x) * (pointXY.y - vi.y) / (vj.y - vi.y + 1e-12) + vi.x); // +1e-12 para evitar división por cero
+
+        if (intersect)
+            inside = !inside;
+    }
+
+    return inside;
+}
+
 
 float pointToSegmentDistance(const XY& p, const XY& a, const XY& b) {
     XY ab = {b.x - a.x, b.y - a.y};
@@ -81,39 +125,4 @@ XY latLonToXY(double lat, double lon, double lat0, double lon0) {
     double y = (lat_rad - lat0_rad) * R;
 
     return {x, y};
-}
-
-
-
-//ACA HAGO getZone:
-
-//OPCION 1:
-
-float thresholds[] = {10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 40.0f}; // en metros
-
-zone_t getZoneFromDistance(float dist, const float thresholds[]) {
-    if (dist < thresholds[0]) return GREEN_ZONE;          // Antes de LIGHT_BLUE_ZONE
-    else if (dist < thresholds[1]) return LIGHT_BLUE_ZONE;
-    else if (dist < thresholds[2]) return BLUE_ZONE;
-    else if (dist < thresholds[3]) return DARK_BLUE_ZONE;
-    else if (dist < thresholds[4]) return YELLOW_ZONE;
-    else if (dist < thresholds[5]) return RED_ZONE;
-    else return BLACK_ZONE;
-}
-
-struct ZoneThresholds {
-    float lightBlue;
-    float blue;
-    float darkBlue;
-    float yellow;
-    float red;
-};
-
-zone_t getZoneFromDistance(float dist, const ZoneThresholds& t) {
-    if (dist < t.lightBlue) return GREEN_ZONE;
-    else if (dist < t.blue) return LIGHT_BLUE_ZONE;
-    else if (dist < t.darkBlue) return BLUE_ZONE;
-    else if (dist < t.yellow) return DARK_BLUE_ZONE;
-    else if (dist < t.red) return YELLOW_ZONE;
-    else return RED_ZONE;  // BLACK_ZONE solo si se escapa mucho
 }

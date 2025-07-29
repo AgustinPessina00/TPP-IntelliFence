@@ -4,9 +4,11 @@
 
 #include <vector>
 
+#define TOTAL_TRESHOLDS  5
+
 typedef float threshold_t;
 
-typedef enum {
+typedef enum : uint8_t {
     GREEN_ZONE       = 0x00,  //  Dentro del cerco virtual (sin estímulo)
     
     LIGHT_BLUE_ZONE  = 0x01,  //  Buzzer leve (frecuencia baja, duty bajo)
@@ -43,7 +45,7 @@ public:
     const Vertex getCenterFence();
 
     // Setea umbrales para cada zona desde el límite del polígono
-    void setZoneThresholds(threshold_t blue, threshold_t yellow, threshold_t red);
+    void setZoneThresholds();
 
     // Devuelve los umbrales definidos
     float getThreshold(zone_t zone) const;
@@ -56,10 +58,12 @@ private:
 
     Vertex centerFence;     // Centro promedio de los vertices.
 
-    float thresholds[BLACK_ZONE];
+    float thresholds[TOTAL_TRESHOLDS];
 
     // Umbrales desde el límite hasta la respectiva zona (en metros)
-    threshold_t blue = 10.0f;
+    threshold_t lightBlue = 20.0f;
+    threshold_t blue = 15.0f;
+    threshold_t darkBlue = 10.0f;
     threshold_t yellow = 5.0f;
     threshold_t red = 1.0f;
 };

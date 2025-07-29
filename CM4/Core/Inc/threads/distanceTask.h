@@ -12,8 +12,7 @@ extern "C" {
 #include "fence.h"
 #include "messages.h"
 
-typedef struct
-{
+typedef struct {
   Cow *cow;
   Fence *fence;
 }distanceTaskParams;
@@ -25,7 +24,9 @@ struct XY {
 
 void distanceToLimitTask(void *argument);
 
-distance_t calculateMinDistanceToFence(const Cow *cow, const Fence *fence);
+zone_t getZoneFromDistance(const Cow *cow, const Fence *fence);
+
+distance_t calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites);
 
 float pointToSegmentDistance(const XY& p, const XY& a, const XY& b);
 
