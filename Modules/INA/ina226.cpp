@@ -35,35 +35,35 @@ uint16_t Ina226::calculateCalibration() {
     return static_cast<uint16_t>(cal);
 }
 
-HAL_StatusTypeDef Ina226::readShuntVoltage_mV(float &voltage) {
+HAL_StatusTypeDef Ina226::readShuntVoltage_mV() {
     int16_t raw;
     if (!readRegister(REG_SHUNT, reinterpret_cast<uint16_t&>(raw))) 
         return HAL_ERROR;
-    voltage = raw * 2.5e-3f;
+    this->shuntVoltage = raw * 2.5e-3f;
     return HAL_OK;
 }
 
-HAL_StatusTypeDef Ina226::readBusVoltage_mV(float &voltage) {
+HAL_StatusTypeDef Ina226::readBusVoltage_mV() {
     uint16_t raw;
     if (!readRegister(REG_BUS, raw)) 
         return HAL_ERROR;
-    voltage = raw * 1.25f;
+    this->busVoltage = raw * 1.25f;
     return HAL_OK;
 }
 
-HAL_StatusTypeDef Ina226::readCurrent_mA(float &current) {
+HAL_StatusTypeDef Ina226::readCurrent_mA() {
     int16_t raw;
     if (!readRegister(REG_CURRENT, reinterpret_cast<uint16_t&>(raw))) 
         return HAL_ERROR;
-    current = raw * currentLSB * 1000.0f;
+    this->current = raw * this->currentLSB * 1000.0f;
     return HAL_OK;
 }
 
-HAL_StatusTypeDef Ina226::readPower_mW(float &power) {
+HAL_StatusTypeDef Ina226::readPower_mW() {
     uint16_t raw;
     if (!readRegister(REG_PWR, raw)) 
         return HAL_ERROR;
-    power = raw * 25.0f * currentLSB * 1000.0f;
+    this->power = raw * 25.0f * this->currentLSB * 1000.0f;
     return HAL_OK;
 }
 

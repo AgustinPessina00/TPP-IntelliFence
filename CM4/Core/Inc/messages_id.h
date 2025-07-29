@@ -18,13 +18,18 @@
 #define MSG_ID_SEND_INA_MCU      0x22
 #define MSG_ID_SEND_INA_GPS      0x23
 #define MSG_ID_SEND_INA_IMU      0x24
-
+#define MSG_ID_REQUEST_GPS       0x25
+#define MSG_ID_REQUEST_IMU       0x26
+#define MSG_ID_REQUEST_INA_MCU   0x27
+#define MSG_ID_REQUEST_INA_GPS   0x28
+#define MSG_ID_REQUEST_INA_IMU   0x29
 
 // Cerca virtual
-#define MSG_ID_FENCE_UPDATE      0x30  // Nueva cerca virtual enviada
-#define MSG_ID_FENCE_STATUS      0x31  // Estado de la cerca actual
-#define MSG_ID_FENCE_BREACH      0x32  // Animal se salió del perímetro
-#define MSG_ID_DISTANCE_TO_FENCE 0x33  // Distancia actual al límite
+#define MSG_ID_FENCE_UPDATE                 0x30  // Nueva cerca virtual enviada
+#define MSG_ID_FENCE_STATUS                 0x31  // Estado de la cerca actual
+#define MSG_ID_FENCE_BREACH                 0x32  // Animal se salió del perímetro
+#define MSG_ID_REQUEST_DISTANCE_TO_FENCE    0x33  // Request deDistancia actual al límite
+#define MSG_ID_SEND_DISTANCE_TO_FENCE       0x34  // Distancia actual al límite
 
 // Estímulos individuales
 #define MSG_ID_STIMULUS_VIBRATION_REQUEST   0x40  // Pedido de vibración
