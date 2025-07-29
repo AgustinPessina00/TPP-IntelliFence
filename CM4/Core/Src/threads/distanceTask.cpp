@@ -18,7 +18,8 @@ void distanceToLimitTask(void *argument) {
 
             switch (msgReceived->id) {
             case MSG_ID_REQUEST_DISTANCE_TO_FENCE:
-                Message* msg = new Message(MSG_ID_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(zone_t));
+            //TODO: Ver si pasamos zone_T en el mensaje o casteamos a uint8_t, ya que payload recibe uint8_t.
+                Message* msg = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(zone_t));
                 std::memcpy(msg->payload, &zone, sizeof(zone_t));
                 osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
                 break;

@@ -8,7 +8,7 @@
 
 typedef float threshold_t;
 
-typedef enum : uint8_t {
+typedef enum {
     GREEN_ZONE       = 0x00,  //  Dentro del cerco virtual (sin estímulo)
     
     LIGHT_BLUE_ZONE  = 0x01,  //  Buzzer leve (frecuencia baja, duty bajo)
