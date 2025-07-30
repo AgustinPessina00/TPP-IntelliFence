@@ -24,7 +24,7 @@ struct XY {
 
 void distanceToLimitTask(void *argument);
 
-zone_t getZoneFromDistance(const Cow *cow, const Fence *fence);
+zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistance);
 
 distance_t calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites);
 

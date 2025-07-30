@@ -9,42 +9,51 @@ extern dispatcherQueueHandle;
 void distanceToLimitTask(void *argument) {
     distanceTaskParams *distanceParams = static_cast<distanceTaskParams *>(argument);
 
-    while(1) {        
-        zone_t zone = getZoneFromDistance(distanceParams->cow, distanceParams->fence);
+    while(1) {     
+        float minDistance;   
+        zone_t zone = getZoneFromDistance(distanceParams->cow, distanceParams->fence, minDistance);
 
+        uint8_t zoneCode = static_cast<uint8_t>(zone);
+        
         Message* msgReceived = nullptr;
+        Message* msgToSend = nullptr;
 
         if (osMessageQueueGet(distanceToLimitQueueHandle, &msgReceived, NULL, 0) == osOK) {
 
             switch (msgReceived->id) {
-            case MSG_ID_REQUEST_DISTANCE_TO_FENCE:
+            case MSG_ID_REQUEST_ZONE_TO_FENCE:
             //TODO: Ver si pasamos zone_T en el mensaje o casteamos a uint8_t, ya que payload recibe uint8_t.
-                Message* msg = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(zone_t));
-                std::memcpy(msg->payload, &zone, sizeof(zone_t));
-                osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+                msgToSend = new Message(MSG_ID_SEND_ZONE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
+                break;
+            case MSG_ID_REQUEST_DISTANCE_TO_FENCE:
+                msgToSend = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(float));
+                std::memcpy(msgToSend->payload, &minDistance, sizeof(float));
                 break;
             default:
                 break;
             }
-            delete msg;
+            if(msgToSend)
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+            delete msgReceived;
         }
 
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
-zone_t getZoneFromDistance(const Cow *cow, const Fence *fence) {
+zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistance) {
 
-    Position pos = cow.getPosition();
-    Vertex center = fence.getCenter();
+    Position pos = cow->getPosition();
+    Vertex center = fence->getCenter();
 
     XY cowXY = latLonToXY(pos.latitude, pos.longitude, center.latitude, center.longitude);
 
-    const std::vector<Line>& limites = fence.getLimits();
+    const std::vector<Line>& limites = fence->getLimits();
+
+    minDistance = calculateMinDistanceToFence(cowXY, center, limites);
 
     if(isPointInsideFence(cowXY, limites, center)) {
-        float minDistance = calculateMinDistanceToFence(cowXY, center, limites);
-        
         if (minDistance > thresholds[LIGHT_BLUE_ZONE]) return GREEN_ZONE; 
         else if (minDistance > thresholds[BLUE_ZONE]) return LIGHT_BLUE_ZONE;
         else if (minDistance > thresholds[DARK_BLUE_ZONE]) return BLUE_ZONE;
@@ -52,7 +61,10 @@ zone_t getZoneFromDistance(const Cow *cow, const Fence *fence) {
         else if (minDistance > thresholds[RED_ZONE]) return YELLOW_ZONE;
         else return RED_ZONE;
     }
-    else return BLACK_ZONE;
+    else {
+        minDistance = -minDistance;
+        return BLACK_ZONE;
+    }
 }
 
 distance_t calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites) {
