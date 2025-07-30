@@ -49,6 +49,9 @@
 #define MSG_ID_LORA_RX           0x61  // Mensaje recibido por LoRa
 #define MSG_ID_LORA_JOINED       0x62  // Join exitoso en red LoRa
 
+// Configuración GPS
+#define MSG_ID_GPS_CONFIG        0x70
+
 // Errores y log
 #define MSG_ID_ERROR             0xF0  // Error genérico
 #define MSG_ID_DIAGNOSTIC        0xF1  // Mensaje de diagnóstico
