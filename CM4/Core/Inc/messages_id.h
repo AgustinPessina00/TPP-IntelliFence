@@ -28,8 +28,10 @@
 #define MSG_ID_FENCE_UPDATE                 0x30  // Nueva cerca virtual enviada
 #define MSG_ID_FENCE_STATUS                 0x31  // Estado de la cerca actual
 #define MSG_ID_FENCE_BREACH                 0x32  // Animal se salió del perímetro
-#define MSG_ID_REQUEST_DISTANCE_TO_FENCE    0x33  // Request deDistancia actual al límite
-#define MSG_ID_SEND_DISTANCE_TO_FENCE       0x34  // Distancia actual al límite
+#define MSG_ID_REQUEST_DISTANCE_TO_FENCE    0x33  // Request Distancia actual al límite
+#define MSG_ID_REQUEST_ZONE_TO_FENCE        0x34  // Request Zona actual
+#define MSG_ID_SEND_DISTANCE_TO_FENCE       0x35  // Distancia actual al límite
+#define MSG_ID_SEND_ZONE_TO_FENCE           0x36  // Zona actual
 
 // Estímulos individuales
 #define MSG_ID_STIMULUS_VIBRATION_REQUEST   0x40  // Pedido de vibración
