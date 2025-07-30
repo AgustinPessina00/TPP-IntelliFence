@@ -77,6 +77,8 @@ void fsmTask(void *argument) {
         }
 
         // Otros casos futuros...
+        default:
+          break;
       }
 
       // Importante: liberar memoria del mensaje recibido
@@ -85,12 +87,12 @@ void fsmTask(void *argument) {
 
     // === Solicitar Mensaje de Distancia al Cerco ===
     zone_t zone;
-    Message* msg = new Message(MSG_ID_REQUEST_DISTANCE_TO_FENCE, ModuleId_t::FSM, ModuleId_t::DISTANCE, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
+    Message* msg = new Message(MSG_ID_REQUEST_ZONE_TO_FENCE, ModuleId_t::FSM, ModuleId_t::DISTANCE, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
     osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 
     if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
       switch (msgReceived->id) {
-        case MSG_ID_SEND_DISTANCE_TO_FENCE: {
+        case MSG_ID_SEND_ZONE_TO_FENCE: {
           if (msgReceived->length == sizeof(zone_t) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
             std::memcpy(&zone, msgReceived->payload, sizeof(zone_t));
             
@@ -105,6 +107,9 @@ void fsmTask(void *argument) {
         }
 
         // Otros casos futuros...
+          
+        default:
+          break;
       }
 
       // Importante: liberar memoria del mensaje recibido
@@ -121,19 +126,29 @@ void fsmTask(void *argument) {
       osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 
       if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
-        if (msgReceived->length == 3 * sizeof(float) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
-          Acceleration acc;
-          std::memcpy(&acc.ax, msgReceived->payload, sizeof(float));
-          std::memcpy(&acc.ay, msgReceived->payload, sizeof(float));
-          std::memcpy(&acc.az, msgReceived->payload, sizeof(float));
-        
-          // printf("FSM recibió IMU: ax=%.5f, ay=%.5f, az=%.5f\r\n", ax, ay, az);
+        switch (msgReceived->id) {
+          case MSG_ID_SEND_IMU: {
+            if (msgReceived->length == 3 * sizeof(float) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
+              Acceleration acc;
+              std::memcpy(&acc.ax, msgReceived->payload, sizeof(float));
+              std::memcpy(&acc.ay, msgReceived->payload, sizeof(float));
+              std::memcpy(&acc.az, msgReceived->payload, sizeof(float));
+            
+              // printf("FSM recibió IMU: ax=%.5f, ay=%.5f, az=%.5f\r\n", ax, ay, az);
 
-          cow.updateAcceleration(acc);
+              cow.updateAcceleration(acc);
 
-        } else {
-          // Manejo de mensaje corrupto o malformado
-          printf("FSM recibió IMU con payload inválido.\r\n");
+            } else {
+              // Manejo de mensaje corrupto o malformado
+              printf("FSM recibió IMU con payload inválido.\r\n");
+            }
+
+            break;
+          }
+          // Otros casos futuros...
+          
+          default:
+            break;
         }
         
         // Importante: liberar memoria del mensaje recibido
@@ -157,19 +172,44 @@ void fsmTask(void *argument) {
           break;
 
         case CowState::MOVEMENT:
-        // TODO: Obtener dist de distanceTask.
-          if (dist < NEAR_LIMIT) {
-            Message* msg = new Message(MSG_ID_GPS_CONFIG, ModuleId_t::FSM, ModuleId_t::GPS, sizeof(GpsRate));  // [latitud, longitud] = 2 doubles
-            std::memcpy(msg->payload, &(GpsRate::MEDIUM), sizeof(GpsRate));
-            osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
-          }
-          else {
-            Message* msg = new Message(MSG_ID_GPS_CONFIG, ModuleId_t::FSM, ModuleId_t::GPS, sizeof(GpsRate));  // [latitud, longitud] = 2 doubles
-            std::memcpy(msg->payload, &(GpsRate::FAST), sizeof(GpsRate));
-            osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
-          
-          }
+          // === Solicitar DISTANCIA ===
+          Message* msg = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::FSM, ModuleId_t::DISTANCE, 0);  // Payload vacío, lo único que me importa es el ID (FLAG).
+          osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+
+          if (osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0) == osOK) {
+            switch (msgReceived->id) {
+              case MSG_ID_SEND_DISTANCE_TO_FENCE: {
+                if (msgReceived->length == sizeof(float) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
+                  float dist;
+                  std::memcpy(&dist, msgReceived->payload, sizeof(float));
+
+                  if (dist < NEAR_LIMIT) {
+                    Message* msg = new Message(MSG_ID_GPS_CONFIG, ModuleId_t::FSM, ModuleId_t::GPS, sizeof(GpsRate));  // [latitud, longitud] = 2 doubles
+                    std::memcpy(msg->payload, &(GpsRate::MEDIUM), sizeof(GpsRate));
+                    osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+                  }
+                  else {
+                    Message* msg = new Message(MSG_ID_GPS_CONFIG, ModuleId_t::FSM, ModuleId_t::GPS, sizeof(GpsRate));  // [latitud, longitud] = 2 doubles
+                    std::memcpy(msg->payload, &(GpsRate::FAST), sizeof(GpsRate));
+                    osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
+                  }
+                } else {
+                  // Manejo de mensaje corrupto o malformado
+                  printf("FSM recibió DISTANCE con payload inválido.\r\n");
+                }
+            
+                break;
+              } 
+
+              // Otros casos futuros...
+              default:
+                break;
+            }
         
+            // Importante: liberar memoria del mensaje recibido
+            delete msgReceived;
+          }
+
           break;
       
         default:
