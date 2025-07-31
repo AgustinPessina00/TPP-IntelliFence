@@ -15,6 +15,10 @@ static uint8_t vibrationDuty = 90;  // Duty Cycle para motores
 
 void stimulusTask(void *argument) {
     Message* msg;
+    uint8_t buzzerDuty = 0;
+    uint8_t soundStimulus = 0;  // 0=OFF 1=ON
+    uint8_t vibrationStimulus = 0;
+    uint8_t shockStimulus = 0;
     
     while (1) {
         if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
@@ -27,40 +31,161 @@ void stimulusTask(void *argument) {
         if (previousZone != currentZone) {
             switch (currentZone) {
             case LIGHT_BLUE_ZONE:
-                configureBuzzerPWM(30);
+                buzzerDuty = 30;
+                soundStimulus = 1;
+                vibrationStimulus = 0;
+                shockStimulus = 0;
+
+                configureBuzzerPWM(buzzerDuty);
                 stopVibration();
                 stopShock();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                std::memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &shockStimulus, sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case BLUE_ZONE:
-                configureBuzzerPWM(50);
+                buzzerDuty = 50;
+                soundStimulus = 1;
+                vibrationStimulus = 0;
+                shockStimulus = 0;
+
+                configureBuzzerPWM(buzzerDuty);
                 stopVibration();
                 stopShock();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                std::memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case DARK_BLUE_ZONE:
-                configureBuzzerPWM(70);
+                buzzerDuty = 70;
+                soundStimulus = 1;
+                vibrationStimulus = 0;
+                shockStimulus = 0;
+                configureBuzzerPWM(buzzerDuty);
                 stopVibration();
                 stopShock();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                std::memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case YELLOW_ZONE:
-                configureBuzzerPWM(90);
+                buzzerDuty = 90;
+                soundStimulus = 1;
+                vibrationStimulus = 1;
+                shockStimulus = 0;
+
+                configureBuzzerPWM(buzzerDuty);
                 configureVibrationPWM(vibrationDuty, vibrationDuty);
                 stopShock();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                std::memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload + sizeof(uint8_t), &vibrationDuty, sizeof(float));
+                std::memcpy(msgToSend->payload + sizeof(uint8_t) + sizeof(float), &vibrationDuty, sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case RED_ZONE:
+                soundStimulus = 0;
+                vibrationStimulus = 0;
+                shockStimulus = 1;
                 stopBuzzer();
                 stopVibration();
                 activateShockStimulus();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
                 break;
             case BLACK_ZONE:
+                soundStimulus = 0;
+                vibrationStimulus = 0;
+                shockStimulus = 0;
+
                 stopBuzzer();
                 stopVibration();
                 stopShock();
                 sendScapedMessage();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             default:
+                soundStimulus = 0;
+                vibrationStimulus = 0;
+                shockStimulus = 0;
+
                 stopBuzzer();
                 stopVibration();
                 stopShock();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                std::memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             }
         }
