@@ -15,7 +15,7 @@ static uint8_t vibrationDuty = 90;  // Duty Cycle para motores
 
 void stimulusTask(void *argument) {
     Message* msg;
-    
+    uint8_t duty;
     while (1) {
         if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
             if (msg->id == MSG_ID_ZONE_CHANGE) {
@@ -27,29 +27,54 @@ void stimulusTask(void *argument) {
         if (previousZone != currentZone) {
             switch (currentZone) {
             case LIGHT_BLUE_ZONE:
-                configureBuzzerPWM(30);
+                duty = 30;
+                configureBuzzerPWM(duty);
                 stopVibration();
                 stopShock();
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(float));
+                std::memcpy(msgToSend->payload, &(duty), sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case BLUE_ZONE:
-                configureBuzzerPWM(50);
+                duty = 50;
+                configureBuzzerPWM(duty);
                 stopVibration();
                 stopShock();
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM,sizeof(float));
+                std::memcpy(msgToSend->payload, &(duty), sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case DARK_BLUE_ZONE:
-                configureBuzzerPWM(70);
+                duty = 70;
+                configureBuzzerPWM(duty);
                 stopVibration();
                 stopShock();
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM,sizeof(float));
+                std::memcpy(msgToSend->payload, &(duty), sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case YELLOW_ZONE:
-                configureBuzzerPWM(90);
+                duty = 90;
+                configureBuzzerPWM(duty);
                 configureVibrationPWM(vibrationDuty, vibrationDuty);
                 stopShock();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM,sizeof(float));
+                std::memcpy(msgToSend->payload, &(duty), sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, ,2 * sizeof(float));
+                std::memcpy(msgToSend->payload, &vibrationDuty, sizeof(float));
+                std::memcpy(msgToSend->payload + sizeof(float), &vibrationDuty, sizeof(float));
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case RED_ZONE:
                 stopBuzzer();
                 stopVibration();
                 activateShockStimulus();
+
+                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0);
+                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
             case BLACK_ZONE:
                 stopBuzzer();
