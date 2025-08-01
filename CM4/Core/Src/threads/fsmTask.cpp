@@ -7,6 +7,259 @@ extern osMessageQueueId_t stimulusQueueHandle;
 
 // TODO: VER COMO MANEJAMOS EL TEMA DE PASAR COMO PARÁMETROS COW Y FENCE PARA ESTA TASK. LO NECESITAN MÁS TASKS?
 
+
+FSM::FSM() {
+  this->mainFSM = FSM_t::STARTUP_ROUTINE;
+  this->normalOpFSM = NormalOperationSubFSM_t::INITIALIZE;
+  
+  this->startupRoutineState = STARTUP_ROUTINE_BEGIN;
+  
+  this->initializeState = INITIALIZE_BEGIN;
+  this->greenZoneState = GREEN_ZONE_BEGIN;
+  this->stimulusZoneState = STIMULUS_ZONE_BEGIN;
+
+  this->fenceTransitionState = FENCE_TRANSITION_BEGIN;
+}
+
+void FSM::runStartupRoutineFSM() {
+  static uint8_t gpsTries = 0;
+  static const uint8_t MAX_TRIES = 10;
+
+  switch (this->startupRoutineState) {
+    case STARTUP_ROUTINE_BEGIN:
+      gpsTries = 0;
+      this->startupRoutineState = STARTUP_ROUTINE_REQUEST_POSITION;
+      break;
+
+    case STARTUP_ROUTINE_REQUEST_POSITION:
+      if (readGPS() == HAL_OK) {
+        this->startupRoutineState = STARTUP_ROUTINE_WAIT_POSITION;
+        gpsTries = 0;
+      } else {
+        gpsTries++;
+        if (gpsTries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      }
+      break;
+    
+    case STARTUP_ROUTINE_WAIT_POSITION:
+      updatePosition();
+      this->startupRoutineState = STARTUP_ROUTINE_SEND_POSITION_LORA;
+      break;
+
+    case STARTUP_ROUTINE_SEND_POSITION_LORA:
+      if (sendLoRaPosition() == ACK){
+        this->startupRoutineState = STARTUP_ROUTINE_WAIT_FENCE;
+        gpsTries = 0;
+      } else
+        gpsTries++;
+      break;
+
+    case STARTUP_ROUTINE_WAIT_FENCE:
+      if (receivedFence()) {
+        this->startupRoutineState = STARTUP_ROUTINE_SAVE_FENCE;
+      }
+      break;
+
+    case STARTUP_ROUTINE_SAVE_FENCE:
+      saveToMemory();
+      this->startupRoutineState = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+      break;
+
+    case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
+      if (readGPS() == HAL_OK) {
+        this->startupRoutineState = STARTUP_ROUTINE_WAIT_NEW_POSITION;
+        gpsTries = 0;
+      } else {
+        gpsTries++;
+        if (gpsTries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      }
+      break;
+    
+    case STARTUP_ROUTINE_WAIT_NEW_POSITION:
+      updatePosition();
+      this->startupRoutineState = STARTUP_ROUTINE_END;
+      break;
+
+    case STARTUP_ROUTINE_END:
+      this->startupRoutineState = STARTUP_ROUTINE_BEGIN;
+      if (isInFence())
+        this->mainFSM = MainFSM_t::NORMAL_OPERATION;
+      else
+        this->mainFSM = MainFSM_t::FENCE_TRANSITION;
+      break;
+  }
+}
+
+void FSM::runNormalOperationFSM() {
+
+  switch (this->normalOpFSM) {
+    case NormalOpFSM_t::INITIALIZE:
+      runInitializeFSM();
+      break;
+
+    case NormalOpFSM_t::GREEN_ZONE:
+      runGreenZoneFSM();
+      break;
+
+    case NormalOpFSM_t::STIMULUS_ZONE:
+      runStimulusZoneFSM();
+      break;
+  }
+}
+
+void FSM::runInitializeFSM() {
+  static uint8_t gpsTries = 0;
+  static const uint8_t MAX_TRIES = 10;
+
+  switch (this->initializeState) {
+    case INITIALIZE_BEGIN:
+      gpsTries = 0;
+      this->initializeState = INITIALIZE_REQUEST_POSITION;
+      break;
+
+    case INITIALIZE_REQUEST_POSITION:
+      if (readGPS() == HAL_OK) {
+        this->initializeState = INITIALIZE_WAIT_POSITION;
+        gpsTries = 0;
+      } else {
+        gpsTries++;
+        if (gpsTries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      }
+      break;
+    
+    case INITIALIZE_WAIT_POSITION:
+      updatePosition();
+      this->initializeState = INITIALIZE_REQUEST_ZONE;
+      break;
+
+    case INITIALIZE_REQUEST_ZONE:
+      requestZone();
+      break;
+
+    case INITIALIZE_WAIT_ZONE:
+      if (receivedZone() == HAL_OK)
+        this->initializeState = INITIALIZE_EVALUATE_ZONE;
+      break;
+    
+    case INITIALIZE_EVALUATE_ZONE:
+      evaluateZone();
+      this->initializeState = INITIALIZE_END;
+      break;
+
+    case INTIALIZE_END:
+      this->initializeState = INITIALIZE_BEGIN;
+      if (isInFence())
+        this->normalOpFSM = NormalOpFSM_t::GREEN_ZONE;
+      else
+        this->normalOpFSM = NormalOpFSM_t::STIMULUS_ZONE;
+      break;
+  }
+}
+
+void FSM::runGreenZoneFSM() {
+
+  switch (this->greenZoneState) {
+    case GREEN_ZONE_BEGIN:
+      gpsTries = 0;
+      this->greenZoneState = STARTUP_ROUTINE_REQUEST_POSITION;
+      break;
+
+    case STARTUP_ROUTINE_REQUEST_POSITION:
+      if (readGPS() == HAL_OK) {
+        this->greenZoneState = STARTUP_ROUTINE_WAIT_POSITION;
+        gpsTries = 0;
+      } else {
+        gpsTries++;
+        if (gpsTries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      }
+      break;
+    
+    case STARTUP_ROUTINE_WAIT_POSITION:
+      gpsTries = 0;
+      this->greenZoneState = STARTUP_ROUTINE_SEND_POSITION_LORA;
+      break;
+
+    case STARTUP_ROUTINE_SEND_POSITION_LORA:
+      if (sendLoRaPosition() == ACK){
+        this->greenZoneState = STARTUP_ROUTINE_WAIT_FENCE;
+        gpsTries = 0;
+      } else
+        gpsTries++;
+      break;
+
+    case STARTUP_ROUTINE_WAIT_FENCE:
+      if (receivedFence()) {
+        this->greenZoneState = STARTUP_ROUTINE_SAVE_FENCE;
+      }
+      break;
+
+    case STARTUP_ROUTINE_SAVE_FENCE:
+      saveToMemory();
+      this->greenZoneState = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+      break;
+
+    case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
+      if (readGPS() == HAL_OK) {
+        this->greenZoneState = STARTUP_ROUTINE_WAIT_NEW_POSITION;
+        gpsTries = 0;
+      } else {
+        gpsTries++;
+        if (gpsTries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      }
+      break;
+    
+    case STARTUP_ROUTINE_WAIT_NEW_POSITION:
+      gpsTries = 0;
+      this->greenZoneState = STARTUP_ROUTINE_END;
+      break;
+
+    case STARTUP_ROUTINE_END:
+      this->greenZoneState = GREEN_ZONE_BEGIN;
+      this->normalOpFSM = NormalOpFSM_t::INITIALIZE;  // Reinicia NORMAL_OPERATION FSM
+    break;
+  }
+}
+
+
+
+void FSM::fsmTask(void *argument) {
+
+  while (1) {
+    switch (this->mainFSM) {
+      case MainFSM_t::STARTUP_ROUTINE:
+        runStartupRoutineFSM();
+        break;
+
+      case MainFSM_t::NORMAL_OPERATION:
+        runNormalOperationFSM();
+        if (shouldEnterFenceTransition()) {
+          this->mainFSM = FSMType::FENCE_TRANSITION; // TODO: VER BIEN DONDE PONER LA TRANSICIÓN ENTRE FSM. PARA MI ESTÁ BIEN ACÁ.
+        }
+        break;
+
+      case MainFSM_t::FENCE_TRANSITION:
+        runFenceTransition();
+        if (fenceTransitionFinished()) {
+          this->mainFSM = FSMType::NORMAL_OPERATION;
+        }
+        break;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+  } 
+}
+
+
+
+
+
+
+
 void enterLowPowerSleep(void) {
   // Asegurarse de limpiar interrupciones previas
   __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
@@ -45,7 +298,23 @@ CowState classifyMotion(Acceleration acc) {
     return CowState::MOVEMENT;
 }
 
-void fsmTask(void *argument) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+
   Message* msgReceived;
     
   while (1) {
@@ -180,7 +449,7 @@ void fsmTask(void *argument) {
             switch (msgReceived->id) {
               case MSG_ID_SEND_DISTANCE_TO_FENCE: {
                 if (msgReceived->length == sizeof(float) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
-                  float dist;
+                  distance_t dist;
                   std::memcpy(&dist, msgReceived->payload, sizeof(float));
 
                   if (dist < NEAR_LIMIT) {
@@ -218,5 +487,4 @@ void fsmTask(void *argument) {
     }
 
     vTaskDelay(pdMS_TO_TICKS(1000));
-  } 
-}
+  } */
