@@ -13,6 +13,7 @@ extern "C" {
 #include "fence.h"
 
 #define NEAR_LIMIT  10.0f   // en metros
+#define MAX_TRIES   10
 
 typedef float distance_t;
 
@@ -60,12 +61,10 @@ typedef enum {
   GREEN_ZONE_BEGIN,
   GREEN_ZONE_REQUEST_ACCELERATION,
   GREEN_ZONE_WAIT_ACCELERATION,
-  GREEN_ZONE_EVALUATE_ACCELERATION,
-  GREEN_ZONE_GRAZZING,
+  GREEN_ZONE_EVALUATE_COWSTATE,
+  GREEN_ZONE_GRAZING,
   GREEN_ZONE_SLEEP,
   GREEN_ZONE_MOVEMENT,
-  GREEN_ZONE_REQUEST_DISTANCE,
-  GREEN_ZONE_WAIT_DISTANCE,
   GREEN_ZONE_NEAR_LIMIT,
   GREEN_ZONE_FAR_LIMIT,
   GREEN_ZONE_END
@@ -73,12 +72,16 @@ typedef enum {
 
 typedef enum {
   STIMULUS_ZONE_BEGIN,
-  STIMULUS_ZONE_SEND_SOUND,
-  STIMULUS_ZONE_WAIT_SOUND_RESPONSE,
-  STIMULUS_ZONE_SEND_VIBRATION,
-  STIMULUS_ZONE_WAIT_VIBRATION_RESPONSE,
-  STIMULUS_ZONE_SEND_SHOCK,
-  STIMULUS_ZONE_WAIT_SHOCK_RESPONSE,
+  STIMULUS_ZONE_LIGHT_BLUE,
+  STIMULUS_ZONE_WAIT_LIGHT_BLUE_RESPONSE,
+  STIMULUS_ZONE_BLUE,
+  STIMULUS_ZONE_WAIT_BLUE_RESPONSE,
+  STIMULUS_ZONE_DARK_BLUE,
+  STIMULUS_ZONE_WAIT_DARK_BLUE_RESPONSE,
+  STIMULUS_ZONE_YELLOW,
+  STIMULUS_ZONE_WAIT_YELLOW_RESPONSE,
+  STIMULUS_ZONE_RED,
+  STIMULUS_ZONE_WAIT_RED_RESPONSE,
   STIMULUS_ZONE_END
 } StimulusZone_t;
 
@@ -86,6 +89,9 @@ typedef enum {
 class FSM {
 
 private:
+  void enterLowPowerSleep();
+  CowState classifyMotion(Acceleration acc);
+
   MainFSM_t mainFSM;
   NormalOpFSM_t normalOpFSM;
 
@@ -97,6 +103,8 @@ private:
 
   FenceTransitionState_t fenceTransitionState;
 
+  uint8_t tries;
+  
 public:
   FSM();
   
@@ -105,6 +113,7 @@ public:
   void runNormalOperationFSM();
   void runInitializeFSM();
   void runGreenZoneFSM();
+  void runStimulusZoneFSM();
 
 };
 
@@ -114,7 +123,7 @@ public:
 
 
 enum class GpsRate {
-  VERY_SLOW,
+  STOP,
   SLOW,
   MEDIUM,
   FAST

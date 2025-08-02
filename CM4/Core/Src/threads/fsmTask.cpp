@@ -4,13 +4,14 @@
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
 extern osMessageQueueId_t stimulusQueueHandle;
+extern osMessageQueueId_t distanceToLimitQueueHandle;
 
 // TODO: VER COMO MANEJAMOS EL TEMA DE PASAR COMO PARÁMETROS COW Y FENCE PARA ESTA TASK. LO NECESITAN MÁS TASKS?
 
 
 FSM::FSM() {
-  this->mainFSM = FSM_t::STARTUP_ROUTINE;
-  this->normalOpFSM = NormalOperationSubFSM_t::INITIALIZE;
+  this->mainFSM = MainFSM_t::STARTUP_ROUTINE;
+  this->normalOpFSM = NormalOpFSM_t::INITIALIZE;
   
   this->startupRoutineState = STARTUP_ROUTINE_BEGIN;
   
@@ -19,40 +20,44 @@ FSM::FSM() {
   this->stimulusZoneState = STIMULUS_ZONE_BEGIN;
 
   this->fenceTransitionState = FENCE_TRANSITION_BEGIN;
+
+  this->tries = 0; // TODO: Podemos definir varios "tries" para cada caso (i.e.: gps, lora, zone, etc)
 }
 
 void FSM::runStartupRoutineFSM() {
-  static uint8_t gpsTries = 0;
-  static const uint8_t MAX_TRIES = 10;
 
   switch (this->startupRoutineState) {
     case STARTUP_ROUTINE_BEGIN:
-      gpsTries = 0;
+      tries = 0;
       this->startupRoutineState = STARTUP_ROUTINE_REQUEST_POSITION;
       break;
 
     case STARTUP_ROUTINE_REQUEST_POSITION:
-      if (readGPS() == HAL_OK) {
+      if (requestPosition() == HAL_OK) {
         this->startupRoutineState = STARTUP_ROUTINE_WAIT_POSITION;
-        gpsTries = 0;
+        tries = 0;
       } else {
-        gpsTries++;
-        if (gpsTries >= MAX_TRIES)
+        tries++;
+        if (tries >= MAX_TRIES)
           //handleGPSFailure(); // opcional
       }
       break;
     
     case STARTUP_ROUTINE_WAIT_POSITION:
-      updatePosition();
-      this->startupRoutineState = STARTUP_ROUTINE_SEND_POSITION_LORA;
+      if (recievedPosition() == HAL_OK) {
+        updatePosition();
+        this->startupRoutineState = STARTUP_ROUTINE_SEND_POSITION_LORA;
+      }
       break;
 
     case STARTUP_ROUTINE_SEND_POSITION_LORA:
       if (sendLoRaPosition() == ACK){
         this->startupRoutineState = STARTUP_ROUTINE_WAIT_FENCE;
-        gpsTries = 0;
+        tries = 0;
       } else
-        gpsTries++;
+        tries++;
+        if (tries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
       break;
 
     case STARTUP_ROUTINE_WAIT_FENCE:
@@ -67,19 +72,21 @@ void FSM::runStartupRoutineFSM() {
       break;
 
     case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
-      if (readGPS() == HAL_OK) {
+      if (requestPosition() == HAL_OK) {
         this->startupRoutineState = STARTUP_ROUTINE_WAIT_NEW_POSITION;
-        gpsTries = 0;
+        tries = 0;
       } else {
-        gpsTries++;
-        if (gpsTries >= MAX_TRIES)
+        tries++;
+        if (tries >= MAX_TRIES)
           //handleGPSFailure(); // opcional
       }
       break;
     
     case STARTUP_ROUTINE_WAIT_NEW_POSITION:
-      updatePosition();
-      this->startupRoutineState = STARTUP_ROUTINE_END;
+      if (recievedPosition() == HAL_OK){
+        updatePosition();
+        this->startupRoutineState = STARTUP_ROUTINE_END;
+      }
       break;
 
     case STARTUP_ROUTINE_END:
@@ -110,37 +117,44 @@ void FSM::runNormalOperationFSM() {
 }
 
 void FSM::runInitializeFSM() {
-  static uint8_t gpsTries = 0;
-  static const uint8_t MAX_TRIES = 10;
 
   switch (this->initializeState) {
     case INITIALIZE_BEGIN:
-      gpsTries = 0;
+      tries = 0;
       this->initializeState = INITIALIZE_REQUEST_POSITION;
       break;
 
     case INITIALIZE_REQUEST_POSITION:
       if (readGPS() == HAL_OK) {
         this->initializeState = INITIALIZE_WAIT_POSITION;
-        gpsTries = 0;
+        tries = 0;
       } else {
-        gpsTries++;
-        if (gpsTries >= MAX_TRIES)
+        tries++;
+        if (tries >= MAX_TRIES)
           //handleGPSFailure(); // opcional
       }
       break;
     
     case INITIALIZE_WAIT_POSITION:
+      tries = 0;
       updatePosition();
       this->initializeState = INITIALIZE_REQUEST_ZONE;
       break;
 
     case INITIALIZE_REQUEST_ZONE:
-      requestZone();
+      if (requestZone() == ACK){
+        this->startupRoutineState = INITIALIZE_WAIT_ZONE;
+        tries = 0;
+      } else
+        tries++;
+        if (tries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
       break;
 
     case INITIALIZE_WAIT_ZONE:
       if (receivedZone() == HAL_OK)
+        updateZone();
+        updateDistance();
         this->initializeState = INITIALIZE_EVALUATE_ZONE;
       break;
     
@@ -149,7 +163,7 @@ void FSM::runInitializeFSM() {
       this->initializeState = INITIALIZE_END;
       break;
 
-    case INTIALIZE_END:
+    case INITIALIZE_END:
       this->initializeState = INITIALIZE_BEGIN;
       if (isInFence())
         this->normalOpFSM = NormalOpFSM_t::GREEN_ZONE;
@@ -163,63 +177,143 @@ void FSM::runGreenZoneFSM() {
 
   switch (this->greenZoneState) {
     case GREEN_ZONE_BEGIN:
-      gpsTries = 0;
-      this->greenZoneState = STARTUP_ROUTINE_REQUEST_POSITION;
+      tries = 0;
+      this->greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
       break;
 
-    case STARTUP_ROUTINE_REQUEST_POSITION:
-      if (readGPS() == HAL_OK) {
-        this->greenZoneState = STARTUP_ROUTINE_WAIT_POSITION;
-        gpsTries = 0;
+    case GREEN_ZONE_REQUEST_ACCELERATION:
+      if (requestAcceleration() == HAL_OK) {
+        this->greenZoneState = GREEN_ZONE_WAIT_ACCELERATION;
+        tries = 0;
       } else {
-        gpsTries++;
-        if (gpsTries >= MAX_TRIES)
+        tries++;
+        if (tries >= MAX_TRIES)
           //handleGPSFailure(); // opcional
       }
       break;
     
-    case STARTUP_ROUTINE_WAIT_POSITION:
-      gpsTries = 0;
-      this->greenZoneState = STARTUP_ROUTINE_SEND_POSITION_LORA;
-      break;
-
-    case STARTUP_ROUTINE_SEND_POSITION_LORA:
-      if (sendLoRaPosition() == ACK){
-        this->greenZoneState = STARTUP_ROUTINE_WAIT_FENCE;
-        gpsTries = 0;
-      } else
-        gpsTries++;
-      break;
-
-    case STARTUP_ROUTINE_WAIT_FENCE:
-      if (receivedFence()) {
-        this->greenZoneState = STARTUP_ROUTINE_SAVE_FENCE;
+    case GREEN_ZONE_WAIT_ACCELERATION:
+      if (recievedAcceleration() == HAL_OK) {
+        updateAcceleration();
+        this->greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
       }
+        break;
+
+    case GREEN_ZONE_EVALUATE_COWSTATE:
+      updateState();
+      if (cow.getState() == CowState::GRAZING)
+        this->greenZoneState = GREEN_ZONE_GRAZING; 
+      else if (cow.getState() == CowState::SLEEP) 
+        this->greenZoneState = GREEN_ZONE_SLEEP;
+      else if (cow.getState() == CowState::MOVEMENT)
+        this->greenZoneState = GREEN_ZONE_MOVEMENT;
       break;
 
-    case STARTUP_ROUTINE_SAVE_FENCE:
-      saveToMemory();
-      this->greenZoneState = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+    case GREEN_ZONE_GRAZING:
+      if (updateGpsAdqTime(GpsRate::SLOW) == HAL_OK)
+        this->greenZoneState = GREEN_ZONE_END;
       break;
 
-    case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
-      if (readGPS() == HAL_OK) {
-        this->greenZoneState = STARTUP_ROUTINE_WAIT_NEW_POSITION;
-        gpsTries = 0;
-      } else {
-        gpsTries++;
-        if (gpsTries >= MAX_TRIES)
-          //handleGPSFailure(); // opcional
-      }
-      break;
-    
-    case STARTUP_ROUTINE_WAIT_NEW_POSITION:
-      gpsTries = 0;
-      this->greenZoneState = STARTUP_ROUTINE_END;
+    case GREEN_ZONE_SLEEP:
+      if (updateGpsAdqTime(GpsRate::STOP) == HAL_OK)
+        enterLowPowerSleep();
+        // TODO: Cuando llega la interrupción de la IMU se despierta y sigue acá??
+        // O tengo que poner un estado intermedio como WAKE_UP para verificar o algo así?
+        this->greenZoneState = GREEN_ZONE_END;
       break;
 
-    case STARTUP_ROUTINE_END:
+    case GREEN_ZONE_MOVEMENT:
+      // updateDistance(); Ya se hace cuando se recibe la zona.
+      if (cow.getDistanceToLimit() <= NEAR_LIMIT)
+        this->greenZoneState = GREEN_ZONE_NEAR_LIMIT; 
+      else  
+        this->greenZoneState = GREEN_ZONE_FAR_LIMIT;
+      break;
+
+    case GREEN_ZONE_NEAR_LIMIT:
+      if (updateGpsAdqTime(GpsRate::FAST) == HAL_OK)
+        this->greenZoneState = GREEN_ZONE_END;
+      break;
+
+    case GREEN_ZONE_FAR_LIMIT:
+      if (updateGpsAdqTime(GpsRate::MEDIUM) == HAL_OK)
+        this->greenZoneState = GREEN_ZONE_END;
+      break;
+
+    case GREEN_ZONE_END:
       this->greenZoneState = GREEN_ZONE_BEGIN;
+      this->normalOpFSM = NormalOpFSM_t::INITIALIZE;  // Reinicia NORMAL_OPERATION FSM
+    break;
+  }
+}
+
+void FSM::runStimulusZoneFSM() {
+  switch (this->stimulusZoneState) {
+    case STIMULUS_ZONE_BEGIN:
+      if (cow.getCurrentZone() == zone_t::LIGHT_BLUE_ZONE)
+        this->stimulusZoneState = STIMULUS_ZONE_LIGHT_BLUE; 
+      else if (cow.getCurrentZone() == zone_t::BLUE_ZONE)
+        this->stimulusZoneState = STIMULUS_ZONE_BLUE;
+      else if (cow.getCurrentZone() == zone_t::DARK_BLUE_ZONE)
+        this->stimulusZoneState = STIMULUS_ZONE_DARK_BLUE;
+      else if (cow.getCurrentZone() == zone_t::YELLOW_ZONE)
+        this->stimulusZoneState = STIMULUS_ZONE_YELLOW;
+      else if (cow.getCurrentZone() == zone_t::RED_ZONE)
+        this->stimulusZoneState = STIMULUS_ZONE_RED;
+      break;
+
+    case STIMULUS_ZONE_LIGHT_BLUE:
+      if (sendStimulus() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_WAIT_LIGHT_BLUE_RESPONSE;
+      break;
+    
+    case STIMULUS_ZONE_WAIT_LIGHT_BLUE_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_END;
+      break;
+
+    case STIMULUS_ZONE_BLUE:
+      if (sendStimulus() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_WAIT_BLUE_RESPONSE;
+      break;
+    
+    case STIMULUS_ZONE_WAIT_BLUE_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_END;
+      break;
+
+    case STIMULUS_ZONE_DARK_BLUE:
+      if (sendStimulus() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_WAIT_DARK_BLUE_RESPONSE;
+      break;
+    
+    case STIMULUS_ZONE_WAIT_DARK_BLUE_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_END;
+      break;
+
+    case STIMULUS_ZONE_YELLOW:
+      if (sendStimulus() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_WAIT_YELLOW_RESPONSE;
+      break;
+    
+    case STIMULUS_ZONE_WAIT_YELLOW_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_END;
+      break;
+
+    case STIMULUS_ZONE_RED:
+      if (sendStimulus() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_WAIT_RED_RESPONSE;
+      break;
+    
+    case STIMULUS_ZONE_WAIT_RED_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->stimulusZoneState = STIMULUS_ZONE_END;
+      break;
+
+    case STIMULUS_ZONE_END:
+      this->stimulusZoneState = STIMULUS_ZONE_BEGIN;
       this->normalOpFSM = NormalOpFSM_t::INITIALIZE;  // Reinicia NORMAL_OPERATION FSM
     break;
   }
@@ -238,14 +332,14 @@ void FSM::fsmTask(void *argument) {
       case MainFSM_t::NORMAL_OPERATION:
         runNormalOperationFSM();
         if (shouldEnterFenceTransition()) {
-          this->mainFSM = FSMType::FENCE_TRANSITION; // TODO: VER BIEN DONDE PONER LA TRANSICIÓN ENTRE FSM. PARA MI ESTÁ BIEN ACÁ.
+          this->mainFSM = MainFSM_t::FENCE_TRANSITION; // TODO: VER BIEN DONDE PONER LA TRANSICIÓN ENTRE FSM. PARA MI ESTÁ BIEN ACÁ.
         }
         break;
 
       case MainFSM_t::FENCE_TRANSITION:
         runFenceTransition();
         if (fenceTransitionFinished()) {
-          this->mainFSM = FSMType::NORMAL_OPERATION;
+          this->mainFSM = MainFSM_t::NORMAL_OPERATION;
         }
         break;
     }
@@ -254,13 +348,7 @@ void FSM::fsmTask(void *argument) {
   } 
 }
 
-
-
-
-
-
-
-void enterLowPowerSleep(void) {
+void FSM::enterLowPowerSleep() {
   // Asegurarse de limpiar interrupciones previas
   __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
 
@@ -285,7 +373,7 @@ void enterLowPowerSleep(void) {
   SystemClock_Config();  // Necesario si usás HSE/HSEBYP/HSE+PLL
 }
 
-CowState classifyMotion(Acceleration acc) {
+CowState FSM::classifyMotion(Acceleration acc) {
   float abs_ax = fabsf(acc.ax);
   float abs_ay = fabsf(acc.ay);
   float abs_az = fabsf(acc.az);
