@@ -1,6 +1,7 @@
 
 #include "cow.h"
 
+// TODO: Falta declarar en el constructor los otros parámetros de cow.
 Cow::Cow(uint16_t id) : id(id), state(CowState::SLEEP) {}
 
 void Cow::updatePosition(Position pos) {
@@ -13,6 +14,14 @@ void Cow::updateAcceleration(Acceleration accel) {
 
 void Cow::updateState(CowState s) {
     state = s;
+}
+
+void Cow::updateCurrentZone(zone_t zone) {
+    currentZone = zone;
+}
+
+void Cow::updateDistanceToLimit(float distance) {
+    distanceToLimit = distance;
 }
 
 uint16_t Cow::getId() const {
@@ -29,4 +38,13 @@ Acceleration Cow::getAcceleration() const {
 
 CowState Cow::getState() const {
     return state;
+}
+
+zone_t Cow::getCurrentZone() const {
+    return currentZone;
+}
+
+float Cow::getDistanceToLimit() const
+{
+    return distanceToLimit;
 }

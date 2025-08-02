@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <array>
+#include "zone.h"
 
 enum class CowState {
     SLEEP,
@@ -28,17 +29,23 @@ public:
     void updatePosition(Position pos);
     void updateAcceleration(Acceleration accel);
     void updateState(CowState state);
+    void updateCurrentZone(zone_t zone);
+    void updateDistanceToLimit(float distance);
 
     uint16_t getId() const;
     Position getPosition() const;
     Acceleration getAcceleration() const;
     CowState getState() const;
+    zone_t getCurrentZone() const;
+    float getDistanceToLimit() const;
 
 private:
     uint16_t id;
     Position position;
     Acceleration acceleration;
     CowState state;
+    zone_t currentZone;
+    float distanceToLimit;
 };
 
 #endif
