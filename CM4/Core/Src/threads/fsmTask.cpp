@@ -67,7 +67,7 @@ void FSM::runStartupRoutineFSM() {
       break;
 
     case STARTUP_ROUTINE_SAVE_FENCE:
-      saveToMemory();
+      saveFenceToMemory();
       this->startupRoutineState = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
       break;
 
@@ -125,7 +125,7 @@ void FSM::runInitializeFSM() {
       break;
 
     case INITIALIZE_REQUEST_POSITION:
-      if (readGPS() == HAL_OK) {
+      if (updatePosition() == HAL_OK) {
         this->initializeState = INITIALIZE_WAIT_POSITION;
         tries = 0;
       } else {
@@ -136,14 +136,15 @@ void FSM::runInitializeFSM() {
       break;
     
     case INITIALIZE_WAIT_POSITION:
-      tries = 0;
-      updatePosition();
-      this->initializeState = INITIALIZE_REQUEST_ZONE;
+      if (recievedPosition() == HAL_OK) {
+        updatePosition();
+        this->initializeState = INITIALIZE_REQUEST_ZONE;
+      }
       break;
 
     case INITIALIZE_REQUEST_ZONE:
       if (requestZone() == ACK){
-        this->startupRoutineState = INITIALIZE_WAIT_ZONE;
+        this->initializeState = INITIALIZE_WAIT_ZONE;
         tries = 0;
       } else
         tries++;
@@ -319,7 +320,163 @@ void FSM::runStimulusZoneFSM() {
   }
 }
 
+void FSM::runFenceTransitionFSM(){
+  switch (this->fenceTransitionState) {
+    case FENCE_TRANSITION_BEGIN:
+      tries = 0;
+      this->fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
+      break;
+  
+    case FENCE_TRANSITION_GPSRATE_FAST:
+      if (updateGpsAdqTime(GpsRate::FAST) == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
+      break;
+    
+    case FENCE_TRANSITION_REQUEST_POSITION:
+      if (requestPosition() == HAL_OK) {
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_POSITION;
+        tries = 0;
+      } else {
+        tries++;
+        if (tries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      }
+      break;
+    
+    case FENCE_TRANSITION_WAIT_POSITION:
+      if (recievedPosition() == HAL_OK) {
+        updatePosition();
+        if (inFence())
+          this->fenceTransitionState = FENCE_TRANSITION_END;
+        else
+          this->fenceTransitionState = FENCE_TRANSITION_UPDATE_PARTIAL_FENCE;
+      }
+      break;
+      
+    case FENCE_TRANSITION_UPDATE_PARTIAL_FENCE:
+      updateFence();
+      this->fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
+      break;
 
+    case FENCE_TRANSITION_REQUEST_NEW_POSITION:
+      if (requestPosition() == HAL_OK) {
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_NEW_POSITION;
+        tries = 0;
+      } else {
+        tries++;
+        if (tries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      }
+      break;
+
+    case FENCE_TRANSITION_WAIT_NEW_POSITION:
+      if (recievedPosition() == HAL_OK) {
+        if (!fencesEqual() && !inPartialFence()) {
+          updatePosition();
+          this->fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
+        }
+        else if (fencesEqual() && !inPartialFence()){
+          updatePosition();
+          this->fenceTransitionState = FENCE_TRANSITION_UPDATE_PARTIAL_FENCE;
+        }
+        else if (fenceEqual() && inPartialFence()) {
+          updatePosition();
+          this->fenceTransitionState = FENCE_TRANSITION_END;
+        }
+      }
+      break;
+
+    case FENCE_TRANSITION_REQUEST_ZONE:
+      if (requestZone() == ACK){
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_ZONE;
+        tries = 0;
+      } else
+        tries++;
+        if (tries >= MAX_TRIES)
+          //handleGPSFailure(); // opcional
+      break;
+
+    case FENCE_TRANSITION_WAIT_ZONE:  
+      if (receivedZone() == HAL_OK)
+        updateZone();
+        this->fenceTransitionState = FENCE_TRANSITION_EVALUATE_ZONE;
+      break;
+    
+    case FENCE_TRANSITION_EVALUATE_ZONE:
+      evaluateZone();
+      this->fenceTransitionState = FECNE_TRANSITION_STIMULUS_ZONE;
+      break;
+
+    case FECNE_TRANSITION_STIMULUS_ZONE:
+      if (cow.getCurrentZone() == zone_t::LIGHT_BLUE_ZONE)
+        this->fenceTransitionState = FENCE_TRANSITION_LIGHT_BLUE; 
+      else if (cow.getCurrentZone() == zone_t::BLUE_ZONE)
+        this->fenceTransitionState = FENCE_TRANSITION_BLUE;
+      else if (cow.getCurrentZone() == zone_t::DARK_BLUE_ZONE)
+        this->fenceTransitionState = FENCE_TRANSITION_DARK_BLUE;
+      else if (cow.getCurrentZone() == zone_t::YELLOW_ZONE)
+        this->fenceTransitionState = FENCE_TRANSITION_YELLOW;
+      else if (cow.getCurrentZone() == zone_t::RED_ZONE)
+        this->fenceTransitionState = FENCE_TRANSITION_RED;
+      break;
+
+      case FENCE_TRANSITION_LIGHT_BLUE:
+      if (sendStimulus() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_LIGHT_BLUE_RESPONSE;
+      break;
+    
+    case FENCE_TRANSITION_WAIT_LIGHT_BLUE_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
+      break;
+
+    case FENCE_TRANSITION_BLUE:
+      if (sendStimulus() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_BLUE_RESPONSE;
+      break;
+    
+    case FENCE_TRANSITION_WAIT_BLUE_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
+      break;
+
+    case FENCE_TRANSITION_DARK_BLUE:
+      if (sendStimulus() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_DARK_BLUE_RESPONSE;
+      break;
+    
+    case FENCE_TRANSITION_WAIT_DARK_BLUE_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
+      break;
+
+    case FENCE_TRANSITION_YELLOW:
+      if (sendStimulus() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_YELLOW_RESPONSE;
+      break;
+    
+    case FENCE_TRANSITION_WAIT_YELLOW_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
+      break;
+
+    case FENCE_TRANSITION_RED:
+      if (sendStimulus() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_WAIT_RED_RESPONSE;
+      break;
+    
+    case FENCE_TRANSITION_WAIT_RED_RESPONSE:
+      if (recievedStimulusResponse() == HAL_OK)
+        this->fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
+      break;
+
+    case FENCE_TRANSITION_END:
+      this->fenceTransitionState = FENCE_TRANSITION_BEGIN;
+      this->mainFSM = MainFSM_t::NORMAL_OPERATION;
+      break;
+      
+  }
+}
 
 void FSM::fsmTask(void *argument) {
 
@@ -337,10 +494,7 @@ void FSM::fsmTask(void *argument) {
         break;
 
       case MainFSM_t::FENCE_TRANSITION:
-        runFenceTransition();
-        if (fenceTransitionFinished()) {
-          this->mainFSM = MainFSM_t::NORMAL_OPERATION;
-        }
+        runFenceTransitionFSM();
         break;
     }
 
