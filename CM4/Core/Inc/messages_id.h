@@ -48,9 +48,11 @@
 #define MSG_ID_SENSOR_DATA       0x50  // Datos de sensores (IMU, acelerómetro, etc.)
 
 // Comunicación LoRa
-#define MSG_ID_LORA_TX           0x60  // Pedido de transmisión
-#define MSG_ID_LORA_RX           0x61  // Mensaje recibido por LoRa
-#define MSG_ID_LORA_JOINED       0x62  // Join exitoso en red LoRa
+#define MSG_ID_LORA_TX              0x60  // Pedido de transmisión
+#define MSG_ID_LORA_RX              0x61  // Mensaje recibido por LoRa
+#define MSG_ID_LORA_JOINED          0x62  // Join exitoso en red LoRa
+#define MSG_ID_LORA_POSITION        0x63  // Transmisión de Posición
+#define MSG_ID_LORA_VERTEXES        0x64  // Recepción de Vértices
 
 // Configuración GPS
 #define MSG_ID_GPS_CONFIG        0x70
