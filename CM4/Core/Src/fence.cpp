@@ -6,7 +6,7 @@ Fence::Fence() {}
 void Fence::addVertex(const Vertex& v)
 {
     vertices.push_back(v);
-    updateLimites();  // Siempre actualizamos las líneas
+    updateLimits();  // Siempre actualizamos las líneas
 }
 
 void Fence::updateLimits()
@@ -14,8 +14,7 @@ void Fence::updateLimits()
     limites.clear();
     if (vertices.size() < 2) return; // Podemos agregar algún manejo de error.
 
-    for (size_t i = 0; i < vertices.size(); ++i)
-    {
+    for (size_t i = 0; i < vertices.size(); ++i) {
         Line lim;
         lim.start = vertices[i];
         lim.end = vertices[(i + 1) % vertices.size()];  // cierre del polígono
