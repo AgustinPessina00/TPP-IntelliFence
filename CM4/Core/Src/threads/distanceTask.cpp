@@ -30,7 +30,7 @@ void distanceToLimitTask(void *argument) {
                 msgToSend = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(float));
                 std::memcpy(msgToSend->payload, &minDistance, sizeof(float));
                 break;
-            case MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE:
+            case MSG_ID_REQUEST_ZONE_AND_DISTANCE_TO_FENCE:
                 msgToSend = new Message(MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, 
                 sizeof(uint8_t) + sizeof(float)); // 5 bytes
                 std::memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
