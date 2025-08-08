@@ -4,6 +4,15 @@
 // TODO: Falta declarar en el constructor los otros parámetros de cow.
 Cow::Cow(uint16_t id) : id(id), state(CowState::SLEEP) {}
 
+Cow::Cow(uint16_t id) {
+    this->id = id;
+    this->position = {0, 0};
+    this->acceleration = {0, 0, 0};
+    this->state = CowState::SLEEP;
+    this->currentZone = zone_t::BLACK_ZONE;
+    distanceToLimit = -1;
+}
+
 void Cow::updatePosition(Position pos) {
     position = pos;
 }
