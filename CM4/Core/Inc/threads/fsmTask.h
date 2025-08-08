@@ -53,6 +53,7 @@ typedef enum {
 typedef enum {
   FENCE_TRANSITION_BEGIN,
   FENCE_TRANSITION_GPSRATE_FAST,
+  FENCE_TRANSITION_WAIT_GPS_ADQ_TIME,
   FENCE_TRANSITION_REQUEST_POSITION,
   FENCE_TRANSITION_WAIT_POSITION,
   FENCE_TRANSITION_UPDATE_PARTIAL_FENCE,
@@ -101,8 +102,6 @@ typedef enum {
 class FSM {
 
 private:
-  void enterLowPowerSleep();
-  CowState classifyMotion(Acceleration acc);
 
   void sendMessage(uint8_t msgId, ModuleId_t dest);
   HAL_StatusTypeDef dequeuedMessage();
@@ -116,6 +115,11 @@ private:
   void updateState();
   CowState classifyMotion(Acceleration acc);
   HAL_StatusTypeDef gpsResponse();
+  HAL_StatusTypeDef updateGpsAdqTime(GpsRate gpsRate);
+  void enterLowPowerSleep();
+  void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
+  HAL_StatusTypeDef recievedStimulusResponse();
+  
 
   MainFSM_t mainFSM;
   NormalOpFSM_t normalOpFSM;
@@ -145,27 +149,6 @@ public:
 
 };
 
-
-
-
-
-
-
-
-void fsmTask(void *argument);
-
-void runStartupRoutineFSM();
-void runNormalOperationFSM();
-void runFenceTransitionFSM();
-
-StartupRoutineState_t startupState = STARTUP_ROUTINE_BEGIN;
-
-
-void enterLowPowerSleep(void);
-CowState classifyMotion(Acceleration imu);
-
-distance_t calculateDistanceToLimit(cow.getPosition(), fence.getSegments());
-zone_t getZoneForDistance(distance_t dist, Fence fence);
 
 #ifdef __cplusplus
 }
