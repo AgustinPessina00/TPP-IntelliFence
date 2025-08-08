@@ -7,6 +7,7 @@ extern "C" {
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "stm32wlxx_hal.h"
 
 #include "messages.h"
 #include "cow.h"
@@ -15,7 +16,12 @@ extern "C" {
 #define NEAR_LIMIT  10.0f   // en metros
 #define MAX_TRIES   10
 
-typedef float distance_t;
+enum class GpsRate {
+  STOP,
+  SLOW,
+  MEDIUM,
+  FAST
+};
 
 enum class MainFSM_t {
   STARTUP_ROUTINE,
@@ -39,6 +45,8 @@ typedef enum {
   STARTUP_ROUTINE_SAVE_FENCE,
   STARTUP_ROUTINE_REQUEST_NEW_POSITION,
   STARTUP_ROUTINE_WAIT_NEW_POSITION,
+  STARTUP_ROUTINE_REQUEST_ZONE,
+  STARTUP_ROUTINE_EVALUATE_ZONE,
   STARTUP_ROUTINE_END
 } StartupRoutineState_t;
 
@@ -53,17 +61,8 @@ typedef enum {
   FENCE_TRANSITION_REQUEST_ZONE,
   FENCE_TRANSITION_WAIT_ZONE,
   FENCE_TRANSITION_EVALUATE_ZONE,
-  FECNE_TRANSITION_STIMULUS_ZONE,
-  FENCE_TRANSITION_LIGHT_BLUE,
-  FENCE_TRANSITION_WAIT_LIGHT_BLUE_RESPONSE,
-  FENCE_TRANSITION_BLUE,
-  FENCE_TRANSITION_WAIT_BLUE_RESPONSE,
-  FENCE_TRANSITION_DARK_BLUE,
-  FENCE_TRANSITION_WAIT_DARK_BLUE_RESPONSE,
-  FENCE_TRANSITION_YELLOW,
-  FENCE_TRANSITION_WAIT_YELLOW_RESPONSE,
-  FENCE_TRANSITION_RED,
-  FENCE_TRANSITION_WAIT_RED_RESPONSE,
+  FECNE_TRANSITION_SEND_ZONE,
+  FENCE_TRANSITION_WAIT_RESPONSE,
   FENCE_TRANSITION_END
 } FenceTransitionState_t;
 
@@ -87,21 +86,14 @@ typedef enum {
   GREEN_ZONE_MOVEMENT,
   GREEN_ZONE_NEAR_LIMIT,
   GREEN_ZONE_FAR_LIMIT,
+  GREEN_ZONE_WAIT_GPS_ADQ_TIME,
   GREEN_ZONE_END
 } GreenZoneState_t;
 
 typedef enum {
   STIMULUS_ZONE_BEGIN,
-  STIMULUS_ZONE_LIGHT_BLUE,
-  STIMULUS_ZONE_WAIT_LIGHT_BLUE_RESPONSE,
-  STIMULUS_ZONE_BLUE,
-  STIMULUS_ZONE_WAIT_BLUE_RESPONSE,
-  STIMULUS_ZONE_DARK_BLUE,
-  STIMULUS_ZONE_WAIT_DARK_BLUE_RESPONSE,
-  STIMULUS_ZONE_YELLOW,
-  STIMULUS_ZONE_WAIT_YELLOW_RESPONSE,
-  STIMULUS_ZONE_RED,
-  STIMULUS_ZONE_WAIT_RED_RESPONSE,
+  STIMULUS_ZONE_SEND_ZONE,
+  STIMULUS_ZONE_WAIT_RESPONSE,
   STIMULUS_ZONE_END
 } StimulusZone_t;
 
@@ -111,6 +103,19 @@ class FSM {
 private:
   void enterLowPowerSleep();
   CowState classifyMotion(Acceleration acc);
+
+  void sendMessage(uint8_t msgId, ModuleId_t dest);
+  HAL_StatusTypeDef dequeuedMessage();
+  HAL_StatusTypeDef updatePosition();
+  void sendPosition(uint8_t msgId, ModuleId_t dest);
+  HAL_StatusTypeDef recievedFence();
+  void updateFence();
+  HAL_StatusTypeDef isInFence();
+  HAL_StatusTypeDef updateDistAndZone();
+  HAL_StatusTypeDef updateAcceleration();
+  void updateState();
+  CowState classifyMotion(Acceleration acc);
+  HAL_StatusTypeDef gpsResponse();
 
   MainFSM_t mainFSM;
   NormalOpFSM_t normalOpFSM;
@@ -124,6 +129,8 @@ private:
   FenceTransitionState_t fenceTransitionState;
 
   uint8_t tries;
+
+  Message* msgReceived;
   
 public:
   FSM();
@@ -143,12 +150,7 @@ public:
 
 
 
-enum class GpsRate {
-  STOP,
-  SLOW,
-  MEDIUM,
-  FAST
-};
+
 
 void fsmTask(void *argument);
 
