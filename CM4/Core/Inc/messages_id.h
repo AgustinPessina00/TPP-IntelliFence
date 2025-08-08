@@ -36,14 +36,17 @@
 #define MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE      0x38    // Zona actual y Distancia actual al límite
 
 // Estímulos individuales
-#define MSG_ID_STIMULUS_VIBRATION_REQUEST   0x40  // Pedido de vibración
-#define MSG_ID_STIMULUS_VIBRATION_FEEDBACK  0x41  // Resultado de vibración
+#define MSG_ID_ZONE_CHANGE                  0x40  // Pedido de estímulo
+#define MSG_ID_STIMULUS_FEEDBACK            0x41  // Respuesta de estímulo
 
-#define MSG_ID_STIMULUS_SOUND_REQUEST       0x42  // Pedido de sonido
-#define MSG_ID_STIMULUS_SOUND_FEEDBACK      0x43  // Resultado de sonido
+#define MSG_ID_STIMULUS_VIBRATION_REQUEST   0x42  // Pedido de vibración
+#define MSG_ID_STIMULUS_VIBRATION_FEEDBACK  0x43  // Resultado de vibración
 
-#define MSG_ID_STIMULUS_ELECTRIC_REQUEST    0x44  // Pedido de estímulo eléctrico
-#define MSG_ID_STIMULUS_ELECTRIC_FEEDBACK   0x45  // Resultado de estímulo eléctrico
+#define MSG_ID_STIMULUS_SOUND_REQUEST       0x44  // Pedido de sonido
+#define MSG_ID_STIMULUS_SOUND_FEEDBACK      0x45  // Resultado de sonido
+
+#define MSG_ID_STIMULUS_ELECTRIC_REQUEST    0x46  // Pedido de estímulo eléctrico
+#define MSG_ID_STIMULUS_ELECTRIC_FEEDBACK   0x47  // Resultado de estímulo eléctrico
 
 // Sensores y diagnóstico
 #define MSG_ID_SENSOR_DATA       0x50  // Datos de sensores (IMU, acelerómetro, etc.)
