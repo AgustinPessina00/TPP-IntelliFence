@@ -21,7 +21,6 @@
 	<natures>
 		<nature>com.st.stm32cube.ide.mcu.MCUProjectNature</nature>
 		<nature>org.eclipse.cdt.core.cnature</nature>
-		<nature>org.eclipse.cdt.core.ccnature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUCubeIdeServicesRevAev2ProjectNature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUCubeProjectNature</nature>
 		<nature>com.st.stm32cube.ide.mcu.MCUAdvancedStructureProjectNature</nature>
@@ -34,6 +33,41 @@
 			<name>Common</name>
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Common</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_adv_trace.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Utilities/trace/adv_trace/stm32_adv_trace.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_lpm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Utilities/lpm/tiny_lpm/stm32_lpm.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_mem.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Utilities/misc/stm32_mem.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_systime.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Utilities/misc/stm32_systime.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_timer.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Utilities/timer/stm32_timer.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_tiny_sscanf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Utilities/misc/stm32_tiny_sscanf.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_tiny_vsnprintf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Utilities/misc/stm32_tiny_vsnprintf.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.c</name>
@@ -96,6 +130,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_i2c_ex.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_ipcc.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_lptim.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_lptim.c</locationURI>
@@ -121,6 +160,16 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rcc_ex.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rtc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rtc.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rtc_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rtc_ex.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_tim.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_tim.c</locationURI>
@@ -144,6 +193,56 @@
 			<name>Drivers/STM32WLxx_HAL_Driver/stm32wlxx_ll_adc.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_ll_adc.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/cmsis_os2.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/croutine.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/croutine.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/event_groups.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/event_groups.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/heap_4.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/list.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/list.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/port.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3/port.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/queue.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/queue.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/stream_buffer.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/stream_buffer.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/tasks.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/tasks.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/timers.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/timers.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

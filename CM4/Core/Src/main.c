@@ -55,16 +55,127 @@ ADC_HandleTypeDef hadc;
 
 I2C_HandleTypeDef hi2c2;
 
+IPCC_HandleTypeDef hipcc;
+
 LPTIM_HandleTypeDef hlptim1;
 LPTIM_HandleTypeDef hlptim2;
 
+RTC_HandleTypeDef hrtc;
+
 TIM_HandleTypeDef htim1;
-TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim16;
 TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart2;
 
+/* Definitions for sensorAcqTask */
+osThreadId_t sensorAcqTaskHandle;
+const osThreadAttr_t sensorAcqTask_attributes = {
+  .name = "sensorAcqTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for stimulusTask */
+osThreadId_t stimulusTaskHandle;
+const osThreadAttr_t stimulusTask_attributes = {
+  .name = "stimulusTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for gpsTask */
+osThreadId_t gpsTaskHandle;
+const osThreadAttr_t gpsTask_attributes = {
+  .name = "gpsTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for loraTxTask */
+osThreadId_t loraTxTaskHandle;
+const osThreadAttr_t loraTxTask_attributes = {
+  .name = "loraTxTask",
+  .priority = (osPriority_t) osPriorityBelowNormal7,
+  .stack_size = 128 * 4
+};
+/* Definitions for loraRxTask */
+osThreadId_t loraRxTaskHandle;
+const osThreadAttr_t loraRxTask_attributes = {
+  .name = "loraRxTask",
+  .priority = (osPriority_t) osPriorityBelowNormal7,
+  .stack_size = 128 * 4
+};
+/* Definitions for fsmTask */
+osThreadId_t fsmTaskHandle;
+const osThreadAttr_t fsmTask_attributes = {
+  .name = "fsmTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for distanceToLimit */
+osThreadId_t distanceToLimitHandle;
+const osThreadAttr_t distanceToLimit_attributes = {
+  .name = "distanceToLimit",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for fenceUpdateTask */
+osThreadId_t fenceUpdateTaskHandle;
+const osThreadAttr_t fenceUpdateTask_attributes = {
+  .name = "fenceUpdateTask",
+  .priority = (osPriority_t) osPriorityBelowNormal7,
+  .stack_size = 128 * 4
+};
+/* Definitions for dispatcherTask */
+osThreadId_t dispatcherTaskHandle;
+const osThreadAttr_t dispatcherTask_attributes = {
+  .name = "dispatcherTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for systemQueue */
+osMessageQueueId_t systemQueueHandle;
+const osMessageQueueAttr_t systemQueue_attributes = {
+  .name = "systemQueue"
+};
+/* Definitions for sensorAcqQueue */
+osMessageQueueId_t sensorAcqQueueHandle;
+const osMessageQueueAttr_t sensorAcqQueue_attributes = {
+  .name = "sensorAcqQueue"
+};
+/* Definitions for stimulusQueue */
+osMessageQueueId_t stimulusQueueHandle;
+const osMessageQueueAttr_t stimulusQueue_attributes = {
+  .name = "stimulusQueue"
+};
+/* Definitions for gpsQueue */
+osMessageQueueId_t gpsQueueHandle;
+const osMessageQueueAttr_t gpsQueue_attributes = {
+  .name = "gpsQueue"
+};
+/* Definitions for loraTxQueue */
+osMessageQueueId_t loraTxQueueHandle;
+const osMessageQueueAttr_t loraTxQueue_attributes = {
+  .name = "loraTxQueue"
+};
+/* Definitions for loraRxQueue */
+osMessageQueueId_t loraRxQueueHandle;
+const osMessageQueueAttr_t loraRxQueue_attributes = {
+  .name = "loraRxQueue"
+};
+/* Definitions for fsmQueue */
+osMessageQueueId_t fsmQueueHandle;
+const osMessageQueueAttr_t fsmQueue_attributes = {
+  .name = "fsmQueue"
+};
+/* Definitions for distanceToLimitQueue */
+osMessageQueueId_t distanceToLimitQueueHandle;
+const osMessageQueueAttr_t distanceToLimitQueue_attributes = {
+  .name = "distanceToLimitQueue"
+};
+/* Definitions for fenceUpdateQueue */
+osMessageQueueId_t fenceUpdateQueueHandle;
+const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
+  .name = "fenceUpdateQueue"
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -72,7 +183,6 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM17_Init(void);
 static void MX_ADC_Init(void);
@@ -81,6 +191,15 @@ static void MX_USART2_UART_Init(void);
 static void MX_LPTIM1_Init(void);
 static void MX_LPTIM2_Init(void);
 static void MX_TIM1_Init(void);
+void startSensorAcqTask(void *argument);
+void startStimulousTask(void *argument);
+void startGpsTask(void *argument);
+void startLoraTxTask(void *argument);
+void startLoraRxTask(void *argument);
+void startFsmTask(void *argument);
+void startDistanceToLimitTask(void *argument);
+void startFenceUpdateTask(void *argument);
+void startDispatcherTask(void *argument);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -119,7 +238,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
   MX_ADC_Init();
@@ -138,6 +256,93 @@ int main(void)
   Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();  
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of systemQueue */
+  systemQueueHandle = osMessageQueueNew (256, sizeof(uint16_t), &systemQueue_attributes);
+
+  /* creation of sensorAcqQueue */
+  sensorAcqQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &sensorAcqQueue_attributes);
+
+  /* creation of stimulusQueue */
+  stimulusQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &stimulusQueue_attributes);
+
+  /* creation of gpsQueue */
+  gpsQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &gpsQueue_attributes);
+
+  /* creation of loraTxQueue */
+  loraTxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &loraTxQueue_attributes);
+
+  /* creation of loraRxQueue */
+  loraRxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &loraRxQueue_attributes);
+
+  /* creation of fsmQueue */
+  fsmQueueHandle = osMessageQueueNew (128, sizeof(uint16_t), &fsmQueue_attributes);
+
+  /* creation of distanceToLimitQueue */
+  distanceToLimitQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &distanceToLimitQueue_attributes);
+
+  /* creation of fenceUpdateQueue */
+  fenceUpdateQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &fenceUpdateQueue_attributes);
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of sensorAcqTask */
+  sensorAcqTaskHandle = osThreadNew(startSensorAcqTask, NULL, &sensorAcqTask_attributes);
+
+  /* creation of stimulusTask */
+  stimulusTaskHandle = osThreadNew(startStimulousTask, NULL, &stimulusTask_attributes);
+
+  /* creation of gpsTask */
+  gpsTaskHandle = osThreadNew(startGpsTask, NULL, &gpsTask_attributes);
+
+  /* creation of loraTxTask */
+  loraTxTaskHandle = osThreadNew(startLoraTxTask, NULL, &loraTxTask_attributes);
+
+  /* creation of loraRxTask */
+  loraRxTaskHandle = osThreadNew(startLoraRxTask, NULL, &loraRxTask_attributes);
+
+  /* creation of fsmTask */
+  fsmTaskHandle = osThreadNew(startFsmTask, NULL, &fsmTask_attributes);
+
+  /* creation of distanceToLimit */
+  distanceToLimitHandle = osThreadNew(startDistanceToLimitTask, NULL, &distanceToLimit_attributes);
+
+  /* creation of fenceUpdateTask */
+  fenceUpdateTaskHandle = osThreadNew(startFenceUpdateTask, NULL, &fenceUpdateTask_attributes);
+
+  /* creation of dispatcherTask */
+  dispatcherTaskHandle = osThreadNew(startDispatcherTask, NULL, &dispatcherTask_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */  
   /* Boot CPU2 */
   HAL_PWREx_ReleaseCore(PWR_CORE_CPU2);
 
@@ -167,10 +372,12 @@ void SystemClock_Config(void)
 
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  RCC_OscInitStruct.LSIDiv = RCC_LSI_DIV1;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -291,6 +498,32 @@ static void MX_I2C2_Init(void)
 }
 
 /**
+  * @brief IPCC Initialization Function
+  * @param None
+  * @retval None
+  */
+void MX_IPCC_Init(void)
+{
+
+  /* USER CODE BEGIN IPCC_Init 0 */
+
+  /* USER CODE END IPCC_Init 0 */
+
+  /* USER CODE BEGIN IPCC_Init 1 */
+
+  /* USER CODE END IPCC_Init 1 */
+  hipcc.Instance = IPCC;
+  if (HAL_IPCC_Init(&hipcc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN IPCC_Init 2 */
+
+  /* USER CODE END IPCC_Init 2 */
+
+}
+
+/**
   * @brief LPTIM1 Initialization Function
   * @param None
   * @retval None
@@ -355,6 +588,72 @@ static void MX_LPTIM2_Init(void)
   /* USER CODE BEGIN LPTIM2_Init 2 */
 
   /* USER CODE END LPTIM2_Init 2 */
+
+}
+
+/**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  RTC_TimeTypeDef sTime = {0};
+  RTC_DateTypeDef sDate = {0};
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  hrtc.Init.OutPutPullUp = RTC_OUTPUT_PULLUP_NONE;
+  hrtc.Init.BinMode = RTC_BINARY_NONE;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* USER CODE BEGIN Check_RTC_BKUP */
+
+  /* USER CODE END Check_RTC_BKUP */
+
+  /** Initialize RTC and set the Time and Date
+  */
+  sTime.Hours = 0x0;
+  sTime.Minutes = 0x0;
+  sTime.Seconds = 0x0;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+  sDate.Month = RTC_MONTH_JANUARY;
+  sDate.Date = 0x1;
+  sDate.Year = 0x0;
+
+  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
 
 }
 
@@ -427,55 +726,6 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
-
-}
-
-/**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM2_Init(void)
-{
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-
-  /* USER CODE END TIM2_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
-  HAL_TIM_MspPostInit(&htim2);
 
 }
 
@@ -685,17 +935,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PWRGD_LDO1_Pin PWRGD_LDO2_Pin GPS_TIMEPULSE_Pin */
-  GPIO_InitStruct.Pin = PWRGD_LDO1_Pin|PWRGD_LDO2_Pin|GPS_TIMEPULSE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
   /*Configure GPIO pins : ENABLE_LDO1_Pin GPS_RESET_N_Pin */
   GPIO_InitStruct.Pin = ENABLE_LDO1_Pin|GPS_RESET_N_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PWRGD_LDO2_Pin GPS_TIMEPULSE_Pin */
+  GPIO_InitStruct.Pin = PWRGD_LDO2_Pin|GPS_TIMEPULSE_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : GPS_EXTINT_Pin ENABLE_LDO2_Pin GPS_SAFEBOOT_N_Pin */
@@ -711,6 +961,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
@@ -718,6 +972,192 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_startSensorAcqTask */
+/**
+  * @brief  Function implementing the sensorAcqTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_startSensorAcqTask */
+void startSensorAcqTask(void *argument)
+{
+  /* init code for LoRaWAN */
+  MX_LoRaWAN_Init();
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_startStimulousTask */
+/**
+* @brief Function implementing the stimulusTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startStimulousTask */
+void startStimulousTask(void *argument)
+{
+  /* USER CODE BEGIN startStimulousTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startStimulousTask */
+}
+
+/* USER CODE BEGIN Header_startGpsTask */
+/**
+* @brief Function implementing the gpsTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startGpsTask */
+void startGpsTask(void *argument)
+{
+  /* USER CODE BEGIN startGpsTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startGpsTask */
+}
+
+/* USER CODE BEGIN Header_startLoraTxTask */
+/**
+* @brief Function implementing the loraTxTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startLoraTxTask */
+void startLoraTxTask(void *argument)
+{
+  /* USER CODE BEGIN startLoraTxTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startLoraTxTask */
+}
+
+/* USER CODE BEGIN Header_startLoraRxTask */
+/**
+* @brief Function implementing the loraRxTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startLoraRxTask */
+void startLoraRxTask(void *argument)
+{
+  /* USER CODE BEGIN startLoraRxTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startLoraRxTask */
+}
+
+/* USER CODE BEGIN Header_startFsmTask */
+/**
+* @brief Function implementing the fsmTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startFsmTask */
+void startFsmTask(void *argument)
+{
+  /* USER CODE BEGIN startFsmTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startFsmTask */
+}
+
+/* USER CODE BEGIN Header_startDistanceToLimitTask */
+/**
+* @brief Function implementing the distanceToLimit thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startDistanceToLimitTask */
+void startDistanceToLimitTask(void *argument)
+{
+  /* USER CODE BEGIN startDistanceToLimitTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startDistanceToLimitTask */
+}
+
+/* USER CODE BEGIN Header_startFenceUpdateTask */
+/**
+* @brief Function implementing the fenceUpdateTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startFenceUpdateTask */
+void startFenceUpdateTask(void *argument)
+{
+  /* USER CODE BEGIN startFenceUpdateTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startFenceUpdateTask */
+}
+
+/* USER CODE BEGIN Header_startDispatcherTask */
+/**
+* @brief Function implementing the dispatcherTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startDispatcherTask */
+void startDispatcherTask(void *argument)
+{
+  /* USER CODE BEGIN startDispatcherTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startDispatcherTask */
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM2 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM2)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.
