@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sensorAcqTask.h"
+#include "threads/sensorAcqTask.h"
 #include "cow.h"
 #include "fence.h"
 /* USER CODE END Includes */

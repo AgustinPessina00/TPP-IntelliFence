@@ -43,4 +43,8 @@ Core/Src \
 Core/Src/threads \
 Core/Startup \
 Drivers/STM32WLxx_HAL_Driver \
+LoRaWAN/App \
+MbMux \
+Middlewares/Third_Party/FreeRTOS \
+Utilities \
 

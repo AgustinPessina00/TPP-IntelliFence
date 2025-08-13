@@ -9,6 +9,10 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include Utilities/subdir.mk
+-include Middlewares/Third_Party/FreeRTOS/subdir.mk
+-include MbMux/subdir.mk
+-include LoRaWAN/App/subdir.mk
 -include Drivers/STM32WLxx_HAL_Driver/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/threads/subdir.mk
@@ -87,7 +91,7 @@ main-build: TPP-IntelliFence_CM4.elf secondary-outputs
 
 # Tool invocations
 TPP-IntelliFence_CM4.elf TPP-IntelliFence_CM4.map: $(OBJS) $(USER_OBJS) C:\Users\nacho\OneDrive\Documentos\FIUBA\TPP\SW\TPP-IntelliFence\CM4\STM32WL55JCIX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "TPP-IntelliFence_CM4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\nacho\OneDrive\Documentos\FIUBA\TPP\SW\TPP-IntelliFence\CM4\STM32WL55JCIX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TPP-IntelliFence_CM4.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+	arm-none-eabi-g++ -o "TPP-IntelliFence_CM4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\nacho\OneDrive\Documentos\FIUBA\TPP\SW\TPP-IntelliFence\CM4\STM32WL55JCIX_FLASH.ld" -Wl,-Map="TPP-IntelliFence_CM4.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

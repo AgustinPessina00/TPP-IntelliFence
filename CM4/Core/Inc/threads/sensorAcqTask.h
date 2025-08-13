@@ -7,15 +7,15 @@ extern "C" {
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include "sam_m10q.h"
-#include "lsm6dso.h"
-#include "ina226.h"
+#include "GPS/sam_m10q.h"
+#include "IMU/lsm6dso.h"
+#include "INA/ina226.h"
 
 #include "messages.h"
 
 #define SAMPLE_RATE  100  // en milisegundos
 
-struct typedef
+typedef struct
 {
   SamM10q *gps;
   Lsm6dso *imu;
