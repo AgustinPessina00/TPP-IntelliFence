@@ -25,7 +25,7 @@ Message::Message(uint8_t msgId, ModuleId_t sender, ModuleId_t receiver, const ui
     this->length = length;
     this->payload = (length > 0) ? new uint8_t[length] : nullptr;
     if (this->payload && data) {
-        std::memcpy(this->payload, data, length);
+        memcpy(this->payload, data, length);
     }
 }
 
@@ -36,7 +36,7 @@ Message::Message(const Message& other) {
     this->length = other.length;
     this->payload = (length > 0) ? new uint8_t[length] : nullptr;
     if (payload && other.payload) {
-        std::memcpy(payload, other.payload, length);
+        memcpy(payload, other.payload, length);
     }
 }
 
@@ -49,7 +49,7 @@ Message& Message::operator=(const Message& other) {
         this->length = other.length;
         this->payload = (length > 0) ? new uint8_t[length] : nullptr;
         if (this->payload && other.payload) {
-            std::memcpy(this->payload, other.payload, this->length);
+            memcpy(this->payload, other.payload, this->length);
         }
     }
     return *this;
@@ -64,6 +64,6 @@ void Message::setPayload(const uint8_t* data, uint8_t len) {
     this->length = len;
     this->payload = (len > 0) ? new uint8_t[len] : nullptr;
     if (this->payload && data) {
-        std::memcpy(this->payload, data, len);
+        memcpy(this->payload, data, len);
     }
 }

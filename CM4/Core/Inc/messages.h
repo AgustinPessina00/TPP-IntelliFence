@@ -3,7 +3,9 @@
 #define MESSAGES_H
 
 #include <stdint.h>
+#include "string.h"
 #include "messages_id.h"
+#include "cmsis_os2.h"
 
 enum class ModuleId_t : uint8_t {
     SENSOR_ACQ   = 1,

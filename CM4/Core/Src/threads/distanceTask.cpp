@@ -1,8 +1,8 @@
-#include "distanceTask.h"
+#include "threads/distanceTask.h"
 #include "math.h"
 
-extern distanceToLimitQueueHandle;
-extern dispatcherQueueHandle;
+extern osMessageQueueId_t distanceToLimitQueueHandle;
+extern osMessageQueueId_t dispatcherQueueHandle;
 
 // TODO: Cambiar nombres de la task a getZoneTask.
 
@@ -24,17 +24,17 @@ void distanceToLimitTask(void *argument) {
             case MSG_ID_REQUEST_ZONE_TO_FENCE:
             //TODO: Ver si pasamos zone_T en el mensaje o casteamos a uint8_t, ya que payload recibe uint8_t.
                 msgToSend = new Message(MSG_ID_SEND_ZONE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(uint8_t));
-                std::memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
+                memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
                 break;
             case MSG_ID_REQUEST_DISTANCE_TO_FENCE:
                 msgToSend = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(float));
-                std::memcpy(msgToSend->payload, &minDistance, sizeof(float));
+                memcpy(msgToSend->payload, &minDistance, sizeof(float));
                 break;
             case MSG_ID_REQUEST_ZONE_AND_DISTANCE_TO_FENCE:
                 msgToSend = new Message(MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, 
                 sizeof(uint8_t) + sizeof(float)); // 5 bytes
-                std::memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
-                std::memcpy(msgToSend->payload + sizeof(uint8_t), &minDistance, sizeof(float));
+                memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
+                memcpy(msgToSend->payload + sizeof(uint8_t), &minDistance, sizeof(float));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
 
@@ -46,16 +46,15 @@ void distanceToLimitTask(void *argument) {
             if(msgToSend)
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
             delete msgReceived;
-        }
+	}
 
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+    vTaskDelay(pdMS_TO_TICKS(1000));
 }
 
 zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistance) {
 
     Position pos = cow->getPosition();
-    Vertex center = fence->getCenter();
+    Vertex center = fence->getCenterFence();
 
     XY cowXY = latLonToXY(pos.latitude, pos.longitude, center.latitude, center.longitude);
 
@@ -64,11 +63,11 @@ zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistanc
     minDistance = calculateMinDistanceToFence(cowXY, center, limites);
 
     if(isPointInsideFence(cowXY, limites, center)) {
-        if (minDistance > thresholds[LIGHT_BLUE_ZONE]) return GREEN_ZONE; 
-        else if (minDistance > thresholds[BLUE_ZONE]) return LIGHT_BLUE_ZONE;
-        else if (minDistance > thresholds[DARK_BLUE_ZONE]) return BLUE_ZONE;
-        else if (minDistance > thresholds[YELLOW_ZONE]) return DARK_BLUE_ZONE;
-        else if (minDistance > thresholds[RED_ZONE]) return YELLOW_ZONE;
+        if (minDistance > fence->thresholds[LIGHT_BLUE_ZONE]) return GREEN_ZONE;
+        else if (minDistance > fence->thresholds[BLUE_ZONE]) return LIGHT_BLUE_ZONE;
+        else if (minDistance > fence->thresholds[DARK_BLUE_ZONE]) return BLUE_ZONE;
+        else if (minDistance > fence->thresholds[YELLOW_ZONE]) return DARK_BLUE_ZONE;
+        else if (minDistance > fence->thresholds[RED_ZONE]) return YELLOW_ZONE;
         else return RED_ZONE;
     }
     else {
@@ -77,8 +76,9 @@ zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistanc
     }
 }
 
-distance_t calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites) {
-    float minDist = std::numeric_limits<float>::max();  // Inicializa la distancia minima con el máximo valor posible.
+float calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites) {
+
+	float minDist = std::numeric_limits<float>::max();  // Inicializa la distancia minima con el máximo valor posible.
 
     for (size_t i = 0; i < limites.size(); ++i) {
         const Line& seg = limites[i];

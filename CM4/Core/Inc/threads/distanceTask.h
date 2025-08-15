@@ -5,12 +5,15 @@
 extern "C" {
 #endif
 
+#include <limits>
+
 #include "FreeRTOS.h"
 #include "task.h"
 
 #include "cow.h"
 #include "fence.h"
 #include "messages.h"
+
 
 typedef struct {
   Cow *cow;
@@ -26,7 +29,9 @@ void distanceToLimitTask(void *argument);
 
 zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistance);
 
-distance_t calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites);
+float calculateMinDistanceToFence(const XY cowXY, const Vertex center, const std::vector<Line>& limites);
+
+bool isPointInsideFence(const XY& pointXY, const std::vector<Line>& limites, const Vertex& center);
 
 float pointToSegmentDistance(const XY& p, const XY& a, const XY& b);
 

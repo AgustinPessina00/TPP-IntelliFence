@@ -3,7 +3,7 @@
 
 #include "lsm6dso_registers.h"
 #include "stm32wlxx_hal.h"
-#include "sensorDataType.h"
+//#include "sensorDataType.h"
 
 // === Máscaras de campos de los registros ===
 #define LSM6DSO_ODR_XL_MASK     	(0b1111 	<< ODR_XL3)		    // CTRL1_XL (0x10)

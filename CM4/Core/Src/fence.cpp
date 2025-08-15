@@ -31,17 +31,17 @@ void Fence::clearVertex()
     centerFence = {0.0, 0.0};
 }
 
-const std::vector<Vertex>& Fence::getVertices() const
+std::vector<Vertex>& Fence::getVertices() const
 {
     return vertices;
 }
 
-const std::vector<Line>& Fence::getLimits() const
+std::vector<Line>& Fence::getLimits() const
 {
     return limites;
 }
 
-const Vertex Fence::getCenterFence()
+Vertex Fence::getCenterFence() const
 {
     return centerFence;
 }

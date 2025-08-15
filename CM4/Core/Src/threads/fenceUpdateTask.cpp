@@ -1,10 +1,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
-#include "fenceUpdateTask.h"
+#include "threads/fenceUpdateTask.h"
 
 void fenceUpdateTask(void *argument) {
     for (;;) {
-        // TODO: implementar lógica de la tarea
+        // TODO: implementar lï¿½gica de la tarea
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

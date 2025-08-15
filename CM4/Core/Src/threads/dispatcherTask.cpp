@@ -1,6 +1,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
-#include "dispatcherTask.h"
+#include "threads/dispatcherTask.h"
 #include "cmsis_os.h"
 #include "messages.h"
 
@@ -20,28 +20,28 @@ void dispatcherTask(void *argument) {
     while(1) {
         if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, osWaitForever) == osOK) {
             switch (msg->receiver) {
-                case MODULE_SENSOR_ACQ:
+                case ModuleId_t::SENSOR_ACQ:
                     osMessageQueuePut(sensorAcqQueueHandle, msg, 0, 0);
                     break;
-                case MODULE_STIMULUS:
+                case ModuleId_t::STIMULUS:
                     osMessageQueuePut(stimulusQueueHandle, msg, 0, 0);
                     break;
-                case MODULE_GPS:
+                case ModuleId_t::GPS:
                     osMessageQueuePut(gpsQueueHandle, msg, 0, 0);
                     break;
-                case MODULE_LORA_TX:
+                case ModuleId_t::LORA_TX:
                     osMessageQueuePut(loraTxQueueHandle, msg, 0, 0);
                     break;
-                case MODULE_LORA_RX:
+                case ModuleId_t::LORA_RX:
                     osMessageQueuePut(loraRxQueueHandle, msg, 0, 0);
                     break;
-                case MODULE_FSM:
+                case ModuleId_t::FSM:
                     osMessageQueuePut(fsmQueueHandle, msg, 0, 0);
                     break;
-                case MODULE_DISTANCE:
+                case ModuleId_t::DISTANCE:
                     osMessageQueuePut(distanceToLimitQueueHandle, msg, 0, 0);
                     break;
-                case MODULE_FENCE_UPDATE:
+                case ModuleId_t::FENCE_UPDATE:
                     osMessageQueuePut(fenceUpdateQueueHandle, msg, 0, 0);
                     break;
                 default:

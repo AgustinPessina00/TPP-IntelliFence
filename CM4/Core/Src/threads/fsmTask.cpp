@@ -1,5 +1,5 @@
 
-#include "fsmTask.h"
+#include "threads/fsmTask.h"
 
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
@@ -371,15 +371,9 @@ void FSM::runFenceTransitionFSM(){
       break;
 
     case FENCE_TRANSITION_REQUEST_NEW_POSITION:
-      if (requestPosition() == HAL_OK) {
-        this->fenceTransitionState = FENCE_TRANSITION_WAIT_NEW_POSITION;
-        tries = 0;
-      } else {
-        tries++;
-        if (tries >= MAX_TRIES)
-          //handleGPSFailure(); // opcional
-      }
-      break;
+    	sendMessage(MSG_ID_REQUEST_GPS, ModuleId_t::SENSOR_ACQ); // Request GPS Measurement.
+    	this->fenceTransitionState = FENCE_TRANSITION_WAIT_NEW_POSITION;
+    	break;
 
     case FENCE_TRANSITION_WAIT_NEW_POSITION:
       if (recievedPosition() == HAL_OK) {
@@ -480,8 +474,8 @@ HAL_StatusTypeDef FSM::updatePosition() {
     case MSG_ID_SEND_GPS:
       Position pos;
       if (msgReceived->length == 2 * sizeof(double) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
-        std::memcpy(&pos.latitude, msgReceived->payload, sizeof(double));
-        std::memcpy(&pos.longitude, msgReceived->payload + sizeof(double), sizeof(double));
+        memcpy(&pos.latitude, msgReceived->payload, sizeof(double));
+        memcpy(&pos.longitude, msgReceived->payload + sizeof(double), sizeof(double));
 
         // printf("FSM recibió GPS: lat=%.5f, lon=%.5f\r\n", latitude, longitude);
 
@@ -507,8 +501,8 @@ HAL_StatusTypeDef FSM::updatePosition() {
 
 void FSM::sendPosition(uint8_t msgId, ModuleId_t dest) {
   Message* msg = new Message(msgId, ModuleId_t::FSM, dest, 2 * sizeof(double));  // [latitud, longitud] = 2 doubles
-  std::memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(double));
-  std::memcpy(msg->payload + sizeof(double), &(sensorParams->gps->longitude), sizeof(double));
+  memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(double));
+  memcpy(msg->payload + sizeof(double), &(sensorParams->gps->longitude), sizeof(double));
   osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 }
 
@@ -522,7 +516,7 @@ HAL_StatusTypeDef FSM::recievedFence() {
         int vertexCount = msgReceived->length / sizeof(Vertex);
         for (uint32_t i = 0; i < vertexCount; i++) {
           Vertex v;
-          std::memcpy(&v, msgReceived->payload + i * sizeof(Vertex), sizeof(Vertex));
+          memcpy(&v, msgReceived->payload + i * sizeof(Vertex), sizeof(Vertex));
           fence.addVertex(v);
         }
 
@@ -562,8 +556,8 @@ HAL_StatusTypeDef FSM::updateDistAndZone() {
   switch (msgReceived->id) {
     case MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE: 
       if (msgReceived->payload != nullptr && msgReceived->length == (sizeof(zone_t) + sizeof(float))) {
-        std::memcpy(&zone, msgReceived->payload, sizeof(zone_t));
-        std::memcpy(&dist, msgReceived->payload + sizeof(zone_t), sizeof(float));        
+        memcpy(&zone, msgReceived->payload, sizeof(zone_t));
+        memcpy(&dist, msgReceived->payload + sizeof(zone_t), sizeof(float));
 
         cow.updateZone(zone);
         cow.updateDistanceToLimit(dist);
@@ -589,9 +583,9 @@ HAL_StatusTypeDef FSM::updateAcceleration() {
     case MSG_ID_SEND_IMU:
       Acceleration acc;
       if (msgReceived->length == 3 * sizeof(float) && msgReceived->payload != nullptr) { // Es necesario verificar el length?
-        std::memcpy(&acc.ax, msgReceived->payload, sizeof(float));
-        std::memcpy(&acc.ay, msgReceived->payload + sizeof(float), sizeof(float));
-        std::memcpy(&acc.az, msgReceived->payload + 2 * sizeof(float), sizeof(float));
+        memcpy(&acc.ax, msgReceived->payload, sizeof(float));
+        memcpy(&acc.ay, msgReceived->payload + sizeof(float), sizeof(float));
+        memcpy(&acc.az, msgReceived->payload + 2 * sizeof(float), sizeof(float));
 
         // printf("FSM recibió GPS: lat=%.5f, lon=%.5f\r\n", latitude, longitude);
 
@@ -634,7 +628,7 @@ CowState FSM::classifyMotion(Acceleration acc) {
 
 void FSM::updateGpsAdqTime(GpsRate gpsRate) {
   Message* msg = new Message(MSG_ID_GPS_REQUEST_CONFIG, ModuleId_t::FSM, ModuleId_t::GPS, sizeof(GpsRate));
-  std::memcpy(msg->payload, &gpsRate, sizeof(GpsRate));
+  memcpy(msg->payload, &gpsRate, sizeof(GpsRate));
   osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 }
 
@@ -681,7 +675,7 @@ HAL_StatusTypeDef FSM::gpsResponse() {
 
 void FSM::sendZoneToStimulus(zone_t zone, ModuleId_t dest) {
   Message* msg = new Message(MSG_ID_ZONE_CHANGE, ModuleId_t::FSM, dest, sizeof(zone_t));
-  std::memcpy(msg->payload, &zone, sizeof(zone_t));
+  memcpy(msg->payload, &zone, sizeof(zone_t));
   osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 }
 
