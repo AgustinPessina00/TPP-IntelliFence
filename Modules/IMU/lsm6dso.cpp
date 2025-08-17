@@ -75,7 +75,7 @@ uint8_t Lsm6dso::setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn sF){
 	return (static_cast<uint8_t>(sF) & LSM6DSO_SLOPE_FDS_MASK);
 }
 
-uint8_t Lsm6dso::setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn intEn, Lsm6dsoInactEn inActEn){
+uint8_t Lsm6dso::setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn intEn, Lsm6dsoInActEn inActEn){
 	return (static_cast<uint8_t>(intEn) & LSM6DSO_INT_EN_MASK) |
 		   (static_cast<uint8_t>(inActEn) & LSM6DSO_INACT_MASK);
 }
