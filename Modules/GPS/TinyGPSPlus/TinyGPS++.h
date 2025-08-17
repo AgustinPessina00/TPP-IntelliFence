@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TinyGPSPlus_h
 
 #include <inttypes.h>
-//#include "Arduino.h"
+#include "arduino_compat.h"
 #include <limits.h>
 
 #define _GPS_VERSION "1.1.0" // software version of this library
@@ -252,7 +252,7 @@ public:
   uint32_t charsProcessed()   const { return encodedCharCount; }
   uint32_t sentencesWithFix() const { return sentencesWithFixCount; }
   uint32_t failedChecksum()   const { return failedChecksumCount; }
-  uint32_t passedChecksum()   const { return passedChecksumCount; }
+  uint32_t passedChecksum()   const { return passeFdChecksumCount; }
 
 private:
   enum {GPS_SENTENCE_GGA, GPS_SENTENCE_RMC, GPS_SENTENCE_OTHER};
