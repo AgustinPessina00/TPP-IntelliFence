@@ -131,10 +131,10 @@ const osThreadAttr_t dispatcherTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
-/* Definitions for systemQueue */
-osMessageQueueId_t systemQueueHandle;
-const osMessageQueueAttr_t systemQueue_attributes = {
-  .name = "systemQueue"
+/* Definitions for dispatcherQueue */
+osMessageQueueId_t dispatcherQueueHandle;
+const osMessageQueueAttr_t dispatcherQueue_attributes = {
+  .name = "dispatcherQueue"
 };
 /* Definitions for sensorAcqQueue */
 osMessageQueueId_t sensorAcqQueueHandle;
@@ -254,6 +254,15 @@ int main(void)
   Ina226 inaMcu(&hi2c2, INA_MCU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
   Ina226 inaGps(&hi2c2, INA_GPS_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
   Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
+
+  // Obtaining the STM32WL55JC UID
+  uint32_t cowId[3];
+
+  cowId[0] = HAL_GetUIDw0();
+  cowId[1] = HAL_GetUIDw1();
+  cowId[2] = HAL_GetUIDw2();
+  Cow cow(cowId);
+  Fence fence();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -272,8 +281,8 @@ int main(void)
   /* USER CODE END RTOS_TIMERS */
 
   /* Create the queue(s) */
-  /* creation of systemQueue */
-  systemQueueHandle = osMessageQueueNew (256, sizeof(uint16_t), &systemQueue_attributes);
+  /* creation of dispatcherQueue */
+  dispatcherQueueHandle  = osMessageQueueNew (256, sizeof(uint16_t), &dispatcherQueue_attributes);
 
   /* creation of sensorAcqQueue */
   sensorAcqQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &sensorAcqQueue_attributes);
@@ -305,31 +314,46 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of sensorAcqTask */
-  sensorAcqTaskHandle = osThreadNew(startSensorAcqTask, NULL, &sensorAcqTask_attributes);
+  sensorAcqTaskParams sensorParams = {
+	  .gps = &gps,
+      .imu = &imu,
+      .inaMcu = &inaMcu,
+      .inaGps = &inaGps,
+      .inaImu = &inaImu
+  };
+  sensorAcqTaskHandle = osThreadNew(sensorAcqTask, &sensorParams, &sensorAcqTask_attributes);
 
   /* creation of stimulusTask */
-  stimulusTaskHandle = osThreadNew(startStimulousTask, NULL, &stimulusTask_attributes);
+  stimulusTaskHandle = osThreadNew(stimulusTask, NULL, &stimulusTask_attributes);
 
   /* creation of gpsTask */
-  gpsTaskHandle = osThreadNew(startGpsTask, NULL, &gpsTask_attributes);
+  gpsTaskHandle = osThreadNew(gpsTask, NULL, &gpsTask_attributes);
 
   /* creation of loraTxTask */
-  loraTxTaskHandle = osThreadNew(startLoraTxTask, NULL, &loraTxTask_attributes);
+  loraTxTaskHandle = osThreadNew(loraTxTask, NULL, &loraTxTask_attributes);
 
   /* creation of loraRxTask */
-  loraRxTaskHandle = osThreadNew(startLoraRxTask, NULL, &loraRxTask_attributes);
+  loraRxTaskHandle = osThreadNew(loraRxTask, NULL, &loraRxTask_attributes);
 
   /* creation of fsmTask */
-  fsmTaskHandle = osThreadNew(startFsmTask, NULL, &fsmTask_attributes);
+  fsmTaskParams fsmParams = {
+  	  .cow = &cow,
+	  .fence = &fence
+  };
+  fsmTaskHandle = osThreadNew(fsmTask, &fsmParams, &fsmTask_attributes);
 
   /* creation of distanceToLimit */
-  distanceToLimitHandle = osThreadNew(startDistanceToLimitTask, NULL, &distanceToLimit_attributes);
+  distanceTaskParams distanceParams = {
+      .cow = &cow,
+      .fence = &fence
+  };
+  distanceToLimitHandle = osThreadNew(distanceToLimitTask, distanceParams, &distanceToLimit_attributes);
 
   /* creation of fenceUpdateTask */
-  fenceUpdateTaskHandle = osThreadNew(startFenceUpdateTask, NULL, &fenceUpdateTask_attributes);
+  fenceUpdateTaskHandle = osThreadNew(fenceUpdateTask, NULL, &fenceUpdateTask_attributes);
 
   /* creation of dispatcherTask */
-  dispatcherTaskHandle = osThreadNew(startDispatcherTask, NULL, &dispatcherTask_attributes);
+  dispatcherTaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcherTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -972,170 +996,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_startSensorAcqTask */
-/**
-  * @brief  Function implementing the sensorAcqTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_startSensorAcqTask */
-void startSensorAcqTask(void *argument)
-{
-  /* init code for LoRaWAN */
-  MX_LoRaWAN_Init();
-  /* USER CODE BEGIN 5 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_startStimulousTask */
-/**
-* @brief Function implementing the stimulusTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startStimulousTask */
-void startStimulousTask(void *argument)
-{
-  /* USER CODE BEGIN startStimulousTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startStimulousTask */
-}
-
-/* USER CODE BEGIN Header_startGpsTask */
-/**
-* @brief Function implementing the gpsTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startGpsTask */
-void startGpsTask(void *argument)
-{
-  /* USER CODE BEGIN startGpsTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startGpsTask */
-}
-
-/* USER CODE BEGIN Header_startLoraTxTask */
-/**
-* @brief Function implementing the loraTxTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startLoraTxTask */
-void startLoraTxTask(void *argument)
-{
-  /* USER CODE BEGIN startLoraTxTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startLoraTxTask */
-}
-
-/* USER CODE BEGIN Header_startLoraRxTask */
-/**
-* @brief Function implementing the loraRxTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startLoraRxTask */
-void startLoraRxTask(void *argument)
-{
-  /* USER CODE BEGIN startLoraRxTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startLoraRxTask */
-}
-
-/* USER CODE BEGIN Header_startFsmTask */
-/**
-* @brief Function implementing the fsmTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startFsmTask */
-void startFsmTask(void *argument)
-{
-  /* USER CODE BEGIN startFsmTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startFsmTask */
-}
-
-/* USER CODE BEGIN Header_startDistanceToLimitTask */
-/**
-* @brief Function implementing the distanceToLimit thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startDistanceToLimitTask */
-void startDistanceToLimitTask(void *argument)
-{
-  /* USER CODE BEGIN startDistanceToLimitTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startDistanceToLimitTask */
-}
-
-/* USER CODE BEGIN Header_startFenceUpdateTask */
-/**
-* @brief Function implementing the fenceUpdateTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startFenceUpdateTask */
-void startFenceUpdateTask(void *argument)
-{
-  /* USER CODE BEGIN startFenceUpdateTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startFenceUpdateTask */
-}
-
-/* USER CODE BEGIN Header_startDispatcherTask */
-/**
-* @brief Function implementing the dispatcherTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_startDispatcherTask */
-void startDispatcherTask(void *argument)
-{
-  /* USER CODE BEGIN startDispatcherTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END startDispatcherTask */
-}
 
 /**
   * @brief  Period elapsed callback in non blocking mode

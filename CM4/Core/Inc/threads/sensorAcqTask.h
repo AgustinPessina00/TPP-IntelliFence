@@ -15,16 +15,13 @@ extern "C" {
 
 #define SAMPLE_RATE  100  // en milisegundos
 
-typedef struct
-{
+typedef struct {
   SamM10q *gps;
   Lsm6dso *imu;
   Ina226 *inaMcu;
   Ina226 *inaGps;
   Ina226 *inaImu;
 }sensorAcqTaskParams;
-
-int error_count;
 
 void sensorAcqTask(void *argument);
 

@@ -8,7 +8,9 @@ void sensorAcqTask(void *argument) {
   sensorAcqTaskParams *sensorParams = static_cast<sensorAcqTaskParams *>(argument);
 
   Message* msgReceived;
-  
+
+  int error_count = 0;
+
   while (1){
 
     msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo

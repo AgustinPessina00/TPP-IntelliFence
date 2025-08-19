@@ -24,7 +24,7 @@ struct Acceleration {
 
 class Cow {
 public:
-    Cow(uint16_t id);
+    Cow(uint32_t id);
 
     void updatePosition(Position pos);
     void updateAcceleration(Acceleration accel);
@@ -40,7 +40,7 @@ public:
     float getDistanceToLimit() const;
 
 private:
-    uint16_t id;
+    uint32_t id;
     Position position;
     Acceleration acceleration;
     CowState state;

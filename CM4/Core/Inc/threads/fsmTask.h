@@ -98,8 +98,37 @@ typedef enum {
   STIMULUS_ZONE_END
 } StimulusZone_t;
 
+typedef struct {
+  Cow *cow;
+  Fence *fence;
+}fsmTaskParams;
 
-class FSM {
+void fsmTask(void *argument);
+void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutineState, Message* msgReceived, uint8_t startupTries);
+void runNormalOperationFSM();
+void runInitializeFSM();
+void runGreenZoneFSM();
+void runStimulusZoneFSM();
+void runFenceTransitionFSM();
+
+void sendMessage(uint8_t msgId, ModuleId_t dest);
+HAL_StatusTypeDef dequeuedMessage(Message *msgReceived);
+HAL_StatusTypeDef updatePosition(Message *msgReceived);
+void sendPosition(uint8_t msgId, ModuleId_t dest);
+HAL_StatusTypeDef recievedFence(Message *msgReceived);
+void updateFence();
+HAL_StatusTypeDef isInFence();
+HAL_StatusTypeDef updateDistAndZone(Message *msgReceived);
+HAL_StatusTypeDef updateAcceleration(Message *msgReceived);
+void updateState();
+CowState classifyMotion(Acceleration acc);
+HAL_StatusTypeDef gpsResponse(Message *msgReceived);
+void updateGpsAdqTime(GpsRate gpsRate);
+void enterLowPowerSleep();
+void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
+HAL_StatusTypeDef recievedStimulusResponse(Message *msgReceived);
+
+/*class FSM {
 
 private:
 
@@ -115,7 +144,7 @@ private:
   void updateState();
   CowState classifyMotion(Acceleration acc);
   HAL_StatusTypeDef gpsResponse();
-  HAL_StatusTypeDef updateGpsAdqTime(GpsRate gpsRate);
+  void updateGpsAdqTime(GpsRate gpsRate);
   void enterLowPowerSleep();
   void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
   HAL_StatusTypeDef recievedStimulusResponse();
@@ -124,7 +153,7 @@ private:
   MainFSM_t mainFSM;
   NormalOpFSM_t normalOpFSM;
 
-  StartupRoutineState_t startupRutineState;
+  StartupRoutineState_t startupRoutineState;
 
   InitializeState_t initializeState;
   GreenZoneState_t greenZoneState;
@@ -147,7 +176,7 @@ public:
   void runStimulusZoneFSM();
   void runFenceTransitionFSM();
 
-};
+};*/
 
 
 #ifdef __cplusplus
