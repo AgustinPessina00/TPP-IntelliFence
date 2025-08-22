@@ -4,6 +4,7 @@
 
 #include <vector>
 #include "zone.h"
+#include "stdio.h"
 
 #define TOTAL_TRESHOLDS  5
 

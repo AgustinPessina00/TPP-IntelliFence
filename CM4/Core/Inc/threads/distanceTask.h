@@ -1,18 +1,17 @@
 #ifndef DISTANCETASK_H
 #define DISTANCETASK_H
 
+#include "cow.h"
+#include "fence.h"
+#include "messages.h"
+#include <limits>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <limits>
-
 #include "FreeRTOS.h"
 #include "task.h"
-
-#include "cow.h"
-#include "fence.h"
-#include "messages.h"
 
 
 typedef struct {

@@ -1,6 +1,10 @@
 #ifndef FSMTASK_H
 #define FSMTASK_H
 
+#include "messages.h"
+#include "cow.h"
+#include "fence.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -8,10 +12,6 @@ extern "C" {
 #include "FreeRTOS.h"
 #include "task.h"
 #include "stm32wlxx_hal.h"
-
-#include "messages.h"
-#include "cow.h"
-#include "fence.h"
 
 #define NEAR_LIMIT  10.0f   // en metros
 #define MAX_TRIES   10
@@ -72,7 +72,6 @@ typedef enum {
   INITIALIZE_REQUEST_POSITION,
   INITIALIZE_WAIT_POSITION,
   INITIALIZE_REQUEST_ZONE,
-  INITIALIZE_WAIT_ZONE,
   INITIALIZE_EVALUATE_ZONE,
   INITIALIZE_END
 } InitializeState_t;
@@ -104,23 +103,23 @@ typedef struct {
 }fsmTaskParams;
 
 void fsmTask(void *argument);
-void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutineState, Message* msgReceived, uint8_t startupTries);
-void runNormalOperationFSM();
-void runInitializeFSM();
-void runGreenZoneFSM();
-void runStimulusZoneFSM();
-void runFenceTransitionFSM();
+void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutineState, Message* msgReceived, uint8_t tries,fsmTaskParams *fsmParams);
+void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, GreenZoneState_t greenZoneState, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries,fsmTaskParams *fsmParams);
+void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
+void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
+void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
+void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
 
 void sendMessage(uint8_t msgId, ModuleId_t dest);
 HAL_StatusTypeDef dequeuedMessage(Message *msgReceived);
-HAL_StatusTypeDef updatePosition(Message *msgReceived);
-void sendPosition(uint8_t msgId, ModuleId_t dest);
-HAL_StatusTypeDef recievedFence(Message *msgReceived);
-void updateFence();
-HAL_StatusTypeDef isInFence();
-HAL_StatusTypeDef updateDistAndZone(Message *msgReceived);
-HAL_StatusTypeDef updateAcceleration(Message *msgReceived);
-void updateState();
+HAL_StatusTypeDef updatePosition(Message *msgReceived, fsmTaskParams *fsmParams);
+void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams);
+HAL_StatusTypeDef recievedFence(Message *msgReceived, fsmTaskParams *fsmParams);
+void updateFence(fsmTaskParams *fsmParams);
+HAL_StatusTypeDef isInFence(fsmTaskParams *fsmParams);
+HAL_StatusTypeDef updateDistAndZone(Message *msgReceived, fsmTaskParams *fsmParams);
+HAL_StatusTypeDef updateAcceleration(Message *msgReceived, fsmTaskParams *fsmParams);
+void updateState(fsmTaskParams *fsmParams);
 CowState classifyMotion(Acceleration acc);
 HAL_StatusTypeDef gpsResponse(Message *msgReceived);
 void updateGpsAdqTime(GpsRate gpsRate);

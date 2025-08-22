@@ -81,8 +81,8 @@ const osThreadAttr_t Thd_SysNotifRcvProcess_attr =
   .cb_mem = CFG_MB_SYS_PROCESS_CB_MEM,
   .cb_size = CFG_MB_SYS_PROCESS_CB_SIZE,
   .stack_mem = CFG_MB_SYS_PROCESS_STACK_MEM,
-  .priority = CFG_MB_SYS_PROCESS_PRIORITY,
-  .stack_size = CFG_MB_SYS_PROCESS_STACK_SIZE
+  .stack_size = CFG_MB_SYS_PROCESS_STACK_SIZE,
+  .priority = CFG_MB_SYS_PROCESS_PRIORITY
 };
 
 /* USER CODE BEGIN PV */

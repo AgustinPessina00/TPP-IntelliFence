@@ -22,12 +22,13 @@
 #ifndef __SYS_APP_H__
 #define __SYS_APP_H__
 
+#include "platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "platform.h"
 #include "mbmux_table.h"
 #include "sys_conf.h"
 #include "stm32_adv_trace.h"

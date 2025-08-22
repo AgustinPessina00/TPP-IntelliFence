@@ -1,10 +1,10 @@
-#include "stimulusTask.h"
-#include "messages.h"
-//#include "main.h"
+
+#include "threads/stimulusTask.h"
+
 extern osMessageQueueId_t stimulusQueueHandle;
 extern TIM_HandleTypeDef htim1; // BUZZER
-extern LED_ELECTRICAL_Pin;
-extern GPIOB;
+//extern LED_ELECTRICAL_Pin;
+//extern GPIOB;
 extern TIM_HandleTypeDef htim16;  // VIB_MOTOR_R
 extern TIM_HandleTypeDef htim17;  // VIB_MOTOR_L
 

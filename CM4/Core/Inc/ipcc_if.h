@@ -22,13 +22,14 @@
 #ifndef __IPCC_IF_CM4_H__
 #define __IPCC_IF_CM4_H__
 
+#include "platform.h"
+#include "main.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "platform.h"
-#include "main.h"
 
 /* USER CODE BEGIN Includes */
 

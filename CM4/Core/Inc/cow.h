@@ -2,7 +2,7 @@
 #define COW_H
 
 #include <stdint.h>
-#include <array>
+//#include <cstdint>
 #include "zone.h"
 
 enum class CowState {

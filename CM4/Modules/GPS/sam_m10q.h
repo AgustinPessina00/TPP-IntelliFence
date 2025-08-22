@@ -15,19 +15,27 @@
 
 #define NMEA_BUFFER_SIZE	64
 
+enum class gpsRateSpeed {
+  STOP,
+  SLOW,
+  MEDIUM,
+  FAST
+};
+
 class SamM10q {
 public:
 	SamM10q(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr);
 
-	void read_nmea_stream();
+	HAL_StatusTypeDef read_nmea_stream();
 	void update_location_and_time();
+	bool set_new_acq_time(gpsRateSpeed gpsRate);
 
 private:
 	void configure_gps();
 	std::vector<uint8_t> build_full_message_from_index(size_t i, uint8_t layer);
 	std::vector<uint8_t> build_ubx_message(uint8_t layer, const std::vector<uint8_t> payload, const std::vector<uint8_t> checksum);
 	HAL_StatusTypeDef send_message(const std::vector<uint8_t> &message, uint32_t delay_ms);
-	void ubx_calculate_checksum(UBX_Message *msg);
+	void ubx_calculate_checksum(std::vector<uint8_t> msg);
 
 public:
 	double latitude = 0.0;

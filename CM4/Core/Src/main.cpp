@@ -327,7 +327,10 @@ int main(void)
   stimulusTaskHandle = osThreadNew(stimulusTask, NULL, &stimulusTask_attributes);
 
   /* creation of gpsTask */
-  gpsTaskHandle = osThreadNew(gpsTask, NULL, &gpsTask_attributes);
+  gpsAcqTaskParams gpsParams = {
+  	  .gps = &gps
+  };
+  gpsTaskHandle = osThreadNew(gpsTask, &gpsParams, &gpsTask_attributes);
 
   /* creation of loraTxTask */
   loraTxTaskHandle = osThreadNew(loraTxTask, NULL, &loraTxTask_attributes);
@@ -347,7 +350,7 @@ int main(void)
       .cow = &cow,
       .fence = &fence
   };
-  distanceToLimitHandle = osThreadNew(distanceToLimitTask, distanceParams, &distanceToLimit_attributes);
+  distanceToLimitHandle = osThreadNew(distanceToLimitTask, &distanceParams, &distanceToLimit_attributes);
 
   /* creation of fenceUpdateTask */
   fenceUpdateTaskHandle = osThreadNew(fenceUpdateTask, NULL, &fenceUpdateTask_attributes);

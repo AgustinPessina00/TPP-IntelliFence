@@ -1,11 +1,11 @@
 #ifndef LORARXTASK_H
 #define LORARXTASK_H
 
+#include "messages.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "messages.h"
 
 void loraRxTask(void *argument);
 

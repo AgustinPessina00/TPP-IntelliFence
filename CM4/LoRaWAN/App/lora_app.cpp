@@ -242,9 +242,9 @@ static LmHandlerCallbacks_t LmHandlerCallbacks =
   .OnJoinRequest =                OnJoinRequest,
   .OnTxData =                     OnTxData,
   .OnRxData =                     OnRxData,
+  .OnClassChange =                OnClassChange,
   .OnBeaconStatusChange =         OnBeaconStatusChange,
   .OnSysTimeUpdate =              OnSysTimeUpdate,
-  .OnClassChange =                OnClassChange,
   .OnTxPeriodicityChanged =       OnTxPeriodicityChanged,
   .OnTxFrameCtrlChanged =         OnTxFrameCtrlChanged,
   .OnPingSlotPeriodicityChanged = OnPingSlotPeriodicityChanged,
@@ -295,8 +295,8 @@ const osThreadAttr_t Thd_LoraSendProcess_attr =
   .cb_mem = CFG_APP_LORA_PROCESS_CB_MEM,
   .cb_size = CFG_APP_LORA_PROCESS_CB_SIZE,
   .stack_mem = CFG_APP_LORA_PROCESS_STACK_MEM,
-  .priority = CFG_APP_LORA_PROCESS_PRIORITY,
-  .stack_size = CFG_APP_LORA_PROCESS_STACK_SIZE
+  .stack_size = CFG_APP_LORA_PROCESS_STACK_SIZE,
+  .priority = CFG_APP_LORA_PROCESS_PRIORITY
 };
 static void Thd_LoraSendProcess(void *argument);
 
@@ -309,8 +309,8 @@ const osThreadAttr_t Thd_LoraStoreContext_attr =
   .cb_mem = CFG_APP_LORA_STORE_CONTEXT_CB_MEM,
   .cb_size = CFG_APP_LORA_STORE_CONTEXT_CB_SIZE,
   .stack_mem = CFG_APP_LORA_STORE_CONTEXT_STACK_MEM,
-  .priority = CFG_APP_LORA_STORE_CONTEXT_PRIORITY,
-  .stack_size = CFG_APP_LORA_STORE_CONTEXT_STACK_SIZE
+  .stack_size = CFG_APP_LORA_STORE_CONTEXT_STACK_SIZE,
+  .priority = CFG_APP_LORA_STORE_CONTEXT_PRIORITY
 };
 static void Thd_LoraStoreContext(void *argument);
 
@@ -323,8 +323,8 @@ const osThreadAttr_t Thd_LoraStopJoin_attr =
   .cb_mem = CFG_APP_LORA_STOP_JOIN_CB_MEM,
   .cb_size = CFG_APP_LORA_STOP_JOIN_CB_SIZE,
   .stack_mem = CFG_APP_LORA_STOP_JOIN_STACK_MEM,
-  .priority = CFG_APP_LORA_STOP_JOIN_PRIORITY,
-  .stack_size = CFG_APP_LORA_STOP_JOIN_STACK_SIZE
+  .stack_size = CFG_APP_LORA_STOP_JOIN_STACK_SIZE,
+  .priority = CFG_APP_LORA_STOP_JOIN_PRIORITY
 };
 static void Thd_LoraStopJoin(void *argument);
 

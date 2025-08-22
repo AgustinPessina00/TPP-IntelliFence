@@ -22,6 +22,9 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
+#include "cow.h"
+#include "fence.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,8 +34,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "cow.h"
-#include "fence.h"
+//#include "cow.h"
+//#include "fence.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

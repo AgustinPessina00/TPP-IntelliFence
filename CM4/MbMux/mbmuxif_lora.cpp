@@ -98,8 +98,8 @@ const osThreadAttr_t Thd_LoraNotifRcvProcess_attr =
   .cb_mem = CFG_MB_LORA_PROCESS_CB_MEM,
   .cb_size = CFG_MB_LORA_PROCESS_CB_SIZE,
   .stack_mem = CFG_MB_LORA_PROCESS_STACK_MEM,
-  .priority = CFG_MB_LORA_PROCESS_PRIORITY,
-  .stack_size = CFG_MB_LORA_PROCESS_STACK_SIZE
+  .stack_size = CFG_MB_LORA_PROCESS_STACK_SIZE,
+  .priority = CFG_MB_LORA_PROCESS_PRIORITY
 };
 /**
   * @brief  FreeRTOS process when receiving MailBox Lora Notification .
@@ -123,7 +123,7 @@ int8_t MBMUXIF_LoraInit(void)
   p_cm0plus_system_info = MBMUXIF_SystemGetFeatCapabInfoPtr(FEAT_INFO_SYSTEM_ID);
   /* abstract CM0 release version from RC (release candidate) and compare */
   cm0_vers = p_cm0plus_system_info->Feat_Info_Feature_Version >> APP_VERSION_SUB2_SHIFT;
-  if (cm0_vers < (LAST_COMPATIBLE_CM0_RELEASE >> APP_VERSION_SUB2_SHIFT))
+  if (cm0_vers < (int32_t)(LAST_COMPATIBLE_CM0_RELEASE >> APP_VERSION_SUB2_SHIFT))
   {
     ret = -4; /* version incompatibility */
   }

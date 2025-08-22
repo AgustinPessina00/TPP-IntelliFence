@@ -58,6 +58,24 @@ void SamM10q::update_location_and_time() {
     }
 }
 
+bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
+    bool setNewAcqTimeOk = false;
+
+    const std::vector<uint8_t>& payload   = m10q_new_acq_time[gpsRate];
+    const std::vector<uint8_t>& checksum  = m10q_new_adq_time_checksum[gpsRate];
+
+    std::vector<uint8_t> sendMsgRAM, sendMsgBBR;
+
+    sendMsgRAM = build_ubx_message(RAM, payload, checksum);
+    sendMsgBBR = build_ubx_message(BBR, payload, checksum);
+
+	if((send_message(hi2c2, sendMsgRAM, 15) == HAL_OK) && (send_message(hi2c2, sendMsgBBR, 15) == HAL_OK)) {
+		setNewAcqTimeOk = true;
+	}
+
+    return setNewAcqTimeOk;
+}
+
 void SamM10q::configure_gps() {
     std::vector<uint8_t> sendMsgRAM, sendMsgBBR;
 
@@ -133,7 +151,7 @@ HAL_StatusTypeDef SamM10q::send_message(const std::vector<uint8_t>& message, uin
     return status;
 }
 
-void SamM10q::ubx_calculate_checksum(UBX_Message *msg) {
+void SamM10q::ubx_calculate_checksum(std::vector<uint8_t> msg) {
 
 }
 

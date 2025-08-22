@@ -1,5 +1,5 @@
 
-#include "sensorAcqTask.h"
+#include "threads/sensorAcqTask.h"
 
 extern osMessageQueueId_t sensorAcqQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
@@ -54,18 +54,18 @@ void sensorAcqTask(void *argument) {
     }
 
     // RECIBE FLAGS DE LA COLA QUE LE MANDA fsmTask A sensorAcqTask
-
+    Message *msg = nullptr;
     if (osMessageQueueGet(sensorAcqQueueHandle, &msgReceived, NULL, 0) == osOK) {
       switch (msgReceived->id) {
         case MSG_ID_REQUEST_GPS:
-          Message* msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(double));  // [latitud, longitud] = 2 doubles
+          msg = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 2 * sizeof(double));  // [latitud, longitud] = 2 doubles
           memcpy(msg->payload, &(sensorParams->gps->latitude), sizeof(double));
           memcpy(msg->payload + sizeof(double), &(sensorParams->gps->longitude), sizeof(double));
           osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
           break;
 
         case MSG_ID_REQUEST_IMU:
-          Message* msg = new Message(MSG_ID_SEND_IMU, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 3 * sizeof(float));  // [accel_x, accel_y, accel_z] = 3 floats
+          msg = new Message(MSG_ID_SEND_IMU, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, 3 * sizeof(float));  // [accel_x, accel_y, accel_z] = 3 floats
           memcpy(msg->payload, &(sensorParams->imu->ax), sizeof(float));
           memcpy(msg->payload + sizeof(float), &(sensorParams->imu->ay), sizeof(float));
           memcpy(msg->payload + 2 * sizeof(float), &(sensorParams->imu->az), sizeof(float));
@@ -73,19 +73,19 @@ void sensorAcqTask(void *argument) {
           break;
         
         case MSG_ID_REQUEST_INA_MCU:
-          Message* msg = new Message(MSG_ID_SEND_INA_MCU, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, sizeof(float));  // [current] = float
+          msg = new Message(MSG_ID_SEND_INA_MCU, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, sizeof(float));  // [current] = float
           memcpy(msg->payload, &(sensorParams->inaMcu->current), sizeof(float));
           osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
           break;
         
         case MSG_ID_REQUEST_INA_GPS:
-          Message* msg = new Message(MSG_ID_SEND_INA_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, sizeof(float));  // [current] = float
+          msg = new Message(MSG_ID_SEND_INA_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, sizeof(float));  // [current] = float
           memcpy(msg->payload, &(sensorParams->inaGps->current), sizeof(float));
           osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
           break;
 
         case MSG_ID_REQUEST_INA_IMU:
-          Message* msg = new Message(MSG_ID_SEND_INA_IMU, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, sizeof(float));  // [current] = float
+          msg = new Message(MSG_ID_SEND_INA_IMU, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM, sizeof(float));  // [current] = float
           memcpy(msg->payload, &(sensorParams->inaImu->current), sizeof(float));
           osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
           break;

@@ -5,11 +5,6 @@
 
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
-extern osMessageQueueId_t stimulusQueueHandle;
-extern osMessageQueueId_t distanceToLimitQueueHandle;
-extern osMessageQueueId_t gpsQueueHandle;
-
-// TODO: VER COMO MANEJAMOS EL TEMA DE PASAR COMO PARÁMETROS COW Y FENCE PARA ESTA TASK. LO NECESITAN MÁS TASKS?
 
 /*
 FSM::FSM() {
@@ -24,7 +19,7 @@ FSM::FSM() {
 
   this->fenceTransitionState = FENCE_TRANSITION_BEGIN;
 
-  this->tries = 0; // TODO: Podemos definir varios "tries" para cada caso (i.e.: gps, lora, zone, etc)
+  this->tries = 0; // Podemos definir varios "tries" para cada caso (i.e.: gps, lora, zone, etc)
 
   this->msgReceived = nullptr;  
 }*/
@@ -45,23 +40,23 @@ void fsmTask(void *argument) {
 
   Message* msgReceived = nullptr;
 
-  uint8_t startupTries = 0;
+  uint8_t tries = 0;
 
   while (1) {
     switch (mainFSM) {
       case MainFSM_t::STARTUP_ROUTINE:
-        runStartupRoutineFSM(mainFSM, startupRoutineState, msgReceived, startupTries);
+        runStartupRoutineFSM(mainFSM, startupRoutineState, msgReceived, tries, fsmParams);
         break;
 
       case MainFSM_t::NORMAL_OPERATION:
-        runNormalOperationFSM();
+        runNormalOperationFSM(normalOpFSM, initializeState, greenZoneState, stimulusZoneState, msgReceived, tries, fsmParams);
         if (shouldEnterFenceTransition()) {
           mainFSM = MainFSM_t::FENCE_TRANSITION; // TODO: VER BIEN DONDE PONER LA TRANSICIÓN ENTRE FSM. PARA MI ESTÁ BIEN ACÁ.
         }
         break;
 
       case MainFSM_t::FENCE_TRANSITION:
-        runFenceTransitionFSM();
+        runFenceTransitionFSM(mainFSM, fenceTransitionState, msgReceived, tries, fsmParams);
         break;
     }
 
@@ -69,11 +64,11 @@ void fsmTask(void *argument) {
   }
 }
 
-void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutineState, Message* msgReceived, uint8_t startupTries) {
+void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutineState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
 
   switch (startupRoutineState) {
     case STARTUP_ROUTINE_BEGIN:
-      startupTries = 0;
+      tries = 0;
       startupRoutineState = STARTUP_ROUTINE_REQUEST_POSITION;
       break;
 
@@ -84,12 +79,12 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
     
     case STARTUP_ROUTINE_WAIT_POSITION:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if(updatePosition(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           startupRoutineState = STARTUP_ROUTINE_SEND_POSITION_LORA;
-          startupTries = 0;
+          tries = 0;
         }
       } else {
-    	  startupTries++;
+    	  tries++;
         if (tries >= MAX_TRIES)
           startupRoutineState = STARTUP_ROUTINE_REQUEST_POSITION;
           //handleGPSFailure(); 
@@ -98,19 +93,19 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
       break;
 
     case STARTUP_ROUTINE_SEND_POSITION_LORA:
-      sendPosition(MSG_ID_LORA_POSITION, ModuleId_t::LORA_TX);
+      sendPosition(MSG_ID_LORA_POSITION, ModuleId_t::LORA_TX, fsmParams);
       startupRoutineState = STARTUP_ROUTINE_WAIT_FENCE;
       break;
 
     case STARTUP_ROUTINE_WAIT_FENCE:
       // TODO: CREAR TIMEOUT PARA ESPERAR FENCE
-      if (recievedFence(msgReceived) == HAL_OK) {
+      if (recievedFence(msgReceived, fsmParams) == HAL_OK) {
         startupRoutineState = STARTUP_ROUTINE_SAVE_FENCE;
       }
       break;
 
     case STARTUP_ROUTINE_SAVE_FENCE:
-      updateFence();
+      updateFence(fsmParams);
       startupRoutineState = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
       break;
 
@@ -121,17 +116,16 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
     
     case STARTUP_ROUTINE_WAIT_NEW_POSITION:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if(updatePosition(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           startupRoutineState = STARTUP_ROUTINE_REQUEST_ZONE;
-          startupTries = 0;
+          tries = 0;
         }
       } else {
-    	  startupTries++;
+    	  tries++;
         if (tries >= MAX_TRIES)
           startupRoutineState = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
           //handleGPSFailure(); 
       }
-
       break;
 
     case STARTUP_ROUTINE_REQUEST_ZONE:
@@ -141,11 +135,12 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
 
     case STARTUP_ROUTINE_EVALUATE_ZONE:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if (updateDistAndZone(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (updateDistAndZone(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           startupRoutineState = STARTUP_ROUTINE_END;
+          tries = 0;
         }
       } else {
-    	  startupTries++;
+    	  tries++;
         if (tries >= MAX_TRIES)
           startupRoutineState = STARTUP_ROUTINE_REQUEST_ZONE;
           //handleGPSFailure(); 
@@ -154,7 +149,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
 
     case STARTUP_ROUTINE_END:
       startupRoutineState = STARTUP_ROUTINE_BEGIN;
-      if (isInFence() == HAL_OK)
+      if (isInFence(fsmParams) == HAL_OK)
         mainFSM = MainFSM_t::NORMAL_OPERATION;
       else
         mainFSM = MainFSM_t::FENCE_TRANSITION;
@@ -162,24 +157,24 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
   }
 }
 
-void runNormalOperationFSM() {
+void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, GreenZoneState_t greenZoneState, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries,fsmTaskParams *fsmParams) {
 
   switch (normalOpFSM) {
     case NormalOpFSM_t::INITIALIZE:
-      runInitializeFSM();
+      runInitializeFSM(normalOpFSM, initializeState, msgReceived, tries, fsmParams);
       break;
 
     case NormalOpFSM_t::GREEN_ZONE:
-      runGreenZoneFSM();
+      runGreenZoneFSM(normalOpFSM, greenZoneState, msgReceived, tries, fsmParams);
       break;
 
     case NormalOpFSM_t::STIMULUS_ZONE:
-      runStimulusZoneFSM();
+      runStimulusZoneFSM(normalOpFSM, stimulusZoneState, msgReceived, tries, fsmParams);
       break;
   }
 }
 
-void runInitializeFSM() {
+void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
 
   switch (initializeState) {
     case INITIALIZE_BEGIN:
@@ -194,7 +189,7 @@ void runInitializeFSM() {
     
     case INITIALIZE_WAIT_POSITION:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if(updatePosition(msgReceived) == HAL_OK) { // Si desencolo el Message y no eraMSG_ID_SEND_GPS dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no eraMSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           initializeState = INITIALIZE_REQUEST_ZONE;
           tries = 0;
         }
@@ -214,8 +209,9 @@ void runInitializeFSM() {
     
     case INITIALIZE_EVALUATE_ZONE:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if (updateDistAndZone(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (updateDistAndZone(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           initializeState = INITIALIZE_END;
+          tries = 0;
         }
       } else {
         tries++;
@@ -227,7 +223,7 @@ void runInitializeFSM() {
 
     case INITIALIZE_END:
       initializeState = INITIALIZE_BEGIN;
-      if (isInFence())
+      if (isInFence(fsmParams))
         normalOpFSM = NormalOpFSM_t::GREEN_ZONE;
       else
         normalOpFSM = NormalOpFSM_t::STIMULUS_ZONE;
@@ -235,11 +231,11 @@ void runInitializeFSM() {
   }
 }
 
-void runGreenZoneFSM() {
-
+void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
+  CowState state;
   switch (greenZoneState) {
     case GREEN_ZONE_BEGIN:
-      sendZoneToStimulus(fsmParams->cow->getCurrentZone(), ModuleId_t::STIMULUS); // envío la zona a STIMULUS para que apague el estímulo
+      sendZoneToStimulus(fsmParams->cow->getCurrentZone(), ModuleId_t::STIMULUS); // envío la zona a STIMULUS para que apague el estímulo. DEBERÍA SER GREEN_ZONE
       tries = 0;
       greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
 
@@ -252,37 +248,40 @@ void runGreenZoneFSM() {
     
     case GREEN_ZONE_WAIT_ACCELERATION:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if(updateAcceleration(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_IMU dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updateAcceleration(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_IMU dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
           tries = 0;
         }
       } else {
         tries++;
-        if (tries >= MAX_TRIES)
+        if (tries >= MAX_TRIES) {
           greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
           //handleGPSFailure(); 
+        }
       }
-
       break;
 
     case GREEN_ZONE_EVALUATE_COWSTATE:
-      updateState();
-      CowState state = cow.getState();
-      if (state == CowState::GRAZING)
+      updateState(fsmParams);
+      state = fsmParams->cow->getState();
+      if (state == CowState::GRAZING) {
         greenZoneState = GREEN_ZONE_GRAZING;
-      else if (state == CowState::SLEEP) 
+      }
+      else if (state == CowState::SLEEP) {
         greenZoneState = GREEN_ZONE_SLEEP;
-      else if (state == CowState::MOVEMENT)
+      }
+      else if (state == CowState::MOVEMENT) {
         greenZoneState = GREEN_ZONE_MOVEMENT;
+      }
       break;
 
     case GREEN_ZONE_GRAZING:
-      updateGpsAdqTime(GpsRate::SLOW) == HAL_OK;
+      updateGpsAdqTime(GpsRate::SLOW);
       greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
       break;
 
     case GREEN_ZONE_SLEEP:
-      updateGpsAdqTime(GpsRate::STOP) == HAL_OK;
+      updateGpsAdqTime(GpsRate::STOP);
       enterLowPowerSleep();
       // TODO: Cuando llega la interrupción de la IMU se despierta y sigue acá??
       // O tengo que poner un estado intermedio como WAKE_UP para verificar o algo así?
@@ -291,14 +290,16 @@ void runGreenZoneFSM() {
 
     case GREEN_ZONE_MOVEMENT:
       // updateDistance(); Ya se hace cuando se recibe la zona.
-      if (cow.getDistanceToLimit() <= NEAR_LIMIT)
+      if (fsmParams->cow->getDistanceToLimit() <= NEAR_LIMIT) {
         greenZoneState = GREEN_ZONE_NEAR_LIMIT;
-      else  
+      }
+      else {
         greenZoneState = GREEN_ZONE_FAR_LIMIT;
+      }
       break;
 
     case GREEN_ZONE_NEAR_LIMIT:
-      updateGpsAdqTime(GpsRate::FAST) == HAL_OK;
+      updateGpsAdqTime(GpsRate::FAST);
       greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
       break;
 
@@ -309,19 +310,19 @@ void runGreenZoneFSM() {
 
     case GREEN_ZONE_WAIT_GPS_ADQ_TIME:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if (gpsResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (gpsResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           greenZoneState = GREEN_ZONE_END;
           tries = 0;
         }
       } else {
         tries++;
-        if (tries >= MAX_TRIES)
+        if (tries >= MAX_TRIES){
           greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
           //handleGPSFailure(); 
+        }
       }
       break;
       
-
     case GREEN_ZONE_END:
       greenZoneState = GREEN_ZONE_BEGIN;
       normalOpFSM = NormalOpFSM_t::INITIALIZE;  // Reinicia NORMAL_OPERATION FSM
@@ -329,20 +330,20 @@ void runGreenZoneFSM() {
   }
 }
 
-void runStimulusZoneFSM() {
+void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
   switch (stimulusZoneState) {
     case STIMULUS_ZONE_BEGIN:
       stimulusZoneState = STIMULUS_ZONE_SEND_ZONE;
       break;
 
     case STIMULUS_ZONE_SEND_ZONE:
-      sendStimulus(cow.getCurrentZone(), ModuleId_t::STIMULUS);
+      sendZoneToStimulus(fsmParams->cow->getCurrentZone(), ModuleId_t::STIMULUS);
       stimulusZoneState = STIMULUS_ZONE_WAIT_RESPONSE;
       break;
     
     case STIMULUS_ZONE_WAIT_RESPONSE:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if (recievedStimulusResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (recievedStimulusResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           stimulusZoneState = STIMULUS_ZONE_END;
           tries = 0;
         }
@@ -361,7 +362,7 @@ void runStimulusZoneFSM() {
   }
 }
 
-void runFenceTransitionFSM(){
+void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams){
   switch (fenceTransitionState) {
     case FENCE_TRANSITION_BEGIN:
       tries = 0;
@@ -375,7 +376,7 @@ void runFenceTransitionFSM(){
     
     case FENCE_TRANSITION_WAIT_GPS_ADQ_TIME:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if (gpsResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (gpsResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
           tries = 0;
         }
@@ -394,7 +395,7 @@ void runFenceTransitionFSM(){
     
     case FENCE_TRANSITION_WAIT_POSITION:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if(updatePosition(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo todo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           fenceTransitionState = FENCE_TRANSITION_UPDATE_PARTIAL_FENCE;
           tries = 0;
         }
@@ -404,11 +405,10 @@ void runFenceTransitionFSM(){
           fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
           //handleGPSFailure(); 
       }
-
       break;
       
     case FENCE_TRANSITION_UPDATE_PARTIAL_FENCE:
-      updateFence();
+      updateFence(fsmParams);
       fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
       break;
 
@@ -420,15 +420,15 @@ void runFenceTransitionFSM(){
     case FENCE_TRANSITION_WAIT_NEW_POSITION:
       if (recievedPosition() == HAL_OK) {
         if (!fencesEqual() && !inPartialFence()) {
-          updatePosition(msgReceived);
+          updatePosition(msgReceived, fsmParams);
           fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
         }
         else if (fencesEqual() && !inPartialFence()){
-          updatePosition(msgReceived);
+          updatePosition(msgReceived, fsmParams);
           fenceTransitionState = FENCE_TRANSITION_UPDATE_PARTIAL_FENCE;
         }
         else if (fenceEqual() && inPartialFence()) {
-          updatePosition(msgReceived);
+          updatePosition(msgReceived, fsmParams);
           fenceTransitionState = FENCE_TRANSITION_END;
         }
       }
@@ -438,16 +438,18 @@ void runFenceTransitionFSM(){
       if (requestZone() == ACK){
         fenceTransitionState = FENCE_TRANSITION_WAIT_ZONE;
         tries = 0;
-      } else
+      } else {
         tries++;
         if (tries >= MAX_TRIES)
           //handleGPSFailure(); // opcional
+      }
       break;
 
     case FENCE_TRANSITION_WAIT_ZONE:  
-      if (receivedZone() == HAL_OK)
+      if (receivedZone() == HAL_OK) {
         updateZone();
         fenceTransitionState = FENCE_TRANSITION_EVALUATE_ZONE;
+      }
       break;
     
     case FENCE_TRANSITION_EVALUATE_ZONE:
@@ -456,13 +458,15 @@ void runFenceTransitionFSM(){
       break;
 
     case FECNE_TRANSITION_SEND_ZONE:
-      if(sendStimulus(cow.getCurrentZone()) == HAL_OK)
+      if(sendStimulus(fsmParams->cow->getCurrentZone()) == HAL_OK) {
         fenceTransitionState = FENCE_TRANSITION_WAIT_RESPONSE;
+      }
       break;
     
     case FENCE_TRANSITION_WAIT_RESPONSE:
-      if (recievedStimulusResponse(msgReceived) == HAL_OK)
+      if (recievedStimulusResponse(msgReceived) == HAL_OK) {
         fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
+      }
       break;
 
     case FENCE_TRANSITION_END:
@@ -486,7 +490,7 @@ HAL_StatusTypeDef dequeuedMessage(Message *msgReceived) {
   return HAL_ERROR;
 }
 
-HAL_StatusTypeDef updatePosition(Message *msgReceived) {
+HAL_StatusTypeDef updatePosition(Message *msgReceived, fsmTaskParams *fsmParams) {
   HAL_StatusTypeDef status = HAL_ERROR;
   switch (msgReceived->id) {
     case MSG_ID_SEND_GPS:
@@ -517,25 +521,26 @@ HAL_StatusTypeDef updatePosition(Message *msgReceived) {
   return status;
 }
 
-void sendPosition(uint8_t msgId, ModuleId_t dest) {
+void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams) {
   Message* msg = new Message(msgId, ModuleId_t::FSM, dest, 2 * sizeof(double));  // [latitud, longitud] = 2 doubles
-  memcpy(msg->payload, &(fsmParams->cow->latitude), sizeof(double));
-  memcpy(msg->payload + sizeof(double), &(fsmParams->cow->longitude), sizeof(double));
+  Position pos = fsmParams->cow->getPosition();
+  memcpy(msg->payload, &(pos.latitude), sizeof(double));
+  memcpy(msg->payload + sizeof(double), &(pos.longitude), sizeof(double));
   osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 }
 
 // Recibe latitud y longitud (double) de LORA_RX con un tamaño fijo.
-HAL_StatusTypeDef recievedFence(Message *msgReceived) {
+HAL_StatusTypeDef recievedFence(Message *msgReceived, fsmTaskParams *fsmParams) {
   HAL_StatusTypeDef status = HAL_ERROR;
 
   switch (msgReceived->id) {
     case MSG_ID_LORA_VERTEXES: 
       if (msgReceived->payload != nullptr && msgReceived->length % sizeof(Vertex) == 0) {
         int vertexCount = msgReceived->length / sizeof(Vertex);
-        for (uint32_t i = 0; i < vertexCount; i++) {
+        for (int i = 0; i < vertexCount; i++) {
           Vertex v;
           memcpy(&v, msgReceived->payload + i * sizeof(Vertex), sizeof(Vertex));
-          fence.addVertex(v);
+          fsmParams->fence->addVertex(v);
         }
 
         status = HAL_OK;
@@ -554,19 +559,19 @@ HAL_StatusTypeDef recievedFence(Message *msgReceived) {
   return status;
 }
 
-void updateFence() {
+void updateFence(fsmTaskParams *fsmParams) {
   fsmParams->fence->updateLimits();
 }
 
-HAL_StatusTypeDef isInFence() {
-  if (fsmParams->cow->getcurrentZone() != zone_t::BLACK_ZONE) {
+HAL_StatusTypeDef isInFence(fsmTaskParams *fsmParams) {
+  if (fsmParams->cow->getCurrentZone() != zone_t::BLACK_ZONE) {
     return HAL_OK;
   }
 
   return HAL_ERROR;
 }
 
-HAL_StatusTypeDef updateDistAndZone(Message *msgReceived) {
+HAL_StatusTypeDef updateDistAndZone(Message *msgReceived,fsmTaskParams *fsmParams) {
   HAL_StatusTypeDef status = HAL_ERROR;
   zone_t zone;
   float dist;
@@ -577,7 +582,7 @@ HAL_StatusTypeDef updateDistAndZone(Message *msgReceived) {
         memcpy(&zone, msgReceived->payload, sizeof(zone_t));
         memcpy(&dist, msgReceived->payload + sizeof(zone_t), sizeof(float));
 
-        fsmParams->cow->updateZone(zone);
+        fsmParams->cow->updateCurrentZone(zone);
         fsmParams->cow->updateDistanceToLimit(dist);
         status = HAL_OK;
         // printf("FSM recibió %lu vértices del cerco\r\n", vertexCount);
@@ -595,7 +600,7 @@ HAL_StatusTypeDef updateDistAndZone(Message *msgReceived) {
   return status;  
 }
 
-HAL_StatusTypeDef updateAcceleration(Message *msgReceived) {
+HAL_StatusTypeDef updateAcceleration(Message *msgReceived, fsmTaskParams *fsmParams) {
   HAL_StatusTypeDef status = HAL_ERROR;
   switch (msgReceived->id) {
     case MSG_ID_SEND_IMU:
@@ -627,8 +632,8 @@ HAL_StatusTypeDef updateAcceleration(Message *msgReceived) {
   return status;
 }
 
-void updateState() {
-	fsmParams->cow_>updateState(classifyMotion(fsmParams->cow->getAcceleration()));
+void updateState(fsmTaskParams *fsmParams) {
+	fsmParams->cow->updateState(classifyMotion(fsmParams->cow->getAcceleration()));
 }
 
 CowState classifyMotion(Acceleration acc) {
@@ -694,7 +699,7 @@ void sendZoneToStimulus(zone_t zone, ModuleId_t dest) {
   osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 }
 
-HAL_StatusTypeDef FSM::recievedStimulusResponse(Message *msgReceived) {
+HAL_StatusTypeDef recievedStimulusResponse(Message *msgReceived) {
   HAL_StatusTypeDef status = HAL_ERROR;
 
   switch (msgReceived->id) {
