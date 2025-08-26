@@ -19,15 +19,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "app_lorawan.h"
-#include "dispatcherTask.h"
-#include "distanceTask.h"
-#include "fenceUpdateTask.h"
-#include "fsmTask.h"
-#include "gpsTask.h"
-#include "loraTxTask.h"
-#include "loraRxTask.h"
-#include "sensorAcqTask.h"
-#include "stimulusTask.h"
+#include "threads/dispatcherTask.h"
+#include "threads/distanceTask.h"
+#include "threads/fenceUpdateTask.h"
+#include "threads/fsmTask.h"
+#include "threads/gpsTask.h"
+#include "threads/loraTxTask.h"
+#include "threads/loraRxTask.h"
+#include "threads/sensorAcqTask.h"
+#include "threads/stimulusTask.h"
 #include "messages.h"
 #include "cmsis_os.h"
 /* Private includes ----------------------------------------------------------*/
@@ -72,64 +72,64 @@ UART_HandleTypeDef huart2;
 osThreadId_t sensorAcqTaskHandle;
 const osThreadAttr_t sensorAcqTask_attributes = {
   .name = "sensorAcqTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal
 };
 /* Definitions for stimulusTask */
 osThreadId_t stimulusTaskHandle;
 const osThreadAttr_t stimulusTask_attributes = {
   .name = "stimulusTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal
 };
 /* Definitions for gpsTask */
 osThreadId_t gpsTaskHandle;
 const osThreadAttr_t gpsTask_attributes = {
   .name = "gpsTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal
 };
 /* Definitions for loraTxTask */
 osThreadId_t loraTxTaskHandle;
 const osThreadAttr_t loraTxTask_attributes = {
   .name = "loraTxTask",
-  .priority = (osPriority_t) osPriorityBelowNormal7,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal7
 };
 /* Definitions for loraRxTask */
 osThreadId_t loraRxTaskHandle;
 const osThreadAttr_t loraRxTask_attributes = {
   .name = "loraRxTask",
-  .priority = (osPriority_t) osPriorityBelowNormal7,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal7
 };
 /* Definitions for fsmTask */
 osThreadId_t fsmTaskHandle;
 const osThreadAttr_t fsmTask_attributes = {
   .name = "fsmTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal
 };
 /* Definitions for distanceToLimit */
 osThreadId_t distanceToLimitHandle;
 const osThreadAttr_t distanceToLimit_attributes = {
   .name = "distanceToLimit",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal
 };
 /* Definitions for fenceUpdateTask */
 osThreadId_t fenceUpdateTaskHandle;
 const osThreadAttr_t fenceUpdateTask_attributes = {
   .name = "fenceUpdateTask",
-  .priority = (osPriority_t) osPriorityBelowNormal7,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal7
 };
 /* Definitions for dispatcherTask */
 osThreadId_t dispatcherTaskHandle;
 const osThreadAttr_t dispatcherTask_attributes = {
   .name = "dispatcherTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal
 };
 /* Definitions for dispatcherQueue */
 osMessageQueueId_t dispatcherQueueHandle;
@@ -185,9 +185,9 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM17_Init(void);
-static void MX_ADC_Init(void);
+//static void MX_ADC_Init(void); -> La agrego en el .h porque se usan en otro archivo.
 static void MX_I2C2_Init(void);
-static void MX_USART2_UART_Init(void);
+//static void MX_USART2_UART_Init(void); -> La agrego en el .h porque se usan en otro archivo.
 static void MX_LPTIM1_Init(void);
 static void MX_LPTIM2_Init(void);
 static void MX_TIM1_Init(void);
@@ -250,19 +250,15 @@ int main(void)
   /* USER CODE BEGIN 2 */
   SamM10q gps(&hi2c2, GPS_ADDRESS);
   // TODO: Chequear Params de la imu y de los INA.
-  Lsm6dso imu(&hi2c2, LSM6DSO_ADDRESS, DISABLE, ODR_52, FS_4, POWER_DOWN, FS_250DPS, THS_1, ODR_1, FS_XL_64, DUR_1_512);
-  Ina226 inaMcu(&hi2c2, INA_MCU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
-  Ina226 inaGps(&hi2c2, INA_GPS_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
-  Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, AVG_1, CT_140US, CT_140US, SHUNT_CONTINUOUS);
+  Lsm6dso imu(&hi2c2, IMU_ADDRESS, Lsm6dsoI3C::DISABLED, Lsm6dsoOdrAcc::ODR_52, Lsm6dsoFsAcc::FS_4G, Lsm6dsoOdrGyr::POWER_DOWN, Lsm6dsoFsGyr::FS_250DPS, Lsm6dsoWakeThs::THS_1, Lsm6dsoWakeDur::ODR_1, Lsm6dsoWakeWeight::FS_XL_64, Lsm6dsoSleepDur::DUR_1_512);
+  Ina226 inaMcu(&hi2c2, INA_MCU_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
+  Ina226 inaGps(&hi2c2, INA_GPS_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
+  Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
 
   // Obtaining the STM32WL55JC UID
-  uint32_t cowId[3];
-
-  cowId[0] = HAL_GetUIDw0();
-  cowId[1] = HAL_GetUIDw1();
-  cowId[2] = HAL_GetUIDw2();
+  DeviceUID cowId = { HAL_GetUIDw0(), HAL_GetUIDw1(), HAL_GetUIDw2() };
   Cow cow(cowId);
-  Fence fence();
+  Fence fence;
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -434,7 +430,8 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_ADC_Init(void)
+//static void MX_ADC_Init(void)
+void MX_ADC_Init(void)
 {
 
   /* USER CODE BEGIN ADC_Init 0 */
@@ -887,7 +884,8 @@ static void MX_TIM17_Init(void)
   * @param None
   * @retval None
   */
-static void MX_USART2_UART_Init(void)
+//static void MX_USART2_UART_Init(void)
+void MX_USART2_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART2_Init 0 */

@@ -22,12 +22,13 @@
 #ifndef __ADC_IF_H__
 #define __ADC_IF_H__
 
+#include "main.h"
+#include "platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
-#include "platform.h"
 
 /* USER CODE BEGIN Includes */
 

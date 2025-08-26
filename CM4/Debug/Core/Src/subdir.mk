@@ -5,42 +5,31 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+../Core/Src/adc_if.cpp \
+../Core/Src/app_freertos.cpp \
 ../Core/Src/cow.cpp \
 ../Core/Src/fence.cpp \
+../Core/Src/flash_if.cpp \
+../Core/Src/ipcc_if.cpp \
 ../Core/Src/main.cpp \
-../Core/Src/messages.cpp 
+../Core/Src/messages.cpp \
+../Core/Src/stm32_lpm_if.cpp \
+../Core/Src/stm32wlxx_hal_msp.cpp \
+../Core/Src/stm32wlxx_it.cpp \
+../Core/Src/sys_app.cpp \
+../Core/Src/sys_sensors.cpp \
+../Core/Src/timer_if.cpp \
+../Core/Src/usart_if.cpp 
 
 C_SRCS += \
-../Core/Src/adc_if.c \
-../Core/Src/app_freertos.c \
-../Core/Src/flash_if.c \
-../Core/Src/ipcc_if.c \
-../Core/Src/stm32_lpm_if.c \
-../Core/Src/stm32wlxx_hal_msp.c \
 ../Core/Src/stm32wlxx_hal_timebase_tim.c \
-../Core/Src/stm32wlxx_it.c \
-../Core/Src/sys_app.c \
-../Core/Src/sys_sensors.c \
 ../Core/Src/syscalls.c \
-../Core/Src/sysmem.c \
-../Core/Src/timer_if.c \
-../Core/Src/usart_if.c 
+../Core/Src/sysmem.c 
 
 C_DEPS += \
-./Core/Src/adc_if.d \
-./Core/Src/app_freertos.d \
-./Core/Src/flash_if.d \
-./Core/Src/ipcc_if.d \
-./Core/Src/stm32_lpm_if.d \
-./Core/Src/stm32wlxx_hal_msp.d \
 ./Core/Src/stm32wlxx_hal_timebase_tim.d \
-./Core/Src/stm32wlxx_it.d \
-./Core/Src/sys_app.d \
-./Core/Src/sys_sensors.d \
 ./Core/Src/syscalls.d \
-./Core/Src/sysmem.d \
-./Core/Src/timer_if.d \
-./Core/Src/usart_if.d 
+./Core/Src/sysmem.d 
 
 OBJS += \
 ./Core/Src/adc_if.o \
@@ -63,17 +52,28 @@ OBJS += \
 ./Core/Src/usart_if.o 
 
 CPP_DEPS += \
+./Core/Src/adc_if.d \
+./Core/Src/app_freertos.d \
 ./Core/Src/cow.d \
 ./Core/Src/fence.d \
+./Core/Src/flash_if.d \
+./Core/Src/ipcc_if.d \
 ./Core/Src/main.d \
-./Core/Src/messages.d 
+./Core/Src/messages.d \
+./Core/Src/stm32_lpm_if.d \
+./Core/Src/stm32wlxx_hal_msp.d \
+./Core/Src/stm32wlxx_it.d \
+./Core/Src/sys_app.d \
+./Core/Src/sys_sensors.d \
+./Core/Src/timer_if.d \
+./Core/Src/usart_if.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
-	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DCORE_CM4 -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../LoRaWAN/App -I../LoRaWAN/Target -I../MbMux -I../../Common/System -I../../Modules -I../../Common/MbMux -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Utilities/trace/adv_trace -I../../Utilities/misc -I../../Utilities/timer -I../../Utilities/lpm/tiny_lpm -I../../Middlewares/Third_Party/FreeRTOS/Source/include -I../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Middlewares/Third_Party/LoRaWAN/Mac/Region -I../../Middlewares/Third_Party/LoRaWAN/Mac -I../../Middlewares/Third_Party/LoRaWAN/LmHandler -I../../Middlewares/Third_Party/LoRaWAN/Utilities -I../../Middlewares/Third_Party/SubGHz_Phy -I../../Drivers/CMSIS/Include -I../../Drivers/STM32WLxx_HAL_Driver -I../../../Drivers/STM32WLxx_HAL_Driver/Inc -I"C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Inc" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
 Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.cpp Core/Src/subdir.mk
 	arm-none-eabi-g++ "$<" -mcpu=cortex-m4 -std=gnu++14 -g3 -DDEBUG -DCORE_CM4 -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../LoRaWAN/App -I../LoRaWAN/Target -I../MbMux -I../../Common/System -I../../Common/MbMux -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Utilities/trace/adv_trace -I../../Utilities/misc -I../../Utilities/timer -I../../Utilities/lpm/tiny_lpm -I../../Middlewares/Third_Party/FreeRTOS/Source/include -I../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Middlewares/Third_Party/LoRaWAN/Mac/Region -I../../Middlewares/Third_Party/LoRaWAN/Mac -I../../Middlewares/Third_Party/LoRaWAN/LmHandler -I../../Middlewares/Third_Party/LoRaWAN/Utilities -I../../Middlewares/Third_Party/SubGHz_Phy -I../../Drivers/CMSIS/Include -I../../Drivers/STM32WLxx_HAL_Driver -I/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../CM4/Modules -O0 -ffunction-sections -fdata-sections -fno-exceptions -fno-rtti -fno-use-cxa-atexit -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
+Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DCORE_CM4 -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../LoRaWAN/App -I../LoRaWAN/Target -I../MbMux -I../../Common/System -I../../Modules -I../../Common/MbMux -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Utilities/trace/adv_trace -I../../Utilities/misc -I../../Utilities/timer -I../../Utilities/lpm/tiny_lpm -I../../Middlewares/Third_Party/FreeRTOS/Source/include -I../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3 -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Middlewares/Third_Party/LoRaWAN/Mac/Region -I../../Middlewares/Third_Party/LoRaWAN/Mac -I../../Middlewares/Third_Party/LoRaWAN/LmHandler -I../../Middlewares/Third_Party/LoRaWAN/Utilities -I../../Middlewares/Third_Party/SubGHz_Phy -I../../Drivers/CMSIS/Include -I../../Drivers/STM32WLxx_HAL_Driver -I../../../Drivers/STM32WLxx_HAL_Driver/Inc -I"C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Inc" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
 
 clean: clean-Core-2f-Src
 

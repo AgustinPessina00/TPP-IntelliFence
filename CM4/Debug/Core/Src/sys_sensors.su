@@ -1,0 +1,2 @@
+../Core/Src/sys_sensors.cpp:122:9:int32_t EnvSensors_Read(sensor_t*)	32	static
+../Core/Src/sys_sensors.cpp:161:9:int32_t EnvSensors_Init()	16	static

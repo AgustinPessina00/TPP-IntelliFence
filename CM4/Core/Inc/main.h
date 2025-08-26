@@ -57,8 +57,10 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
+void MX_ADC_Init(void);
 void MX_IPCC_Init(void);
 void MX_RTC_Init(void);
+void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -109,6 +111,17 @@ void MX_RTC_Init(void);
 #define IMU_INT2_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
+// RTC para medir tiempo real (reloj/calendario)
+// Se usa en timer_if.cpp para el RTC.
+// NUCLEO STM32WL55JC1 tiene un 32.768 kHz LSE crystal oscillator.
+// LSE_VALUE / [(RTC_N_PREDIV_A + 1) * (RTC_N_PREDIV_S + 1)] = tick per second [Hz]
+// 32.768 kHz / [(127 + 1) * (255 + 1)] = 1Hz (un tick x segundo).
+#define RTC_N_PREDIV_S   8   // (2^8 = 256)
+#define RTC_N_PREDIV_A   7   // (2^7 = 128)
+
+#define RTC_PREDIV_S   255   // (2^8 - 1) Máscara
+#define RTC_PREDIV_A   127   // (2^7 - 1) Máscara
+
 static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
 static const uint8_t IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
 static const uint8_t INA_MCU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.

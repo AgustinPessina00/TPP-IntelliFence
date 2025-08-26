@@ -1,0 +1,12 @@
+../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_rcc.h:1971:22:void LL_RCC_SetClkAfterWakeFromStop(uint32_t)	16	static
+../Core/Src/sys_app.cpp:104:6:void SystemApp_Init()	8	static
+../Core/Src/sys_app.cpp:156:6:void Process_Sys_Notif(MBMUX_ComParam_t*)	24	static
+../Core/Src/sys_app.cpp:196:9:uint8_t GetBatteryLevel()	16	static
+../Core/Src/sys_app.cpp:228:9:int16_t GetTemperatureLevel()	40	static
+../Core/Src/sys_app.cpp:247:13:void MBMUXIF_Init()	16	static
+../Core/Src/sys_app.cpp:310:13:void TimestampNow(uint8_t*, uint16_t*)	32	static
+../Core/Src/sys_app.cpp:324:6:void UTIL_ADV_TRACE_PreSendHook()	8	static
+../Core/Src/sys_app.cpp:335:6:void UTIL_ADV_TRACE_PostSendHook()	8	static
+../Core/Src/sys_app.cpp:346:13:)	24	static
+../Core/Src/sys_app.cpp:369:10:uint32_t HAL_GetTick()	16	static
+../Core/Src/sys_app.cpp:400:6:void HAL_Delay(uint32_t)	16	static

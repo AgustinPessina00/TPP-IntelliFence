@@ -1,0 +1,4 @@
+../Core/Src/app_freertos.cpp:61:13:void configureTimerForRunTimeStats()	4	static
+../Core/Src/app_freertos.cpp:66:22:long unsigned int getRunTimeCounterValue()	4	static
+../Core/Src/app_freertos.cpp:73:13:void PreSleepProcessing(uint32_t*)	16	static
+../Core/Src/app_freertos.cpp:78:13:void PostSleepProcessing(uint32_t*)	16	static

@@ -50,7 +50,7 @@ void fsmTask(void *argument) {
 
       case MainFSM_t::NORMAL_OPERATION:
         runNormalOperationFSM(normalOpFSM, initializeState, greenZoneState, stimulusZoneState, msgReceived, tries, fsmParams);
-        if (shouldEnterFenceTransition()) {
+        if (shouldEnterFenceTransition() && normalOpFSM == END) {
           mainFSM = MainFSM_t::FENCE_TRANSITION; // TODO: VER BIEN DONDE PONER LA TRANSICIÓN ENTRE FSM. PARA MI ESTÁ BIEN ACÁ.
         }
         break;
@@ -99,7 +99,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
 
     case STARTUP_ROUTINE_WAIT_FENCE:
       // TODO: CREAR TIMEOUT PARA ESPERAR FENCE
-      if (recievedFence(msgReceived, fsmParams) == HAL_OK) {
+      if (receivedFence(msgReceived, fsmParams) == HAL_OK) {
         startupRoutineState = STARTUP_ROUTINE_SAVE_FENCE;
       }
       break;
@@ -343,7 +343,7 @@ void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneSt
     
     case STIMULUS_ZONE_WAIT_RESPONSE:
       if (dequeuedMessage(msgReceived) == HAL_OK) {
-        if (recievedStimulusResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (receivedStimulusResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           stimulusZoneState = STIMULUS_ZONE_END;
           tries = 0;
         }
@@ -418,7 +418,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
     	break;
 
     case FENCE_TRANSITION_WAIT_NEW_POSITION:
-      if (recievedPosition() == HAL_OK) {
+      if (receivedPosition() == HAL_OK) {
         if (!fencesEqual() && !inPartialFence()) {
           updatePosition(msgReceived, fsmParams);
           fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
@@ -464,7 +464,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
       break;
     
     case FENCE_TRANSITION_WAIT_RESPONSE:
-      if (recievedStimulusResponse(msgReceived) == HAL_OK) {
+      if (receivedStimulusResponse(msgReceived) == HAL_OK) {
         fenceTransitionState = FENCE_TRANSITION_REQUEST_NEW_POSITION;
       }
       break;
@@ -530,18 +530,17 @@ void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams) {
 }
 
 // Recibe latitud y longitud (double) de LORA_RX con un tamaño fijo.
-HAL_StatusTypeDef recievedFence(Message *msgReceived, fsmTaskParams *fsmParams) {
+HAL_StatusTypeDef receivedFence(Message *msgReceived, fsmTaskParams *fsmParams) {
   HAL_StatusTypeDef status = HAL_ERROR;
 
   switch (msgReceived->id) {
     case MSG_ID_LORA_VERTEXES: 
-      if (msgReceived->payload != nullptr && msgReceived->length % sizeof(Vertex) == 0) {
-        int vertexCount = msgReceived->length / sizeof(Vertex);
-        for (int i = 0; i < vertexCount; i++) {
-          Vertex v;
-          memcpy(&v, msgReceived->payload + i * sizeof(Vertex), sizeof(Vertex));
-          fsmParams->fence->addVertex(v);
-        }
+      std::vector<Vertex> vertices;
+      int vertexCount = msgReceived->length / sizeof(Vertex);
+      vertices.resize(vertexCount);
+      memcpy(vertices.data(), msgReceived->payload, vertexCount * sizeof(Vertex));
+      if (msgReceived->payload != nullptr && vertexCount >= 3) {
+        fsmParams->fence->saveVertices(vertices);
 
         status = HAL_OK;
         // printf("FSM recibió %lu vértices del cerco\r\n", vertexCount);
@@ -560,7 +559,7 @@ HAL_StatusTypeDef recievedFence(Message *msgReceived, fsmTaskParams *fsmParams) 
 }
 
 void updateFence(fsmTaskParams *fsmParams) {
-  fsmParams->fence->updateLimits();
+  fsmParams->fence->createLimits();
 }
 
 HAL_StatusTypeDef isInFence(fsmTaskParams *fsmParams) {
@@ -699,7 +698,7 @@ void sendZoneToStimulus(zone_t zone, ModuleId_t dest) {
   osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 }
 
-HAL_StatusTypeDef recievedStimulusResponse(Message *msgReceived) {
+HAL_StatusTypeDef receivedStimulusResponse(Message *msgReceived) {
   HAL_StatusTypeDef status = HAL_ERROR;
 
   switch (msgReceived->id) {
@@ -803,7 +802,7 @@ HAL_StatusTypeDef recievedStimulusResponse(Message *msgReceived) {
 
     // === Si no está en GREEN_ZONE, aplicar estímulo ===
     if (zone != GREEN_ZONE) {
-      // TODO: Switch Case de los distintos mensajes a mandar a stimulus.
+
     }
     else {
       // === Solicitar Mensaje de IMU ===

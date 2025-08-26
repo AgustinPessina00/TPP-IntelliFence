@@ -24,12 +24,12 @@ class Fence {
 public:
     Fence();
 
-    void addVertex(const Vertex& v);
-    void updateLimits();    // recalcula segmentos a partir de vértices
+    void saveVertices(const std::vector<Vertex> v);
+    void createLimits();    // recalcula segmentos a partir de vértices
     void clearVertex();     // Elimina los vertices para luego cargar los nuevos cuando actualizamos el cerco
 
-    std::vector<Vertex>& getVertices() const;
-    std::vector<Line>& getLimits() const;
+    const std::vector<Vertex>& getVertices() const;
+    const std::vector<Line>& getLimits() const;
     Vertex getCenterFence() const;
 
     // Setea umbrales para cada zona desde el límite del polígono
@@ -49,11 +49,11 @@ private:
     Vertex centerFence;     // Centro promedio de los vertices.
 
     // Umbrales desde el límite hasta la respectiva zona (en metros)
-    threshold_t lightBlue = 20.0f;
-    threshold_t blue = 15.0f;
-    threshold_t darkBlue = 10.0f;
-    threshold_t yellow = 5.0f;
-    threshold_t red = 1.0f;
+    threshold_t lightBlue;
+    threshold_t blue;
+    threshold_t darkBlue;
+    threshold_t yellow;
+    threshold_t red;
 };
 
 #endif

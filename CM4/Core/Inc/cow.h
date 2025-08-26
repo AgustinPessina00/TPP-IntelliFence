@@ -1,9 +1,15 @@
 #ifndef COW_H
 #define COW_H
 
-#include <stdint.h>
-//#include <cstdint>
+//#include <stdint.h>
+#include <cstdint>
 #include "zone.h"
+
+struct DeviceUID {
+    uint32_t w0;
+    uint32_t w1;
+    uint32_t w2;
+};
 
 enum class CowState {
     SLEEP,
@@ -24,7 +30,7 @@ struct Acceleration {
 
 class Cow {
 public:
-    Cow(uint32_t id);
+	Cow(DeviceUID id);
 
     void updatePosition(Position pos);
     void updateAcceleration(Acceleration accel);
@@ -32,7 +38,7 @@ public:
     void updateCurrentZone(zone_t zone);
     void updateDistanceToLimit(float distance);
 
-    uint16_t getId() const;
+    DeviceUID getId() const;
     Position getPosition() const;
     Acceleration getAcceleration() const;
     CowState getState() const;
@@ -40,7 +46,7 @@ public:
     float getDistanceToLimit() const;
 
 private:
-    uint32_t id;
+    DeviceUID id;
     Position position;
     Acceleration acceleration;
     CowState state;

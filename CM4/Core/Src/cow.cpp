@@ -1,7 +1,7 @@
 
 #include "cow.h"
 
-Cow::Cow(uint32_t id) {
+Cow::Cow(DeviceUID id) {
     this->id = id;
     this->position = {0, 0};
     this->acceleration = {0, 0, 0};
@@ -30,7 +30,7 @@ void Cow::updateDistanceToLimit(float distance) {
     distanceToLimit = distance;
 }
 
-uint16_t Cow::getId() const {
+DeviceUID Cow::getId() const {
     return id;
 }
 

@@ -22,12 +22,13 @@
 #ifndef __FLASH_IF_H__
 #define __FLASH_IF_H__
 
+#include "platform.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "platform.h"
 
 /* USER CODE BEGIN Includes */
 

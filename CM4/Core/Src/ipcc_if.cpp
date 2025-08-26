@@ -89,7 +89,7 @@ void IPCC_IF_Init(void (*IPCC_IF_ResponseRcv_cb)(uint32_t channelIdx),
   LL_EXTI_EnableRisingTrig_32_63(LL_EXTI_LINE_36);
 
   /* Initialize IPCC callback of all channels*/
-  for (int32_t i = 0; i < IPCC_CHANNEL_NUMBER; i++)
+  for (int32_t i = 0; i < static_cast<int32_t>(IPCC_CHANNEL_NUMBER); i++)
   {
     HAL_IPCC_ActivateNotification(&hipcc, i, IPCC_CHANNEL_DIR_TX, IpccIfIsrTxCb);
     HAL_IPCC_ActivateNotification(&hipcc, i, IPCC_CHANNEL_DIR_RX, IpccIfIsrRxCb);

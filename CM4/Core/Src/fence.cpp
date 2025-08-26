@@ -1,15 +1,28 @@
 
 #include "fence.h"
 
-Fence::Fence() {}
+Fence::Fence() {
+	this->lightBlue = 20.0f;
+	this->blue = 15.0f;
+	this->darkBlue = 10.0f;
+	this->yellow = 5.0f;
+	this->red = 1.0f;
 
-void Fence::addVertex(const Vertex& v)
-{
-    vertices.push_back(v);
-    updateLimits();  // Siempre actualizamos las líneas
+	setZoneThresholds();
+
+	this->centerFence = {0.0, 0.0};
 }
 
-void Fence::updateLimits()
+void Fence::saveVertices(const std::vector<Vertex> v){
+	/*for (size_t i = 0; i < v.size(); i++) {
+		addVertex(v[i]);
+	}*/
+	clearVertex();
+	vertices.reserve(vertices.size() + v.size());  // evita realocaciones
+	vertices.insert(vertices.end(), v.begin(), v.end());
+}
+
+void Fence::createLimits()
 {
     limites.clear();
     if (vertices.size() < 2) return; // Podemos agregar algún manejo de error.
@@ -31,12 +44,12 @@ void Fence::clearVertex()
     centerFence = {0.0, 0.0};
 }
 
-std::vector<Vertex>& Fence::getVertices() const
+const std::vector<Vertex>& Fence::getVertices() const
 {
     return vertices;
 }
 
-std::vector<Line>& Fence::getLimits() const
+const std::vector<Line>& Fence::getLimits() const
 {
     return limites;
 }
@@ -71,11 +84,11 @@ void Fence::setZoneThresholds()
         return;
     }
 
-    thresholds[LIGHT_BLUE_ZONE] = lightBlue;
-    thresholds[BLUE_ZONE] = blue;
-    thresholds[DARK_BLUE_ZONE] = darkBlue;
-    thresholds[YELLOW_ZONE] = yellow;
-    thresholds[RED_ZONE] = red;
+    this->thresholds[LIGHT_BLUE_ZONE] = this->lightBlue;
+    this->thresholds[BLUE_ZONE] = this->blue;
+    this->thresholds[DARK_BLUE_ZONE] = this->darkBlue;
+    this->thresholds[YELLOW_ZONE] = this->yellow;
+    this->thresholds[RED_ZONE] = this->red;
 
 }
 

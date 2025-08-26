@@ -2,6 +2,8 @@
 #include "threads/stimulusTask.h"
 
 extern osMessageQueueId_t stimulusQueueHandle;
+extern osMessageQueueId_t dispatcherQueueHandle;
+
 extern TIM_HandleTypeDef htim1; // BUZZER
 //extern LED_ELECTRICAL_Pin;
 //extern GPIOB;
@@ -12,6 +14,13 @@ static zone_t currentZone = GREEN_ZONE;
 static zone_t previousZone = GREEN_ZONE;
 static uint16_t vibrationFreq = 100;  // Frecuencia efectiva para motores
 static uint8_t vibrationDuty = 90;  // Duty Cycle para motores
+
+void configureBuzzerPWM(uint8_t dutyPercent);
+void stopBuzzer(void);
+void configureVibrationPWM(uint8_t leftDutyPercent, uint8_t rightDutyPercent);
+void stopVibration(void);
+void activateShockStimulus(void);
+void stopShock(void);
 
 void stimulusTask(void *argument) {
     Message* msg;
@@ -28,6 +37,7 @@ void stimulusTask(void *argument) {
             }
         }
         // Configurar PWM si corresponde
+        Message* msgToSend = nullptr;
         if (previousZone != currentZone) {
             switch (currentZone) {
             case LIGHT_BLUE_ZONE:
@@ -40,16 +50,16 @@ void stimulusTask(void *argument) {
                 stopVibration();
                 stopShock();
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(float));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
@@ -63,16 +73,16 @@ void stimulusTask(void *argument) {
                 stopVibration();
                 stopShock();
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+               msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
@@ -85,16 +95,16 @@ void stimulusTask(void *argument) {
                 stopVibration();
                 stopShock();
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
@@ -108,18 +118,18 @@ void stimulusTask(void *argument) {
                 configureVibrationPWM(vibrationDuty, vibrationDuty);
                 stopShock();
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
                 memcpy(msgToSend->payload + sizeof(uint8_t), &vibrationDuty, sizeof(float));
                 memcpy(msgToSend->payload + sizeof(uint8_t) + sizeof(float), &vibrationDuty, sizeof(float));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
@@ -131,15 +141,15 @@ void stimulusTask(void *argument) {
                 stopVibration();
                 activateShockStimulus();
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
@@ -152,17 +162,17 @@ void stimulusTask(void *argument) {
                 stopBuzzer();
                 stopVibration();
                 stopShock();
-                sendScapedMessage();
+                // sendScapedMessage(); // TODO: Supongo que enviaremos un mensaje a TX_LORA para que envíe un msj a la app.
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;
@@ -175,15 +185,15 @@ void stimulusTask(void *argument) {
                 stopVibration();
                 stopShock();
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
-                Message* msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
+                msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
                 break;

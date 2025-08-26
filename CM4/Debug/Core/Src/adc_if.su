@@ -1,0 +1,5 @@
+../Core/Src/adc_if.cpp:79:6:void SYS_InitMeasurement()	4	static
+../Core/Src/adc_if.cpp:90:6:void SYS_DeInitMeasurement()	4	static
+../Core/Src/adc_if.cpp:97:9:int16_t SYS_GetTemperatureLevel()	16	static
+../Core/Src/adc_if.cpp:139:10:uint16_t SYS_GetBatteryLevel()	16	static
+../Core/Src/adc_if.cpp:181:17:uint32_t ADC_ReadChannels(uint32_t)	32	static

@@ -114,7 +114,7 @@ void sendMessage(uint8_t msgId, ModuleId_t dest);
 HAL_StatusTypeDef dequeuedMessage(Message *msgReceived);
 HAL_StatusTypeDef updatePosition(Message *msgReceived, fsmTaskParams *fsmParams);
 void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams);
-HAL_StatusTypeDef recievedFence(Message *msgReceived, fsmTaskParams *fsmParams);
+HAL_StatusTypeDef receivedFence(Message *msgReceived, fsmTaskParams *fsmParams);
 void updateFence(fsmTaskParams *fsmParams);
 HAL_StatusTypeDef isInFence(fsmTaskParams *fsmParams);
 HAL_StatusTypeDef updateDistAndZone(Message *msgReceived, fsmTaskParams *fsmParams);
@@ -125,7 +125,7 @@ HAL_StatusTypeDef gpsResponse(Message *msgReceived);
 void updateGpsAdqTime(GpsRate gpsRate);
 void enterLowPowerSleep();
 void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
-HAL_StatusTypeDef recievedStimulusResponse(Message *msgReceived);
+HAL_StatusTypeDef receivedStimulusResponse(Message *msgReceived);
 
 /*class FSM {
 
