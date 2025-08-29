@@ -52,18 +52,15 @@ typedef enum {
 
 typedef enum {
   FENCE_TRANSITION_BEGIN,
+  FENCE_TRANSITION_DISABLE_STIMULUS,
+  FENCE_TRANSITION_WAIT_STIMULUS_RESPONSE,
+  FENCE_TRANSITION_UPDATE_FENCE,
   FENCE_TRANSITION_GPSRATE_FAST,
   FENCE_TRANSITION_WAIT_GPS_ADQ_TIME,
   FENCE_TRANSITION_REQUEST_POSITION,
   FENCE_TRANSITION_WAIT_POSITION,
-  FENCE_TRANSITION_UPDATE_PARTIAL_FENCE,
-  FENCE_TRANSITION_REQUEST_NEW_POSITION,
-  FENCE_TRANSITION_WAIT_NEW_POSITION,
   FENCE_TRANSITION_REQUEST_ZONE,
-  FENCE_TRANSITION_WAIT_ZONE,
   FENCE_TRANSITION_EVALUATE_ZONE,
-  FECNE_TRANSITION_SEND_ZONE,
-  FENCE_TRANSITION_WAIT_RESPONSE,
   FENCE_TRANSITION_END
 } FenceTransitionState_t;
 
@@ -111,7 +108,7 @@ void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneSt
 void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
 
 void sendMessage(uint8_t msgId, ModuleId_t dest);
-HAL_StatusTypeDef dequeuedMessage(Message *msgReceived);
+HAL_StatusTypeDef dequeuedMessage(Message *msgReceived, fsmTaskParams *fsmParams);
 HAL_StatusTypeDef updatePosition(Message *msgReceived, fsmTaskParams *fsmParams);
 void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams);
 HAL_StatusTypeDef receivedFence(Message *msgReceived, fsmTaskParams *fsmParams);

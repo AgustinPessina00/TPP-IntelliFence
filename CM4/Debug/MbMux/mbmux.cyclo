@@ -1,0 +1,13 @@
+../MbMux/mbmux.cpp:108:6:void MBMUX_Init(MBMUX_ComTable_t*)	3
+../MbMux/mbmux.cpp:140:6:void MBMUX_SetCm0plusFeatureListPtr(FEAT_INFO_List_t*)	1
+../MbMux/mbmux.cpp:151:8:int8_t MBMUX_RegisterFeature(FEAT_INFO_IdTypeDef, MBMUX_ComType_t, void (*)(void*), uint32_t*, uint16_t)	7
+../MbMux/mbmux.cpp:223:6:void MBMUX_UnregisterFeature(FEAT_INFO_IdTypeDef, MBMUX_ComType_t)	3
+../MbMux/mbmux.cpp:267:19:MBMUX_ComParam_t* MBMUX_GetFeatureComPtr(FEAT_INFO_IdTypeDef, MBMUX_ComType_t)	3
+../MbMux/mbmux.cpp:293:9:int32_t MBMUX_CommandSnd(FEAT_INFO_IdTypeDef)	2
+../MbMux/mbmux.cpp:311:10:uint32_t MBMUX_AcknowledgeSnd(FEAT_INFO_IdTypeDef)	1
+../MbMux/mbmux.cpp:330:16:uint8_t MBMUX_CheckIfFeatureSupportedByCm0plus(FEAT_INFO_IdTypeDef)	4
+../MbMux/mbmux.cpp:361:13:void MBMUX_IsrResponseRcvCb(uint32_t)	1
+../MbMux/mbmux.cpp:376:13:void MBMUX_IsrNotificationRcvCb(uint32_t)	1
+../MbMux/mbmux.cpp:391:16:uint8_t MBMUX_FindChStillUnregistered(MBMUX_ComType_t)	11
+../MbMux/mbmux.cpp:451:16:uint8_t MBMUX_GetFeatureChIdx(FEAT_INFO_IdTypeDef, MBMUX_ComType_t)	1
+../MbMux/mbmux.cpp:462:13:void MBMUX_IsrNotRegistered(void*)	1

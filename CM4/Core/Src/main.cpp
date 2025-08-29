@@ -247,6 +247,9 @@ int main(void)
   MX_LPTIM2_Init();
   MX_TIM1_Init();
 
+  /* Inicializar LoRaWAN (CM4 -> callbacks + configuración del handler) */
+  MX_LoRaWAN_Init();
+
   /* USER CODE BEGIN 2 */
   SamM10q gps(&hi2c2, GPS_ADDRESS);
   // TODO: Chequear Params de la imu y de los INA.
