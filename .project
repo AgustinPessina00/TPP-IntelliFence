@@ -3,6 +3,8 @@
 	<name>TPP-IntelliFence</name>
 	<comment></comment>
 	<projects>
+		<project>TPP-IntelliFence_CM0PLUS</project>
+		<project>TPP-IntelliFence_CM4</project>
 	</projects>
 	<buildSpec>
 	</buildSpec>

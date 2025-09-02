@@ -1,18 +1,16 @@
 #ifndef SENSORACQTASK_H
 #define SENSORACQTASK_H
 
-#include "GPS/sam_m10q.h"
+#include "sam_m10q.h"
+#include "lsm6dso.h"
+#include "ina226.h"
 #include "messages.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "FreeRTOS.h"
-#include "task.h"
-
-#include "IMU/lsm6dso.h"
-#include "INA/ina226.h"
 
 #define SAMPLE_RATE  100  // en milisegundos
 

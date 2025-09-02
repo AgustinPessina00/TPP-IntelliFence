@@ -13,7 +13,6 @@ Core/Src/threads/gpsTask.o: ../Core/Src/threads/gpsTask.cpp \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../../CM4/Modules/GPS/sam_m10q.h ../../CM4/Modules/GPS/sam_m10q_KEYID.h \
  ../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h \
- ../../CM4/Modules/GPS/TinyGPSPlus/arduino_compat.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal.h \
  ../Core/Inc/stm32wlxx_hal_conf.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_dma.h \
@@ -74,7 +73,6 @@ Core/Src/threads/gpsTask.o: ../Core/Src/threads/gpsTask.cpp \
 ../../CM4/Modules/GPS/sam_m10q.h:
 ../../CM4/Modules/GPS/sam_m10q_KEYID.h:
 ../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h:
-../../CM4/Modules/GPS/TinyGPSPlus/arduino_compat.h:
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal.h:
 ../Core/Inc/stm32wlxx_hal_conf.h:
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_dma.h:

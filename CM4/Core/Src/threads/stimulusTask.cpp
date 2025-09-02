@@ -25,16 +25,19 @@ void stopShock(void);
 void stimulusTask(void *argument) {
     Message* msg;
     uint8_t buzzerDuty = 0;
+    /*
     uint8_t soundStimulus = 0;  // 0=OFF 1=ON
     uint8_t vibrationStimulus = 0;
     uint8_t shockStimulus = 0;
+	*/
     
     while (1) {
         if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
             if (msg->id == MSG_ID_ZONE_CHANGE) {
                 currentZone = (zone_t) msg->payload[0];
-                delete msg;
+                //delete msg;
             }
+            delete msg;
         }
         // Configurar PWM si corresponde
         Message* msgToSend = nullptr;
@@ -42,17 +45,24 @@ void stimulusTask(void *argument) {
             switch (currentZone) {
             case LIGHT_BLUE_ZONE:
                 buzzerDuty = 30;
+
+                /*
                 soundStimulus = 1;
                 vibrationStimulus = 0;
                 shockStimulus = 0;
+                */
 
                 configureBuzzerPWM(buzzerDuty);
                 stopVibration();
                 stopShock();
 
-                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                msgToSend = new Message(MSG_ID_STIMULUS_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0); // Payload vacío, lo único que me importa es el ID (FLAG).
+				osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                /*
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 2* sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
-                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
                 msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
@@ -60,22 +70,31 @@ void stimulusTask(void *argument) {
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
                 msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
-                memcpy(msgToSend->payload, &shockStimulus, sizeof(float));
+                memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+                */
+
                 break;
             case BLUE_ZONE:
                 buzzerDuty = 50;
+
+                /*
                 soundStimulus = 1;
                 vibrationStimulus = 0;
                 shockStimulus = 0;
+                */
 
                 configureBuzzerPWM(buzzerDuty);
                 stopVibration();
                 stopShock();
 
-               msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                msgToSend = new Message(MSG_ID_STIMULUS_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0); // Payload vacío, lo único que me importa es el ID (FLAG).
+				osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                /*
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 2 * sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
-                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
                 msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
@@ -85,19 +104,29 @@ void stimulusTask(void *argument) {
                 msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+                */
+
                 break;
             case DARK_BLUE_ZONE:
                 buzzerDuty = 70;
+
+                /*
                 soundStimulus = 1;
                 vibrationStimulus = 0;
                 shockStimulus = 0;
+                */
+
                 configureBuzzerPWM(buzzerDuty);
                 stopVibration();
                 stopShock();
 
-                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                msgToSend = new Message(MSG_ID_STIMULUS_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0); // Payload vacío, lo único que me importa es el ID (FLAG).
+				osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                /*
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 2 * sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
-                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
                 msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
@@ -107,40 +136,58 @@ void stimulusTask(void *argument) {
                 msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+                */
+
                 break;
             case YELLOW_ZONE:
-                buzzerDuty = 90;
+            	buzzerDuty = 90;
+
+            	/*
                 soundStimulus = 1;
                 vibrationStimulus = 1;
                 shockStimulus = 0;
+				*/
 
                 configureBuzzerPWM(buzzerDuty);
                 configureVibrationPWM(vibrationDuty, vibrationDuty);
                 stopShock();
 
-                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t) + sizeof(float));
+                msgToSend = new Message(MSG_ID_STIMULUS_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0); // Payload vacío, lo único que me importa es el ID (FLAG).
+				osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                /*
+                msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 2 * sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
-                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(float));
+                memcpy(msgToSend->payload + sizeof(uint8_t), &buzzerDuty, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
                 msgToSend = new Message(MSG_ID_STIMULUS_VIBRATION_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &vibrationStimulus, sizeof(uint8_t));
-                memcpy(msgToSend->payload + sizeof(uint8_t), &vibrationDuty, sizeof(float));
-                memcpy(msgToSend->payload + sizeof(uint8_t) + sizeof(float), &vibrationDuty, sizeof(float));
+                memcpy(msgToSend->payload + sizeof(uint8_t), &vibrationDuty, sizeof(uint8_t));
+                memcpy(msgToSend->payload + sizeof(uint8_t) + sizeof(uint8_t), &vibrationDuty, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
 
                 msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+                */
+
                 break;
             case RED_ZONE:
+            	/*
                 soundStimulus = 0;
                 vibrationStimulus = 0;
                 shockStimulus = 1;
+                */
+
                 stopBuzzer();
                 stopVibration();
                 activateShockStimulus();
 
+                msgToSend = new Message(MSG_ID_STIMULUS_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0); // Payload vacío, lo único que me importa es el ID (FLAG).
+				osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+                /*
                 msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
@@ -152,18 +199,26 @@ void stimulusTask(void *argument) {
                 msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+				*/
 
                 break;
             case BLACK_ZONE:
-                soundStimulus = 0;
+                /*
+            	soundStimulus = 0;
                 vibrationStimulus = 0;
                 shockStimulus = 0;
+                */
 
                 stopBuzzer();
                 stopVibration();
                 stopShock();
-                // sendScapedMessage(); // TODO: Supongo que enviaremos un mensaje a TX_LORA para que envíe un msj a la app.
 
+                msgToSend = new Message(MSG_ID_STIMULUS_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0); // Payload vacío, lo único que me importa es el ID (FLAG).
+				osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+				// sendScapedMessage(); // TODO: Supongo que enviaremos un mensaje a TX_LORA para que envíe un msj a la app.
+
+                /*
                 msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
@@ -175,16 +230,24 @@ void stimulusTask(void *argument) {
                 msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+                */
+
                 break;
             default:
+            	/*
                 soundStimulus = 0;
                 vibrationStimulus = 0;
                 shockStimulus = 0;
+                */
 
                 stopBuzzer();
                 stopVibration();
                 stopShock();
 
+                msgToSend = new Message(MSG_ID_STIMULUS_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, 0); // Payload vacío, lo único que me importa es el ID (FLAG).
+				osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+				/*
                 msgToSend = new Message(MSG_ID_STIMULUS_SOUND_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &soundStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
@@ -196,6 +259,8 @@ void stimulusTask(void *argument) {
                 msgToSend = new Message(MSG_ID_STIMULUS_ELECTRIC_FEEDBACK, ModuleId_t::STIMULUS, ModuleId_t::FSM, sizeof(uint8_t));
                 memcpy(msgToSend->payload, &shockStimulus, sizeof(uint8_t));
                 osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+                */
+
                 break;
             }
         }

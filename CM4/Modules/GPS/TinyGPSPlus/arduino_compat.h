@@ -3,9 +3,13 @@
 
 #include "stm32wlxx_hal.h"   // O el HAL que corresponda a tu MCU
 
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 uint32_t millis(void);
 

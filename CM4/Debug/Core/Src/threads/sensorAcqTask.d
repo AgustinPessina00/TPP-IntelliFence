@@ -2,7 +2,6 @@ Core/Src/threads/sensorAcqTask.o: ../Core/Src/threads/sensorAcqTask.cpp \
  ../Core/Inc/threads/sensorAcqTask.h ../../CM4/Modules/GPS/sam_m10q.h \
  ../../CM4/Modules/GPS/sam_m10q_KEYID.h \
  ../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h \
- ../../CM4/Modules/GPS/TinyGPSPlus/arduino_compat.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal.h \
  ../Core/Inc/stm32wlxx_hal_conf.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_dma.h \
@@ -47,7 +46,10 @@ Core/Src/threads/sensorAcqTask.o: ../Core/Src/threads/sensorAcqTask.cpp \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h \
- ../Core/Inc/messages.h ../Core/Inc/messages_id.h \
+ ../../CM4/Modules/IMU/lsm6dso.h \
+ ../../CM4/Modules/IMU/lsm6dso_registers.h ../../CM4/Modules/INA/ina226.h \
+ ../../CM4/Modules/INA/ina226_registers.h ../Core/Inc/messages.h \
+ ../Core/Inc/messages_id.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
  ../Core/Inc/FreeRTOSConfig.h \
@@ -57,15 +59,11 @@ Core/Src/threads/sensorAcqTask.o: ../Core/Src/threads/sensorAcqTask.cpp \
  ../../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3/portmacro.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
- ../../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
- ../../CM4/Modules/IMU/lsm6dso.h \
- ../../CM4/Modules/IMU/lsm6dso_registers.h ../../CM4/Modules/INA/ina226.h \
- ../../CM4/Modules/INA/ina226_registers.h
+ ../../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
 ../Core/Inc/threads/sensorAcqTask.h:
 ../../CM4/Modules/GPS/sam_m10q.h:
 ../../CM4/Modules/GPS/sam_m10q_KEYID.h:
 ../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h:
-../../CM4/Modules/GPS/TinyGPSPlus/arduino_compat.h:
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal.h:
 ../Core/Inc/stm32wlxx_hal_conf.h:
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_dma.h:
@@ -110,6 +108,10 @@ Core/Src/threads/sensorAcqTask.o: ../Core/Src/threads/sensorAcqTask.cpp \
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart.h:
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h:
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h:
+../../CM4/Modules/IMU/lsm6dso.h:
+../../CM4/Modules/IMU/lsm6dso_registers.h:
+../../CM4/Modules/INA/ina226.h:
+../../CM4/Modules/INA/ina226_registers.h:
 ../Core/Inc/messages.h:
 ../Core/Inc/messages_id.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
@@ -122,7 +124,3 @@ Core/Src/threads/sensorAcqTask.o: ../Core/Src/threads/sensorAcqTask.cpp \
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
-../../CM4/Modules/IMU/lsm6dso.h:
-../../CM4/Modules/IMU/lsm6dso_registers.h:
-../../CM4/Modules/INA/ina226.h:
-../../CM4/Modules/INA/ina226_registers.h:

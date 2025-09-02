@@ -4,6 +4,7 @@
 #include "messages.h"
 #include "cow.h"
 #include "fence.h"
+#include "stm32wlxx_hal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,7 +12,6 @@ extern "C" {
 
 #include "FreeRTOS.h"
 #include "task.h"
-#include "stm32wlxx_hal.h"
 
 #define NEAR_LIMIT  10.0f   // en metros
 #define MAX_TRIES   10

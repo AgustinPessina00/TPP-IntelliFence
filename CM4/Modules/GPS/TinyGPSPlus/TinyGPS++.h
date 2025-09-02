@@ -28,8 +28,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define __TinyGPSPlus_h
 
 #include <inttypes.h>
-#include "arduino_compat.h"
 #include <limits.h>
+#include <math.h>
 
 #define _GPS_VERSION "1.1.0" // software version of this library
 #define _GPS_MPH_PER_KNOT 1.15077945
@@ -40,6 +40,15 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define _GPS_FEET_PER_METER 3.2808399
 #define _GPS_MAX_FIELD_SIZE 15
 #define _GPS_EARTH_MEAN_RADIUS 6371009 // old: 6372795
+
+#define radians(x) ((x) * M_PI / 180.0)
+#define degrees(x) ((x) * 180.0 / M_PI)
+#define sq(x) ((x) * (x))
+#define TWO_PI (2.0 * M_PI)
+
+typedef uint8_t byte;
+
+unsigned long millis();
 
 struct RawDegrees
 {
@@ -252,7 +261,7 @@ public:
   uint32_t charsProcessed()   const { return encodedCharCount; }
   uint32_t sentencesWithFix() const { return sentencesWithFixCount; }
   uint32_t failedChecksum()   const { return failedChecksumCount; }
-  uint32_t passedChecksum()   const { return passeFdChecksumCount; }
+  uint32_t passedChecksum()   const { return passedFdChecksumCount; }
 
 private:
   enum {GPS_SENTENCE_GGA, GPS_SENTENCE_RMC, GPS_SENTENCE_OTHER};
@@ -276,7 +285,7 @@ private:
   uint32_t encodedCharCount;
   uint32_t sentencesWithFixCount;
   uint32_t failedChecksumCount;
-  uint32_t passeFdChecksumCount;
+  uint32_t passedFdChecksumCount;
 
   // internal utilities
   int fromHex(char a);

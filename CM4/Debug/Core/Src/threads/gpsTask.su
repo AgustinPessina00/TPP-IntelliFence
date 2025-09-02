@@ -109,6 +109,6 @@ C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.external
 C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\arm-none-eabi\include\c++\12.3.1\bits\stl_algobase.h:527:5:_OI std::__copy_move_a(_II, _II, _OI) [with bool _IsMove = false; _II = __gnu_cxx::__normal_iterator<const unsigned char*, vector<unsigned char> >; _OI = unsigned char*]	32	static
 C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\arm-none-eabi\include\c++\12.3.1\bits\stl_iterator.h:1353:5:_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = const unsigned char*; _Container = vector<unsigned char>]	16	static
 C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\arm-none-eabi\include\c++\12.3.1\bits\stl_iterator.h:1158:7:const _Iterator& __gnu_cxx::__normal_iterator<_Iterator, _Container>::base() const [with _Iterator = const unsigned char*; _Container = std::vector<unsigned char>]	16	static
-../Core/Src/threads/gpsTask.cpp:36:1:void __static_initialization_and_destruction_0(int, int)	4112	static
-../Core/Src/threads/gpsTask.cpp:36:1:cpp)	8	static
-../Core/Src/threads/gpsTask.cpp:36:1:cpp)	8	static
+../Core/Src/threads/gpsTask.cpp:38:1:void __static_initialization_and_destruction_0(int, int)	4112	static
+../Core/Src/threads/gpsTask.cpp:38:1:cpp)	8	static
+../Core/Src/threads/gpsTask.cpp:38:1:cpp)	8	static

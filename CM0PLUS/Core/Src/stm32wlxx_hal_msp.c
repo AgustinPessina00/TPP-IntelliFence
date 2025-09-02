@@ -20,6 +20,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32wl55xx.h"
+#include "stm32wlxx_hal_i2c.h"
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */

@@ -3,6 +3,8 @@
 
 #include "sam_m10q_KEYID.h"
 #include "TinyGPSPlus/TinyGPS++.h"
+#include "stm32wlxx_hal.h"
+#include "stm32wlxx_hal_i2c.h"
 
 #define UBX_HEADER1  0xB5
 #define UBX_HEADER2  0x62

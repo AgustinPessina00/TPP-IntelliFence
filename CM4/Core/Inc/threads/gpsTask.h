@@ -4,7 +4,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "messages.h"
-#include "GPS/sam_m10q.h"
+#include "sam_m10q.h"
 
 #ifdef __cplusplus
 extern "C" {

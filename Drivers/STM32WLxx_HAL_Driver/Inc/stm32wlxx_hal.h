@@ -27,6 +27,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_hal_conf.h"
+#include "stm32wlxx_hal_def.h"
 #include "stm32wlxx_ll_system.h"
 
 /** @addtogroup STM32WLxx_HAL_Driver

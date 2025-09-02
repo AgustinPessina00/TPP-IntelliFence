@@ -61,15 +61,15 @@ void SamM10q::update_location_and_time() {
 bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
     bool setNewAcqTimeOk = false;
 
-    const std::vector<uint8_t>& payload   = m10q_new_acq_time[gpsRate];
-    const std::vector<uint8_t>& checksum  = m10q_new_adq_time_checksum[gpsRate];
+    const std::vector<uint8_t>& payload   = m10q_new_acq_time[static_cast<size_t>(gpsRate)];
+    const std::vector<uint8_t>& checksum  = m10q_new_adq_time_checksum[static_cast<size_t>(gpsRate)];
 
     std::vector<uint8_t> sendMsgRAM, sendMsgBBR;
 
     sendMsgRAM = build_ubx_message(RAM, payload, checksum);
     sendMsgBBR = build_ubx_message(BBR, payload, checksum);
 
-	if((send_message(hi2c2, sendMsgRAM, 15) == HAL_OK) && (send_message(hi2c2, sendMsgBBR, 15) == HAL_OK)) {
+	if((send_message(sendMsgRAM, 15) == HAL_OK) && (send_message(sendMsgBBR, 15) == HAL_OK)) {
 		setNewAcqTimeOk = true;
 	}
 
@@ -89,8 +89,8 @@ void SamM10q::configure_gps() {
         //PESSI: AGREGO EL DELAY EN LA FUNCIÓN send_message.
 
         // TODO: sacar números mágicos/hardcodeados.
-		send_message(hi2c, sendMsgRAM, 15);
-		send_message(hi2c, sendMsgBBR, 15);
+		send_message(sendMsgRAM, 15);
+		send_message(sendMsgBBR, 15);
     }
 }
 
@@ -108,7 +108,7 @@ std::vector<uint8_t> SamM10q::build_full_message_from_index(size_t i, uint8_t la
     return build_ubx_message(layer, payload, checksum);
 }
 
-vector<uint8_t> SamM10q::build_ubx_message(uint8_t layer, const std::vector<uint8_t> payload, const std::vector<uint8_t> checksum) {
+std::vector<uint8_t> SamM10q::build_ubx_message(uint8_t layer, const std::vector<uint8_t> payload, const std::vector<uint8_t> checksum) {
 	std::vector<uint8_t> message;
 
 	// 1. Sync chars
@@ -143,7 +143,7 @@ vector<uint8_t> SamM10q::build_ubx_message(uint8_t layer, const std::vector<uint
 }
 
 HAL_StatusTypeDef SamM10q::send_message(const std::vector<uint8_t>& message, uint32_t delay_ms) {
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Write(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, message.data(), message.size(), HAL_MAX_DELAY);
+    HAL_StatusTypeDef status = HAL_I2C_Mem_Write(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, const_cast<uint8_t*>(message.data()), message.size(), HAL_MAX_DELAY);
 
     // Delay para que el módulo procese
     HAL_Delay(delay_ms);

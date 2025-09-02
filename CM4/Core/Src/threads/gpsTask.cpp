@@ -25,11 +25,13 @@ void gpsTask(void *argument) {
                 default:
                     break;
             }
+
+            delete msgReceived;
 	    }
 
         if(msgToSend)
             osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
-        delete msgReceived;
+
     }
 
     vTaskDelay(pdMS_TO_TICKS(1000));

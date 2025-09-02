@@ -27,22 +27,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "FreeRTOS.h"
+#include "task.h"
 
 #define _RMCterm "RMC"
 #define _GGAterm "GGA"
 
-#if !defined(ARDUINO) && !defined(__AVR__)
-// Alternate implementation of millis() that relies on std
-unsigned long millis()
-{
-    static auto start_time = std::chrono::high_resolution_clock::now();
-
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-
-    return static_cast<unsigned long>(duration.count());
+unsigned long millis() {
+    // convertir ticks (a 100 Hz) a milisegundos
+    return (unsigned long)((uint64_t)xTaskGetTickCount() * 1000ULL / configTICK_RATE_HZ);
 }
-#endif
 
 TinyGPSPlus::TinyGPSPlus()
   :  parity(0)
@@ -56,7 +50,7 @@ TinyGPSPlus::TinyGPSPlus()
   ,  encodedCharCount(0)
   ,  sentencesWithFixCount(0)
   ,  failedChecksumCount(0)
-  ,  passedChecksumCount(0)
+  ,  passedFdChecksumCount(0)
 {
   term[0] = '\0';
 }
@@ -176,7 +170,7 @@ bool TinyGPSPlus::endOfTermHandler()
     byte checksum = 16 * fromHex(term[0]) + fromHex(term[1]);
     if (checksum == parity)
     {
-      passedChecksumCount++;
+      passedFdChecksumCount++;
       if (sentenceHasFix)
         ++sentencesWithFixCount;
 

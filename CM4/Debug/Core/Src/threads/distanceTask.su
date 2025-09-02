@@ -1,8 +1,8 @@
 ../Core/Src/threads/distanceTask.cpp:9:6:void distanceToLimitTask(void*)	56	static
-../Core/Src/threads/distanceTask.cpp:54:8:zone_t getZoneFromDistance(const Cow*, const Fence*, float&)	128	static
-../Core/Src/threads/distanceTask.cpp:79:7:float calculateMinDistanceToFence(XY, Vertex, const std::vector<Line>&)	120	static
-../Core/Src/threads/distanceTask.cpp:99:6:bool isPointInsideFence(const XY&, const std::vector<Line>&, const Vertex&)	120	static
-../Core/Src/threads/distanceTask.cpp:121:7:float pointToSegmentDistance(const XY&, const XY&, const XY&)	120	static
-../Core/Src/threads/distanceTask.cpp:140:4:XY latLonToXY(double, double, double, double)	88	static
+../Core/Src/threads/distanceTask.cpp:57:8:zone_t getZoneFromDistance(const Cow*, const Fence*, float&)	128	static
+../Core/Src/threads/distanceTask.cpp:82:7:float calculateMinDistanceToFence(XY, Vertex, const std::vector<Line>&)	120	static
+../Core/Src/threads/distanceTask.cpp:102:6:bool isPointInsideFence(const XY&, const std::vector<Line>&, const Vertex&)	120	static
+../Core/Src/threads/distanceTask.cpp:124:7:float pointToSegmentDistance(const XY&, const XY&, const XY&)	120	static
+../Core/Src/threads/distanceTask.cpp:143:4:XY latLonToXY(double, double, double, double)	88	static
 C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\bin/../lib/gcc/arm-none-eabi/12.3.1/../../../../arm-none-eabi/include/c++/12.3.1/bits/stl_vector.h:987:7:std::vector<_Tp, _Alloc>::size_type std::vector<_Tp, _Alloc>::size() const [with _Tp = Line; _Alloc = std::allocator<Line>]	16	static
 C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\bin/../lib/gcc/arm-none-eabi/12.3.1/../../../../arm-none-eabi/include/c++/12.3.1/bits/stl_vector.h:1140:7:std::vector<_Tp, _Alloc>::const_reference std::vector<_Tp, _Alloc>::operator[](size_type) const [with _Tp = Line; _Alloc = std::allocator<Line>]	16	static

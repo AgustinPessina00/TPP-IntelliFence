@@ -1,7 +1,7 @@
 ../Core/Src/threads/stimulusTask.cpp:25:6:void stimulusTask(void*)	48	static
-../Core/Src/threads/stimulusTask.cpp:207:6:void configureBuzzerPWM(uint8_t)	32	static
-../Core/Src/threads/stimulusTask.cpp:218:6:void stopBuzzer()	8	static
-../Core/Src/threads/stimulusTask.cpp:222:6:void configureVibrationPWM(uint8_t, uint8_t)	24	static
-../Core/Src/threads/stimulusTask.cpp:237:6:void stopVibration()	8	static
-../Core/Src/threads/stimulusTask.cpp:242:6:void activateShockStimulus()	8	static
-../Core/Src/threads/stimulusTask.cpp:246:6:void stopShock()	8	static
+../Core/Src/threads/stimulusTask.cpp:272:6:void configureBuzzerPWM(uint8_t)	32	static
+../Core/Src/threads/stimulusTask.cpp:283:6:void stopBuzzer()	8	static
+../Core/Src/threads/stimulusTask.cpp:287:6:void configureVibrationPWM(uint8_t, uint8_t)	24	static
+../Core/Src/threads/stimulusTask.cpp:302:6:void stopVibration()	8	static
+../Core/Src/threads/stimulusTask.cpp:307:6:void activateShockStimulus()	8	static
+../Core/Src/threads/stimulusTask.cpp:311:6:void stopShock()	8	static

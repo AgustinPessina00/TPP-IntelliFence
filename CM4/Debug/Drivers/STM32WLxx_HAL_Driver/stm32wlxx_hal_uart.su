@@ -1,5 +1,5 @@
-C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_rcc.h:2169:26:LL_RCC_GetUSARTClockSource	16	static
-C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_rcc.h:2200:26:LL_RCC_GetLPUARTClockSource	16	static
+../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_rcc.h:2169:26:LL_RCC_GetUSARTClockSource	16	static
+../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_rcc.h:2200:26:LL_RCC_GetLPUARTClockSource	16	static
 C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_uart.c:307:19:HAL_UART_Init	16	static
 C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_uart.c:382:19:HAL_HalfDuplex_Init	16	static
 C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_uart.c:457:19:HAL_LIN_Init	16	static

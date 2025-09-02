@@ -2,6 +2,10 @@
 #ifndef INA226_CLASS_H
 #define INA226_CLASS_H
 
+#include "stm32wlxx_hal.h"
+#include <stdint.h>
+#include "stm32wlxx_hal_i2c.h"
+
 #include "ina226_registers.h"
 
 // === Máscaras de campos del registro de configuración ===
@@ -70,7 +74,6 @@ private:
     I2C_HandleTypeDef *hi2c;
     float rShunt;
     float currentLSB; //PESSI: Agrego currentLSB para calibrar.
-
 };
 
 

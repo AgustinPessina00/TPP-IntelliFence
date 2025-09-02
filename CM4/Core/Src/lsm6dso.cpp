@@ -9,7 +9,7 @@ Lsm6dso::Lsm6dso(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6d
 {
   this->hi2c = hi2c;
   this->i2cAddr = i2cAddr;
-	configure(odrAcc, fsAcc, odrGyr, fsGyr, wakeThs, wakeDur, wakeWeight, sleepDur);
+  configure(i3c, odrAcc, fsAcc, odrGyr, fsGyr, wakeThs, wakeDur, wakeWeight, sleepDur);
 }
 
 HAL_StatusTypeDef Lsm6dso::readAcceleration()
@@ -34,12 +34,14 @@ HAL_StatusTypeDef Lsm6dso::readAcceleration()
 /* Private methods ----------------------------------------------------------*/
 
 bool Lsm6dso::configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr,
-		Lsm6dsoWakeThs wakeThs, Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur) {
+	Lsm6dsoWakeThs wakeThs, Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur) {
 
-    uint8_t config = setConfigurationREG_CTRL9_XL(i3c);
+	uint8_t config;
+
+    config = setConfigurationREG_CTRL9_XL(i3c);
     if (!writeRegister(REG_CTRL9_XL, config)) return false;
 
-    uint8_t config = setConfigurationREG_CTRL1_XL(odrAcc, fsAcc);
+    config = setConfigurationREG_CTRL1_XL(odrAcc, fsAcc);
     if (!writeRegister(REG_CTRL1_XL, config)) return false;
 
     return 0;//writeRegister(REG_CALIB, cal);
@@ -68,7 +70,7 @@ uint8_t Lsm6dso::setConfigurationREG_CTRL7_G(Lsm6dsoGHm gHm){
 }
 
 uint8_t Lsm6dso::setConfigurationREG_CTRL9_XL(Lsm6dsoI3C i3c) {
-	return (static_cast<uint8_t>(i3c) & LSM6DSO_I3C_DISABLE);
+	return (static_cast<uint8_t>(i3c) & LSM6DSO_I3C_DISABLE_MASK);
 }
 
 uint8_t Lsm6dso::setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn sF){
@@ -97,7 +99,7 @@ uint8_t Lsm6dso::setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU){
 
 bool Lsm6dso::writeRegister(uint8_t reg, uint8_t value) {
 	uint8_t data = value;
-  return HAL_I2C_Mem_Write_DMA(this->hi2c2, this->i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, &data, 1) == HAL_OK;
+  return HAL_I2C_Mem_Write_DMA(this->hi2c, this->i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, &data, 1) == HAL_OK;
 }
 
 
@@ -155,7 +157,7 @@ float_t Lsm6dso::lsm6dso_from_lsb_to_nsec(int16_t lsb)
 
 // ----- VERSIÓN CON HI2C2 -----
 int32_t Lsm6dso::lsm6dso_read_reg(uint8_t reg, uint8_t *data, uint16_t len){
-  return HAL_I2C_Mem_Read(this->hi2c2, this->i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, data, len, 100);
+  return HAL_I2C_Mem_Read(this->hi2c, this->i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, data, len, 100);
 }
 
 
@@ -197,7 +199,7 @@ int32_t Lsm6dso::lsm6dso_acceleration_raw_get(int16_t *val) {
 
 
 // ----- VERSIÓN CON HI2C2 -----
-int32_t Lsm6dso::lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data) {
+int32_t Lsm6dso::lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data) {
   uint8_t buff[14];
   int32_t ret = 0;
 
@@ -218,16 +220,16 @@ int32_t Lsm6dso::lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data) 
     j += 2;
 
     switch (md->ui.xl.fs) {
-      case LSM6DSO_XL_UI_2g:
+      case Lsm6dsoFsXlUi::LSM6DSO_XL_UI_2g:
         data->ui.xl.mg[i] = lsm6dso_from_fs2_to_mg(data->ui.xl.raw[i]);
         break;
-      case LSM6DSO_XL_UI_4g:
+      case Lsm6dsoFsXlUi::LSM6DSO_XL_UI_4g:
         data->ui.xl.mg[i] = lsm6dso_from_fs4_to_mg(data->ui.xl.raw[i]);
         break;
-      case LSM6DSO_XL_UI_8g:
+      case Lsm6dsoFsXlUi::LSM6DSO_XL_UI_8g:
         data->ui.xl.mg[i] = lsm6dso_from_fs8_to_mg(data->ui.xl.raw[i]);
         break;
-      case LSM6DSO_XL_UI_16g:
+      case Lsm6dsoFsXlUi::LSM6DSO_XL_UI_16g:
         data->ui.xl.mg[i] = lsm6dso_from_fs16_to_mg(data->ui.xl.raw[i]);
         break;
       default:

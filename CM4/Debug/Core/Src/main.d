@@ -44,8 +44,14 @@ Core/Src/main.o: ../Core/Src/main.cpp ../Core/Inc/main.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h \
  ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h \
- ../LoRaWAN/App/app_lorawan.h ../Core/Inc/threads/dispatcherTask.h \
- ../Core/Inc/messages.h ../Core/Inc/messages_id.h \
+ ../LoRaWAN/App/app_lorawan.h ../../CM4/Modules/GPS/sam_m10q.h \
+ ../../CM4/Modules/GPS/sam_m10q_KEYID.h \
+ ../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h \
+ ../../CM4/Modules/IMU/lsm6dso.h \
+ ../../CM4/Modules/IMU/lsm6dso_registers.h ../../CM4/Modules/INA/ina226.h \
+ ../../CM4/Modules/INA/ina226_registers.h \
+ ../Core/Inc/threads/dispatcherTask.h ../Core/Inc/messages.h \
+ ../Core/Inc/messages_id.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../Core/Inc/threads/distanceTask.h ../Core/Inc/cow.h ../Core/Inc/fence.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
@@ -58,14 +64,8 @@ Core/Src/main.o: ../Core/Src/main.cpp ../Core/Inc/main.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Core/Inc/threads/fenceUpdateTask.h ../Core/Inc/threads/fsmTask.h \
- ../Core/Inc/threads/gpsTask.h ../../CM4/Modules/GPS/sam_m10q.h \
- ../../CM4/Modules/GPS/sam_m10q_KEYID.h \
- ../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h \
- ../../CM4/Modules/GPS/TinyGPSPlus/arduino_compat.h \
- ../Core/Inc/threads/loraTxTask.h ../Core/Inc/threads/loraRxTask.h \
- ../Core/Inc/threads/sensorAcqTask.h ../../CM4/Modules/IMU/lsm6dso.h \
- ../../CM4/Modules/IMU/lsm6dso_registers.h ../../CM4/Modules/INA/ina226.h \
- ../../CM4/Modules/INA/ina226_registers.h \
+ ../Core/Inc/threads/gpsTask.h ../Core/Inc/threads/loraTxTask.h \
+ ../Core/Inc/threads/loraRxTask.h ../Core/Inc/threads/sensorAcqTask.h \
  ../Core/Inc/threads/stimulusTask.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
  ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
@@ -118,6 +118,13 @@ Core/Src/main.o: ../Core/Src/main.cpp ../Core/Inc/main.h \
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h:
 ../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h:
 ../LoRaWAN/App/app_lorawan.h:
+../../CM4/Modules/GPS/sam_m10q.h:
+../../CM4/Modules/GPS/sam_m10q_KEYID.h:
+../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h:
+../../CM4/Modules/IMU/lsm6dso.h:
+../../CM4/Modules/IMU/lsm6dso_registers.h:
+../../CM4/Modules/INA/ina226.h:
+../../CM4/Modules/INA/ina226_registers.h:
 ../Core/Inc/threads/dispatcherTask.h:
 ../Core/Inc/messages.h:
 ../Core/Inc/messages_id.h:
@@ -137,17 +144,9 @@ Core/Src/main.o: ../Core/Src/main.cpp ../Core/Inc/main.h \
 ../Core/Inc/threads/fenceUpdateTask.h:
 ../Core/Inc/threads/fsmTask.h:
 ../Core/Inc/threads/gpsTask.h:
-../../CM4/Modules/GPS/sam_m10q.h:
-../../CM4/Modules/GPS/sam_m10q_KEYID.h:
-../../CM4/Modules/GPS/TinyGPSPlus/TinyGPS++.h:
-../../CM4/Modules/GPS/TinyGPSPlus/arduino_compat.h:
 ../Core/Inc/threads/loraTxTask.h:
 ../Core/Inc/threads/loraRxTask.h:
 ../Core/Inc/threads/sensorAcqTask.h:
-../../CM4/Modules/IMU/lsm6dso.h:
-../../CM4/Modules/IMU/lsm6dso_registers.h:
-../../CM4/Modules/INA/ina226.h:
-../../CM4/Modules/INA/ina226_registers.h:
 ../Core/Inc/threads/stimulusTask.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:

@@ -21,31 +21,34 @@ void distanceToLimitTask(void *argument) {
         if (osMessageQueueGet(distanceToLimitQueueHandle, &msgReceived, NULL, 0) == osOK) {
 
             switch (msgReceived->id) {
-            case MSG_ID_REQUEST_ZONE_TO_FENCE:
-            //TODO: Ver si pasamos zone_T en el mensaje o casteamos a uint8_t, ya que payload recibe uint8_t.
-                msgToSend = new Message(MSG_ID_SEND_ZONE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(uint8_t));
-                memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
-                break;
-            case MSG_ID_REQUEST_DISTANCE_TO_FENCE:
-                msgToSend = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(float));
-                memcpy(msgToSend->payload, &minDistance, sizeof(float));
-                break;
-            case MSG_ID_REQUEST_ZONE_AND_DISTANCE_TO_FENCE:
-                msgToSend = new Message(MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, 
-                sizeof(uint8_t) + sizeof(float)); // 5 bytes
-                memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
-                memcpy(msgToSend->payload + sizeof(uint8_t), &minDistance, sizeof(float));
-                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
-                break;
+            	case MSG_ID_REQUEST_ZONE_TO_FENCE:
+            		//TODO: Ver si pasamos zone_T en el mensaje o casteamos a uint8_t, ya que payload recibe uint8_t.
+            		msgToSend = new Message(MSG_ID_SEND_ZONE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(uint8_t));
+            		memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
+            		break;
+            	case MSG_ID_REQUEST_DISTANCE_TO_FENCE:
+            		msgToSend = new Message(MSG_ID_SEND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM, sizeof(float));
+            		memcpy(msgToSend->payload, &minDistance, sizeof(float));
+            		break;
+            	case MSG_ID_REQUEST_ZONE_AND_DISTANCE_TO_FENCE:
+					msgToSend = new Message(MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE, ModuleId_t::DISTANCE, ModuleId_t::FSM,
+					sizeof(uint8_t) + sizeof(float)); // 5 bytes
+					memcpy(msgToSend->payload, &zoneCode, sizeof(uint8_t));
+					memcpy(msgToSend->payload + sizeof(uint8_t), &minDistance, sizeof(float));
+					osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+					break;
 
-            default:
-                break;
+				default:
+					break;
             }
             
-            }
-            if(msgToSend)
-                osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
             delete msgReceived;
+        }
+
+        if(msgToSend)
+        	osMessageQueuePut(dispatcherQueueHandle, msgToSend, 0, 0);
+
+
 	}
 
     vTaskDelay(pdMS_TO_TICKS(1000));

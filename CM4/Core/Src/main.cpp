@@ -19,6 +19,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "app_lorawan.h"
+#include "sam_m10q.h"
+#include "lsm6dso.h"
+#include "ina226.h"
 #include "threads/dispatcherTask.h"
 #include "threads/distanceTask.h"
 #include "threads/fenceUpdateTask.h"

@@ -19,7 +19,7 @@
 #define LSM6DSO_INT_EN_MASK			  (0b1		  << INT_EN)		    // TAP_CFG2 (0x58)
 #define LSM6DSO_INACT_MASK			  (0b11 		<< INACT_EN0)	    // TAP_CFG2 (0x58)
 #define LSM6DSO_WK_THS_MASK			  (0b111111	<< WK_THS0)		    // WAKE_UP_THS (0x5B)
-#define LSM6DSO_WK_DUR_MASK			  (0b11 		<< WK_DUR0)		    // WAKE_UP_DUR (0x5C)
+#define LSM6DSO_WK_DUR_MASK			  (0b11 		<< WAKE_DUR0)		    // WAKE_UP_DUR (0x5C)
 #define LSM6DSO_WK_DUR_THS_MASK		(0b1 		  << WAKE_THS_W)	  // WAKE_UP_DUR (0x5C)
 #define LSM6DSO_WK_DUR_SLP_MASK		(0b1111 	<< SLEEP_DUR0)	  // WAKE_UP_DUR (0x5C)
 #define LSM6DSO_INT1_WU_MASK		  (0b1		  << INT1_WU)		    // MD1_CFG (0x5E)
@@ -464,7 +464,7 @@ private:
 	float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
 	int32_t lsm6dso_read_reg(uint8_t reg, uint8_t *data, uint16_t len);
 	int32_t lsm6dso_acceleration_raw_get(int16_t *val);
-	int32_t lsm6dso_data_get(const lsm6dso_md_t *md, lsm6dso_data_t *data);
+	int32_t lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data);
 
 	uint8_t i2cAddr;
 	I2C_HandleTypeDef *hi2c;
