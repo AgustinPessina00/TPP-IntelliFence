@@ -41,6 +41,7 @@ typedef enum {
   STARTUP_ROUTINE_REQUEST_POSITION,
   STARTUP_ROUTINE_WAIT_POSITION,
   STARTUP_ROUTINE_SEND_POSITION_LORA,
+  STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE,
   STARTUP_ROUTINE_WAIT_FENCE,
   STARTUP_ROUTINE_SAVE_FENCE,
   STARTUP_ROUTINE_REQUEST_NEW_POSITION,
@@ -111,6 +112,7 @@ void sendMessage(uint8_t msgId, ModuleId_t dest);
 HAL_StatusTypeDef dequeuedMessage(Message *msgReceived, fsmTaskParams *fsmParams);
 HAL_StatusTypeDef updatePosition(Message *msgReceived, fsmTaskParams *fsmParams);
 void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams);
+HAL_StatusTypeDef loraTxResponse(Message *msgReceived);
 HAL_StatusTypeDef receivedFence(Message *msgReceived, fsmTaskParams *fsmParams);
 void updateFence(fsmTaskParams *fsmParams);
 HAL_StatusTypeDef isInFence(fsmTaskParams *fsmParams);

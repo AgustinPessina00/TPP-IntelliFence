@@ -98,9 +98,23 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
       break;
 
     case STARTUP_ROUTINE_SEND_POSITION_LORA:
-      sendPosition(MSG_ID_LORA_POSITION, ModuleId_t::LORA_TX, fsmParams);
-      startupRoutineState = STARTUP_ROUTINE_WAIT_FENCE;
+      sendPosition(MSG_ID_LORA_SEND_POSITION, ModuleId_t::LORA_TX, fsmParams);
+      startupRoutineState = STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE;
       break;
+
+    case STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE:
+      if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+		if (loraTxResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_LORA_SEND_POSITION_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+			startupRoutineState = STARTUP_ROUTINE_WAIT_FENCE;
+    	    tries = 0;
+		}
+	  } else {
+		tries++;
+		if (tries >= MAX_TRIES){
+			startupRoutineState = STARTUP_ROUTINE_SEND_POSITION_LORA;
+		}
+	  }
+	  break;
 
     case STARTUP_ROUTINE_WAIT_FENCE:
       // TODO: CREAR TIMEOUT PARA ESPERAR FENCE
@@ -522,12 +536,28 @@ void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams) {
   osMessageQueuePut(dispatcherQueueHandle, msg, 0, 0);
 }
 
+HAL_StatusTypeDef loraTxResponse(Message *msgReceived) {
+  HAL_StatusTypeDef status = HAL_ERROR;
+
+  switch (msgReceived->id) {
+    case MSG_ID_LORA_SEND_POSITION_FEEDBACK:
+      status = HAL_OK;
+      // printf("FSM recibió %lu vértices del cerco\r\n", vertexCount);
+      break;
+
+    // Otros casos futuros...
+  }
+
+  delete msgReceived;
+  return status;
+}
+
 // Recibe latitud y longitud (double) de LORA_RX con un tamaño fijo.
 HAL_StatusTypeDef receivedFence(Message *msgReceived, fsmTaskParams *fsmParams) {
   HAL_StatusTypeDef status = HAL_ERROR;
 
   switch (msgReceived->id) {
-    case MSG_ID_LORA_VERTEXES: 
+    case MSG_ID_LORA_VERTEXES_RECEIVED:
       std::vector<Vertex> vertices;
       int vertexCount = msgReceived->length / sizeof(Vertex);
       vertices.resize(vertexCount);

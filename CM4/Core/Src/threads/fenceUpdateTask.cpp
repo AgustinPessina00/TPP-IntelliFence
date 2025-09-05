@@ -4,7 +4,7 @@
 
 void fenceUpdateTask(void *argument) {
     for (;;) {
-        // TODO: implementar l�gica de la tarea
+        // TODO: Eliminar esta tarea porque ya lo hace FSM::FENCE_TRANSITION_STATE
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

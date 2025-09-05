@@ -7,8 +7,9 @@ extern osMessageQueueId_t dispatcherQueueHandle;
 void gpsTask(void *argument) {
 	gpsAcqTaskParams *gpsParams = static_cast<gpsAcqTaskParams *>(argument);
 
+	Message* msgReceived;
     while (1) {
-        Message* msgReceived = nullptr;
+        msgReceived = nullptr;
         Message* msgToSend = nullptr;
         gpsRateSpeed rateGPS;
 
