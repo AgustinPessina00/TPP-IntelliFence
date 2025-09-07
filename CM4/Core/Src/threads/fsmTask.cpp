@@ -8,24 +8,6 @@ extern osMessageQueueId_t dispatcherQueueHandle;
 
 bool receivedMsgLoraRX;
 
-/*
-FSM::FSM() {
-  this->mainFSM = MainFSM_t::STARTUP_ROUTINE;
-  this->normalOpFSM = NormalOpFSM_t::INITIALIZE;
-  
-  this->startupRoutineState = STARTUP_ROUTINE_BEGIN;
-  
-  this->initializeState = INITIALIZE_BEGIN;
-  this->greenZoneState = GREEN_ZONE_BEGIN;
-  this->stimulusZoneState = STIMULUS_ZONE_BEGIN;
-
-  this->fenceTransitionState = FENCE_TRANSITION_BEGIN;
-
-  this->tries = 0; // Podemos definir varios "tries" para cada caso (i.e.: gps, lora, zone, etc)
-
-  this->msgReceived = nullptr;  
-}*/
-
 void fsmTask(void *argument) {
   fsmTaskParams *fsmParams = static_cast<fsmTaskParams *> (argument);
 
@@ -118,9 +100,12 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t startupRoutin
 
     case STARTUP_ROUTINE_WAIT_FENCE:
       // TODO: CREAR TIMEOUT PARA ESPERAR FENCE
-      if (receivedFence(msgReceived, fsmParams) == HAL_OK) {
-        startupRoutineState = STARTUP_ROUTINE_SAVE_FENCE;
-      }
+      if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+    	  if(receivedMsgLoraRX){
+    		  startupRoutineState = STARTUP_ROUTINE_SAVE_FENCE;
+    		  receivedMsgLoraRX = false;
+    	  }
+	  }
       break;
 
     case STARTUP_ROUTINE_SAVE_FENCE:
@@ -488,7 +473,7 @@ void sendMessage(uint8_t msgId, ModuleId_t dest) {
 
 HAL_StatusTypeDef dequeuedMessage(Message *msgReceived, fsmTaskParams *fsmParams) {
   if (osMessageQueueGet(dispatcherQueueHandle, &(msgReceived), NULL, 0) == osOK) {
-	  if (msgReceived->id == MSG_ID_LORA_RX){
+	  if (msgReceived->id == MSG_ID_LORA_VERTEXES_RECEIVED){
 		  receivedMsgLoraRX = true;
 		  receivedFence(msgReceived, fsmParams);
 	  }

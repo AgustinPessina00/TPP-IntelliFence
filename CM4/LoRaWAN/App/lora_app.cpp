@@ -33,13 +33,15 @@
 #include "flash_if.h"
 #include "mbmuxif_sys.h"
 
+#include "messages.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-
+extern osMessageQueueId_t dispatcherQueueHandle;
 /* USER CODE END EV */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -479,6 +481,16 @@ static void Thd_LoraStopJoin(void *argument)
 static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 {
   /* USER CODE BEGIN OnRxData_1 */
+    if (appData->BufferSize > 0) {
+    	// TODO: Habría que hacer un ModuleId_t para esta función?
+    	Message* msgToSend = new Message(MSG_ID_LORA_RX, ModuleId_t::LORA_RX, ModuleId_t::DISPATCHER, appData->Buffer, appData->BufferSize);
+
+    	// TODO: Estaría bueno hacer esto todas las veces que mandamos un msg.
+    	osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+        if (status != osOK) {
+            delete msgToSend; // prevenir memory leak
+        }
+    }
   /* USER CODE END OnRxData_1 */
 }
 

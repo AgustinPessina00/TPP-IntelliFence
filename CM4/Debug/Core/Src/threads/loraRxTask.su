@@ -1,1 +1,1 @@
-../Core/Src/threads/loraRxTask.cpp:9:6:void loraRxTask(void*)	16	static
+../Core/Src/threads/loraRxTask.cpp:13:6:void loraRxTask(void*)	40	static

@@ -17,7 +17,6 @@ HAL_StatusTypeDef SendCoordinates(double latitude, double longitude);
 void loraTxTask(void *argument) {
 	Message* msgReceived;
 
-
 	while (1) {
 		msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
 

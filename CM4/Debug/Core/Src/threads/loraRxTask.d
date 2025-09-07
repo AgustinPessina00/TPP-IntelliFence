@@ -10,7 +10,8 @@ Core/Src/threads/loraRxTask.o: ../Core/Src/threads/loraRxTask.cpp \
  ../../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Core/Inc/threads/loraRxTask.h ../Core/Inc/messages.h \
  ../Core/Inc/messages_id.h \
- ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
+ ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
+ ../Core/Inc/fence.h ../Core/Inc/zone.h
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 ../Core/Inc/FreeRTOSConfig.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
@@ -24,3 +25,5 @@ Core/Src/threads/loraRxTask.o: ../Core/Src/threads/loraRxTask.cpp \
 ../Core/Inc/messages.h:
 ../Core/Inc/messages_id.h:
 ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+../Core/Inc/fence.h:
+../Core/Inc/zone.h:

@@ -1,2 +1,2 @@
 ../Core/Src/threads/loraTxTask.cpp:17:6:void loraTxTask(void*)	5
-../Core/Src/threads/loraTxTask.cpp:47:19:HAL_StatusTypeDef SendCoordinates(double, double)	2
+../Core/Src/threads/loraTxTask.cpp:46:19:HAL_StatusTypeDef SendCoordinates(double, double)	2

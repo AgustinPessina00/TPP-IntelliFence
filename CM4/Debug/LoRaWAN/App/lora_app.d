@@ -85,7 +85,9 @@ LoRaWAN/App/lora_app.o: ../LoRaWAN/App/lora_app.cpp \
  ../../Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionVersion.h \
  ../Core/Inc/adc_if.h ../LoRaWAN/App/CayenneLpp.h \
  ../Core/Inc/sys_sensors.h ../Core/Inc/flash_if.h ../MbMux/mbmuxif_sys.h \
- ../Core/Inc/main.h ../MbMux/mbmux.h
+ ../Core/Inc/main.h ../MbMux/mbmux.h ../Core/Inc/messages.h \
+ ../Core/Inc/messages_id.h \
+ ../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
 ../Core/Inc/platform.h:
 ../Core/Inc/main.h:
 ../Core/Inc/cow.h:
@@ -186,3 +188,6 @@ LoRaWAN/App/lora_app.o: ../LoRaWAN/App/lora_app.cpp \
 ../MbMux/mbmuxif_sys.h:
 ../Core/Inc/main.h:
 ../MbMux/mbmux.h:
+../Core/Inc/messages.h:
+../Core/Inc/messages_id.h:
+../../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
