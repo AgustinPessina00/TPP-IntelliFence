@@ -34,8 +34,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "cow.h"
-//#include "fence.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -124,6 +123,7 @@ void MX_USART2_UART_Init(void);
 
 static const uint8_t GPS_ADDRESS = 0x84;	// 0x42 << 1 // GPS 8-bit Address.
 static const uint8_t IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
+// TODO: Cambiar addresses de INA
 static const uint8_t INA_MCU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
 static const uint8_t INA_GPS_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.
 static const uint8_t INA_IMU_ADDRESS = 0xD4;	// 0x6A << 1 // IMU 8-bit Address.

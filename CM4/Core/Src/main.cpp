@@ -284,31 +284,31 @@ int main(void)
 
   /* Create the queue(s) */
   /* creation of dispatcherQueue */
-  dispatcherQueueHandle  = osMessageQueueNew (256, sizeof(uint16_t), &dispatcherQueue_attributes);
+  dispatcherQueueHandle  = osMessageQueueNew (256, sizeof(Message*), &dispatcherQueue_attributes);
 
   /* creation of sensorAcqQueue */
-  sensorAcqQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &sensorAcqQueue_attributes);
+  sensorAcqQueueHandle = osMessageQueueNew (16, sizeof(Message*), &sensorAcqQueue_attributes);
 
   /* creation of stimulusQueue */
-  stimulusQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &stimulusQueue_attributes);
+  stimulusQueueHandle = osMessageQueueNew (16, sizeof(Message*), &stimulusQueue_attributes);
 
   /* creation of gpsQueue */
-  gpsQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &gpsQueue_attributes);
+  gpsQueueHandle = osMessageQueueNew (16, sizeof(Message*), &gpsQueue_attributes);
 
   /* creation of loraTxQueue */
-  loraTxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &loraTxQueue_attributes);
+  loraTxQueueHandle = osMessageQueueNew (16, sizeof(Message*), &loraTxQueue_attributes);
 
   /* creation of loraRxQueue */
-  loraRxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &loraRxQueue_attributes);
+  loraRxQueueHandle = osMessageQueueNew (16, sizeof(Message*), &loraRxQueue_attributes);
 
   /* creation of fsmQueue */
-  fsmQueueHandle = osMessageQueueNew (128, sizeof(uint16_t), &fsmQueue_attributes);
+  fsmQueueHandle = osMessageQueueNew (128, sizeof(Message*), &fsmQueue_attributes);
 
   /* creation of distanceToLimitQueue */
-  distanceToLimitQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &distanceToLimitQueue_attributes);
+  distanceToLimitQueueHandle = osMessageQueueNew (16, sizeof(Message*), &distanceToLimitQueue_attributes);
 
   /* creation of fenceUpdateQueue */
-  fenceUpdateQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &fenceUpdateQueue_attributes);
+  fenceUpdateQueueHandle = osMessageQueueNew (16, sizeof(Message*), &fenceUpdateQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
