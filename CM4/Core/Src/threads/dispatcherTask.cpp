@@ -48,5 +48,6 @@ void dispatcherTask(void *argument) {
                     break;
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
