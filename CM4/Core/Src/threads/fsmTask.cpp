@@ -227,9 +227,10 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
 
     case INITIALIZE_END:
       initializeState = INITIALIZE_BEGIN;
-      if (isInFence(fsmParams))
+      if (isInFence(fsmParams)){
         normalOpFSM = NormalOpFSM_t::GREEN_ZONE;
-      else
+      	sendZoneToStimulus(fsmParams->cow->getCurrentZone(), ModuleId_t::STIMULUS);
+      } else
         normalOpFSM = NormalOpFSM_t::STIMULUS_ZONE;
       break;
   }
@@ -571,8 +572,9 @@ void updateFence(fsmTaskParams *fsmParams) {
 }
 
 HAL_StatusTypeDef isInFence(fsmTaskParams *fsmParams) {
-  if (fsmParams->cow->getCurrentZone() != zone_t::BLACK_ZONE) {
-    return HAL_OK;
+  if (fsmParams->cow->getCurrentZone() != zone_t::GREEN_ZONE) {
+
+	  return HAL_OK;
   }
 
   return HAL_ERROR;
