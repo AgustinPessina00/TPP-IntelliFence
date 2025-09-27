@@ -1,3 +1,0 @@
-../MbMux/mbmuxif_trace.cpp:70:8:int8_t MBMUXIF_TraceInit()	24	static
-../MbMux/mbmuxif_trace.cpp:97:6:void MBMUXIF_TraceSendAck()	8	static
-../MbMux/mbmuxif_trace.cpp:116:13:void MBMUXIF_IsrTraceNotifRcvCb(void*)	32	static

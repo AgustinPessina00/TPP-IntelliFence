@@ -1,8 +1,0 @@
-../MbMux/mbmuxif_lora.cpp:113:8:int8_t MBMUXIF_LoraInit()	8
-../MbMux/mbmuxif_lora.cpp:170:19:MBMUX_ComParam_t* MBMUXIF_GetLoraFeatureCmdComPtr()	2
-../MbMux/mbmuxif_lora.cpp:186:6:void MBMUXIF_LoraSendCmd()	2
-../MbMux/mbmuxif_lora.cpp:204:6:void MBMUXIF_LoraSendAck()	2
-../MbMux/mbmuxif_lora.cpp:223:13:void MBMUXIF_IsrLoraRespRcvCb(void*)	1
-../MbMux/mbmuxif_lora.cpp:234:13:void MBMUXIF_IsrLoraNotifRcvCb(void*)	1
-../MbMux/mbmuxif_lora.cpp:246:13:void MBMUXIF_TaskLoraNotifRcv()	1
-../MbMux/mbmuxif_lora.cpp:257:13:void Thd_LoraNotifRcvProcess(void*)	1

@@ -1,0 +1,169 @@
+20:56:19 **** Clean-only build of configuration Debug for project TPP-IntelliFence_CM0PLUS ****
+make -j12 clean 
+rm -rf ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_cortex.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_cortex.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_cortex.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_cortex.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma_ex.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma_ex.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma_ex.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma_ex.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_exti.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_exti.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_exti.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_exti.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash_ex.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash_ex.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash_ex.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash_ex.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_gpio.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_gpio.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_gpio.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_gpio.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c_ex.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c_ex.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c_ex.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c_ex.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr_ex.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr_ex.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr_ex.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr_ex.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc_ex.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc_ex.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc_ex.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc_ex.su ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.cyclo ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.d ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.o ./Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.su
+rm -rf ./Core/Startup/startup_stm32wl55jcix.d ./Core/Startup/startup_stm32wl55jcix.o
+rm -rf ./Core/Src/flash_if.cyclo ./Core/Src/flash_if.d ./Core/Src/flash_if.o ./Core/Src/flash_if.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/stm32wlxx_hal_msp.cyclo ./Core/Src/stm32wlxx_hal_msp.d ./Core/Src/stm32wlxx_hal_msp.o ./Core/Src/stm32wlxx_hal_msp.su ./Core/Src/stm32wlxx_it.cyclo ./Core/Src/stm32wlxx_it.d ./Core/Src/stm32wlxx_it.o ./Core/Src/stm32wlxx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su
+rm -rf ./Common/System/system_stm32wlxx.cyclo ./Common/System/system_stm32wlxx.d ./Common/System/system_stm32wlxx.o ./Common/System/system_stm32wlxx.su
+rm -rf TPP-IntelliFence_CM0PLUS.elf TPP-IntelliFence_CM0PLUS.list TPP-IntelliFence_CM0PLUS.map default.size.stdout
+ 
+20:56:19 **** Build of configuration Debug for project TPP-IntelliFence_CM0PLUS ****
+make -j12 all 
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_cortex.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_cortex.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_cortex.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_cortex.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_dma.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_dma_ex.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma_ex.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma_ex.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_dma_ex.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_exti.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_exti.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_exti.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_exti.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_flash.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_flash_ex.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash_ex.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash_ex.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_flash_ex.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_gpio.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_gpio.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_gpio.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_gpio.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_i2c.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c.o"
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_i2c_ex.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c_ex.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c_ex.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_i2c_ex.o"
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_ipcc.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_ipcc.o"
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_pwr.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr.o"
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_pwr_ex.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr_ex.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr_ex.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_pwr_ex.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rcc.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rcc_ex.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc_ex.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc_ex.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_rcc_ex.o"
+arm-none-eabi-gcc "C:/Users/nacho/OneDrive/Documentos/FIUBA/TPP/SW/TPP-IntelliFence/Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_subghz.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.d" -MT"Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Drivers/STM32WLxx_HAL_Driver/stm32wlxx_hal_subghz.o"
+arm-none-eabi-gcc -mcpu=cortex-m0plus -g3 -DDEBUG -c -I../Core/Inc -I../LoRaWAN/App -I../LoRaWAN/Target -I../MbMux -I../../Common/System -I../../Common/MbMux -I../../Utilities/trace/adv_trace -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Utilities/misc -I../../Utilities/sequencer -I../../Utilities/timer -I../../Utilities/lpm/tiny_lpm -I../../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Middlewares/Third_Party/LoRaWAN/Crypto -I../../Middlewares/Third_Party/LoRaWAN/Mac/Region -I../../Middlewares/Third_Party/LoRaWAN/Mac -I../../Middlewares/Third_Party/LoRaWAN/LmHandler -I../../Middlewares/Third_Party/LoRaWAN/Utilities -I../../Middlewares/Third_Party/SubGHz_Phy -I../../Middlewares/Third_Party/SubGHz_Phy/stm32_radio_driver -I../../Drivers/CMSIS/Include -x assembler-with-cpp -MMD -MP -MF"Core/Startup/startup_stm32wl55jcix.d" -MT"Core/Startup/startup_stm32wl55jcix.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Startup/startup_stm32wl55jcix.o" "../Core/Startup/startup_stm32wl55jcix.s"
+arm-none-eabi-gcc "../Core/Src/flash_if.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/flash_if.d" -MT"Core/Src/flash_if.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/flash_if.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc "../Core/Src/stm32wlxx_hal_msp.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32wlxx_hal_msp.d" -MT"Core/Src/stm32wlxx_hal_msp.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/stm32wlxx_hal_msp.o"
+arm-none-eabi-gcc "../Core/Src/stm32wlxx_it.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32wlxx_it.d" -MT"Core/Src/stm32wlxx_it.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/stm32wlxx_it.o"
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+arm-none-eabi-gcc "../Core/Src/syscalls.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/syscalls.d" -MT"Core/Src/syscalls.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/syscalls.o"
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+arm-none-eabi-gcc "../Core/Src/sysmem.c" -mcpu=cortex-m0plus -std=gnu11 -g3 -DDEBUG '-DCORE_CM0+' -DCORE_CM0PLUS -DUSE_HAL_DRIVER -DSTM32WL55xx -c -I../Core/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc -I../../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy -I../../Drivers/CMSIS/Device/ST/STM32WLxx/Include -I../../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/sysmem.d" -MT"Core/Src/sysmem.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/sysmem.o"
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+../Core/Src/flash_if.c: In function 'FLASH_IF_Write':
+../Core/Src/flash_if.c:159:7: warning: implicit declaration of function 'IS_FLASH_MAIN_MEM_ADDRESS' [-Wimplicit-function-declaration]
+  159 |   if (IS_FLASH_MAIN_MEM_ADDRESS((uint32_t)pDestination))
+      |       ^~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c: In function 'FLASH_IF_INT_Write':
+../Core/Src/flash_if.c:227:55: warning: implicit declaration of function 'IS_ADDR_ALIGNED_64BITS' [-Wimplicit-function-declaration]
+  227 |   if ((pDestination == NULL) || (pSource == NULL) || !IS_ADDR_ALIGNED_64BITS(uLength)
+      |                                                       ^~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:239:9: warning: implicit declaration of function 'HAL_FLASH_Unlock' [-Wimplicit-function-declaration]
+  239 |     if (HAL_FLASH_Unlock() == HAL_OK)
+      |         ^~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:239:31: error: 'HAL_OK' undeclared (first use in this function)
+  239 |     if (HAL_FLASH_Unlock() == HAL_OK)
+      |                               ^~~~~~
+../Core/Src/flash_if.c:239:31: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/flash_if.c:59:66: error: 'FLASH_BASE' undeclared (first use in this function); did you mean 'FLASH_IF_BUSY'?
+   59 | #define PAGE_INDEX(__ADDRESS__)     (uint32_t)((((__ADDRESS__) - FLASH_BASE) % FLASH_BANK_SIZE) / FLASH_PAGE_SIZE)
+      |                                                                  ^~~~~~~~~~
+../Core/Src/flash_if.c:241:26: note: in expansion of macro 'PAGE_INDEX'
+  241 |       start_page_index = PAGE_INDEX(uDest);
+      |                          ^~~~~~~~~~
+../Core/Src/flash_if.c:59:80: error: 'FLASH_BANK_SIZE' undeclared (first use in this function)
+   59 | #define PAGE_INDEX(__ADDRESS__)     (uint32_t)((((__ADDRESS__) - FLASH_BASE) % FLASH_BANK_SIZE) / FLASH_PAGE_SIZE)
+      |                                                                                ^~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:241:26: note: in expansion of macro 'PAGE_INDEX'
+  241 |       start_page_index = PAGE_INDEX(uDest);
+      |                          ^~~~~~~~~~
+../Core/Src/flash_if.c:59:99: error: 'FLASH_PAGE_SIZE' undeclared (first use in this function)
+   59 | #define PAGE_INDEX(__ADDRESS__)     (uint32_t)((((__ADDRESS__) - FLASH_BASE) % FLASH_BANK_SIZE) / FLASH_PAGE_SIZE)
+      |                                                                                                   ^~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:241:26: note: in expansion of macro 'PAGE_INDEX'
+  241 |       start_page_index = PAGE_INDEX(uDest);
+      |                          ^~~~~~~~~~
+../Core/Src/flash_if.c:263:11: warning: implicit declaration of function 'UTIL_MEM_cpy_8' [-Wimplicit-function-declaration]
+  263 |           UTIL_MEM_cpy_8(&pAllocatedBuffer[uDest % FLASH_PAGE_SIZE], (const void *)uSource, length);
+      |           ^~~~~~~~~~~~~~
+../Core/Src/flash_if.c:288:15: warning: implicit declaration of function 'HAL_FLASH_Program' [-Wimplicit-function-declaration]
+  288 |           if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, current_dest,
+      |               ^~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:288:33: error: 'FLASH_TYPEPROGRAM_DOUBLEWORD' undeclared (first use in this function)
+  288 |           if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, current_dest,
+      |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:323:7: warning: implicit declaration of function 'HAL_FLASH_Lock' [-Wimplicit-function-declaration]
+  323 |       HAL_FLASH_Lock();
+      |       ^~~~~~~~~~~~~~
+../Core/Src/flash_if.c: In function 'FLASH_IF_INT_Erase':
+../Core/Src/flash_if.c:360:3: error: unknown type name 'HAL_StatusTypeDef'; did you mean 'FLASH_IF_StatusTypedef'?
+  360 |   HAL_StatusTypeDef hal_status = HAL_ERROR;
+      |   ^~~~~~~~~~~~~~~~~
+      |   FLASH_IF_StatusTypedef
+../Core/Src/flash_if.c:360:34: error: 'HAL_ERROR' undeclared (first use in this function)
+  360 |   HAL_StatusTypeDef hal_status = HAL_ERROR;
+      |                                  ^~~~~~~~~
+../Core/Src/flash_if.c:363:3: error: unknown type name 'FLASH_EraseInitTypeDef'
+  363 |   FLASH_EraseInitTypeDef erase_init;
+      |   ^~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:376:31: error: 'HAL_OK' undeclared (first use in this function)
+  376 |     if (HAL_FLASH_Unlock() == HAL_OK)
+      |                               ^~~~~~
+../Core/Src/flash_if.c:378:17: error: request for member 'TypeErase' in something not a structure or union
+  378 |       erase_init.TypeErase = FLASH_TYPEERASE_PAGES;
+      |                 ^
+../Core/Src/flash_if.c:378:30: error: 'FLASH_TYPEERASE_PAGES' undeclared (first use in this function)
+  378 |       erase_init.TypeErase = FLASH_TYPEERASE_PAGES;
+      |                              ^~~~~~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:379:17: error: request for member 'Page' in something not a structure or union
+  379 |       erase_init.Page = PAGE_INDEX(uStart);
+      |                 ^
+../Core/Src/flash_if.c:59:66: error: 'FLASH_BASE' undeclared (first use in this function); did you mean 'FLASH_IF_BUSY'?
+   59 | #define PAGE_INDEX(__ADDRESS__)     (uint32_t)((((__ADDRESS__) - FLASH_BASE) % FLASH_BANK_SIZE) / FLASH_PAGE_SIZE)
+      |                                                                  ^~~~~~~~~~
+../Core/Src/flash_if.c:379:25: note: in expansion of macro 'PAGE_INDEX'
+  379 |       erase_init.Page = PAGE_INDEX(uStart);
+      |                         ^~~~~~~~~~
+../Core/Src/flash_if.c:59:80: error: 'FLASH_BANK_SIZE' undeclared (first use in this function)
+   59 | #define PAGE_INDEX(__ADDRESS__)     (uint32_t)((((__ADDRESS__) - FLASH_BASE) % FLASH_BANK_SIZE) / FLASH_PAGE_SIZE)
+      |                                                                                ^~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:379:25: note: in expansion of macro 'PAGE_INDEX'
+  379 |       erase_init.Page = PAGE_INDEX(uStart);
+      |                         ^~~~~~~~~~
+../Core/Src/flash_if.c:59:99: error: 'FLASH_PAGE_SIZE' undeclared (first use in this function)
+   59 | #define PAGE_INDEX(__ADDRESS__)     (uint32_t)((((__ADDRESS__) - FLASH_BASE) % FLASH_BANK_SIZE) / FLASH_PAGE_SIZE)
+      |                                                                                                   ^~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:379:25: note: in expansion of macro 'PAGE_INDEX'
+  379 |       erase_init.Page = PAGE_INDEX(uStart);
+      |                         ^~~~~~~~~~
+../Core/Src/flash_if.c:381:17: error: request for member 'NbPages' in something not a structure or union
+  381 |       erase_init.NbPages = PAGE_INDEX(uStart + uLength - 1U) - erase_init.Page + 1U;
+      |                 ^
+../Core/Src/flash_if.c:381:74: error: request for member 'Page' in something not a structure or union
+  381 |       erase_init.NbPages = PAGE_INDEX(uStart + uLength - 1U) - erase_init.Page + 1U;
+      |                                                                          ^
+../Core/Src/flash_if.c:384:20: warning: implicit declaration of function 'HAL_FLASHEx_Erase' [-Wimplicit-function-declaration]
+  384 |       hal_status = HAL_FLASHEx_Erase(&erase_init, &page_error);
+      |                    ^~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:388:37: error: 'HAL_BUSY' undeclared (first use in this function)
+  388 |         ret_status = (hal_status == HAL_BUSY) ? FLASH_IF_BUSY : FLASH_IF_ERASE_ERROR;
+      |                                     ^~~~~~~~
+../Core/Src/flash_if.c: In function 'FLASH_IF_INT_Clear_Error':
+../Core/Src/flash_if.c:435:29: error: 'HAL_OK' undeclared (first use in this function)
+  435 |   if (HAL_FLASH_Unlock() == HAL_OK)
+      |                             ^~~~~~
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+../Core/Src/flash_if.c:438:5: warning: implicit declaration of function '__HAL_FLASH_CLEAR_FLAG' [-Wimplicit-function-declaration]
+  438 |     __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/flash_if.c:438:28: error: 'FLASH_FLAG_ALL_ERRORS' undeclared (first use in this function)
+  438 |     __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS);
+      |                            ^~~~~~~~~~~~~~~~~~~~~
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+make: *** [Core/Src/subdir.mk:34: Core/Src/flash_if.o] Error 1
+make: *** Waiting for unfinished jobs....
+<command-line>: warning: ISO C99 requires whitespace after the macro name
+../Core/Src/main.c:111:6: warning: 'MX_I2C2_Init' defined but not used [-Wunused-function]
+  111 | void MX_I2C2_Init(void)
+      |      ^~~~~~~~~~~~
+"make -j12 all" terminated with exit code 2. Build might be incomplete.

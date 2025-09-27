@@ -1,9 +1,0 @@
-../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_exti.h:336:22:void LL_EXTI_EnableIT_32_63(uint32_t)	1
-../../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_exti.h:1011:22:void LL_EXTI_EnableRisingTrig_32_63(uint32_t)	1
-../Core/Src/ipcc_if.cpp:78:6:void IPCC_IF_Init(void (*)(uint32_t), void (*)(uint32_t))	2
-../Core/Src/ipcc_if.cpp:107:10:uint32_t IPCC_IF_CmdRespStatus(uint32_t)	1
-../Core/Src/ipcc_if.cpp:118:10:uint32_t IPCC_IF_NotifAckStatus(uint32_t)	1
-../Core/Src/ipcc_if.cpp:129:9:int32_t IPCC_IF_CommandSnd(uint32_t)	2
-../Core/Src/ipcc_if.cpp:147:9:int32_t IPCC_IF_AcknowledgeSnd(uint32_t)	2
-../Core/Src/ipcc_if.cpp:171:13:void IpccIfIsrTxCb(IPCC_HandleTypeDef*, uint32_t, IPCC_CHANNELDirTypeDef)	1
-../Core/Src/ipcc_if.cpp:186:13:void IpccIfIsrRxCb(IPCC_HandleTypeDef*, uint32_t, IPCC_CHANNELDirTypeDef)	1

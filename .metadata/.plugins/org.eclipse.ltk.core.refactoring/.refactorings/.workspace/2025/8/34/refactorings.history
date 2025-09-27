@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Delete resource &apos;TPP-IntelliFence/Modules/GPS/TinyGPSPlus/arduino_compat.h&apos;" deleteContents="false" description="Delete resource &apos;TPP-IntelliFence/Modules/GPS/TinyGPSPlus/arduino_compat.h&apos;" element1="/TPP-IntelliFence/Modules/GPS/TinyGPSPlus/arduino_compat.h" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1755444119929"/>
+</session>
