@@ -468,7 +468,7 @@ private:
 	float_t lsm6dso_from_lsb_to_nsec(int16_t lsb);
 	int32_t lsm6dso_read_reg(uint8_t reg, uint8_t *data, uint16_t len);
 	int32_t lsm6dso_acceleration_raw_get(int16_t *val);
-	int32_t lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data);
+	HAL_StatusTypeDef lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data);
 
 	uint8_t i2cAddr;
 	I2C_HandleTypeDef *hi2c;

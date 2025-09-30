@@ -1,6 +1,7 @@
 
 #include "threads/fsmTask.h"
 #include "math.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -11,6 +12,7 @@ extern osMessageQueueId_t dispatcherQueueHandle;
 bool receivedMsgLoraRX;
 
 void fsmTask(void *argument) {
+
   fsmTaskParams *fsmParams = static_cast<fsmTaskParams *> (argument);
 
   MainFSM_t mainFSM = MainFSM_t::STARTUP_ROUTINE;
@@ -66,7 +68,8 @@ void fsmTask(void *argument) {
         break;
     }
 
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(100));
+    //osDelay(10);
   }
 }
 

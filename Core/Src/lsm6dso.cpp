@@ -12,7 +12,7 @@ Lsm6dso::Lsm6dso(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6d
 {
   this->hi2c = hi2c;
   this->i2cAddr = i2cAddr;
-  configure(i3c, odrAcc, fsAcc, odrGyr, fsGyr, wakeThs, wakeDur, wakeWeight, sleepDur);
+  //configure(i3c, odrAcc, fsAcc, odrGyr, fsGyr, wakeThs, wakeDur, wakeWeight, sleepDur);
 }
 
 HAL_StatusTypeDef Lsm6dso::readAcceleration()
@@ -21,7 +21,7 @@ HAL_StatusTypeDef Lsm6dso::readAcceleration()
   lsm6dso_md_t md;
 
   // Leer datos del acelerómetro 
-  if (lsm6dso_data_get(&md, &data) != 0)
+  if (lsm6dso_data_get(&md, &data) != HAL_OK)
     return HAL_ERROR;
 
   // Copiar los mg convertidos
@@ -202,13 +202,17 @@ int32_t Lsm6dso::lsm6dso_acceleration_raw_get(int16_t *val) {
 
 
 // ----- VERSIÓN CON HI2C2 -----
-int32_t Lsm6dso::lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data) {
+HAL_StatusTypeDef Lsm6dso::lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data) {
   uint8_t buff[14];
-  int32_t ret = 0;
 
-  // Leer los 14 bytes desde OUT_TEMP_L (2 de temp + 6 de acc + 6 de gyro, si se desea)
-  ret = HAL_I2C_Mem_Read(this->hi2c, this->i2cAddr, REG_OUT_TEMP_L, I2C_MEMADD_SIZE_8BIT, buff, 14, 10);
-  if (ret != HAL_OK) return -1;
+  HAL_StatusTypeDef ret = HAL_ERROR;
+
+  if (HAL_I2C_IsDeviceReady(hi2c, i2cAddr, 1, 2) == HAL_OK) {
+	  // Leer los 14 bytes desde OUT_TEMP_L (2 de temp + 6 de acc + 6 de gyro, si se desea)
+	  ret = HAL_I2C_Mem_Read(this->hi2c, this->i2cAddr, REG_OUT_TEMP_L, I2C_MEMADD_SIZE_8BIT, buff, 14, 10);
+  }
+
+  if (ret != HAL_OK) return ret;
 
   uint8_t j = 0;
 
@@ -241,11 +245,11 @@ int32_t Lsm6dso::lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data) {
     }
   }
 
-  return 0;
+  return HAL_OK;
 }
 
 void Lsm6dso::testIMU() {
-    printf("[TEST IMU] Iniciando test de acelerómetro...\n");
+    //printf("[TEST IMU] Iniciando test de acelerómetro...\n");
 
     Acceleration accel = {
     		.ax=0,
@@ -253,12 +257,11 @@ void Lsm6dso::testIMU() {
 			.az=0
     };
 
-    bool ok = this->readAcceleration();
+    HAL_StatusTypeDef ok = this->readAcceleration();
 
     if (ok) {
-        printf("[TEST IMU] Aceleración: X=%.2f, Y=%.2f, Z=%.2f\n",
-               accel.ax, accel.ay, accel.az);
+        //printf("[TEST IMU] Aceleración: X=%.2f, Y=%.2f, Z=%.2f\n", accel.ax, accel.ay, accel.az);
     } else {
-        printf("[TEST IMU] Fallo al leer aceleración\n");
+        //printf("[TEST IMU] Fallo al leer aceleración\n");
     }
 }

@@ -12,7 +12,7 @@ Ina226::Ina226(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, float rShunt, float cur
     this->i2cAddr = i2cAddr;
     this->rShunt = rShunt;
     this->currentLSB = currentLSB;	//PESSI: Cargo el currentLSB.
-    configure(avg, vbusCt, vshCt, mode);
+    //configure(avg, vbusCt, vshCt, mode);
 }
 
 bool Ina226::configure(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode) {
@@ -75,40 +75,47 @@ bool Ina226::writeRegister(uint8_t reg, uint16_t value) {
 }
 
 bool Ina226::readRegister(uint8_t reg, uint16_t &value) {
-    uint8_t data[2] = {0};
-    if (HAL_I2C_Mem_Read(hi2c, i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, data, 2, 10) != HAL_OK) //PESSI: Revisar el corrimiento del addr.
+    uint8_t data[2];
+
+    HAL_StatusTypeDef status = HAL_ERROR;
+
+    if (HAL_I2C_IsDeviceReady(hi2c, i2cAddr, 1, 2) == HAL_OK) {
+    	status = HAL_I2C_Mem_Read(hi2c, i2cAddr, reg, I2C_MEMADD_SIZE_8BIT, data, 2, 10);
+    }
+
+    if (status != HAL_OK) //PESSI: Revisar el corrimiento del addr.
         return false;
     value = (static_cast<uint16_t>(data[0]) << 8) | data[1];
     return true;
 }
 
 void Ina226::testINA() {
-    printf("[TEST INA] Iniciando test de sensores de corriente...\n");
+    //printf("[TEST INA] Iniciando test de sensores de corriente...\n");
 
     if(this->readCurrent_mA() == HAL_OK) {
-    	printf("[TEST INA] Current: %.2f mA\n", this->current);
+    	//printf("[TEST INA] Current: %.2f mA\n", this->current);
     }
     else {
-    	printf("[TEST INA] read Current FAILED");
+    	//printf("[TEST INA] read Current FAILED");
     }
     if(this->readPower_mW() == HAL_OK) {
-        	printf("[TEST INA] Power: %.2f mW\n", this->power);
+        	//printf("[TEST INA] Power: %.2f mW\n", this->power);
         }
     else {
-    	printf("[TEST INA] read Power FAILED");
+    	//printf("[TEST INA] read Power FAILED");
     }
 
     if(this->readBusVoltage_mV() == HAL_OK) {
-            	printf("[TEST INA] Bus Voltage: %.2f mV\n", this->busVoltage);
+            	//printf("[TEST INA] Bus Voltage: %.2f mV\n", this->busVoltage);
             }
     else {
-    	printf("[TEST INA] read Bus Voltage FAILED");
+    	//printf("[TEST INA] read Bus Voltage FAILED");
     }
 
     if(this->readShuntVoltage_mV() == HAL_OK) {
-            	printf("[TEST INA] Shunt Voltage: %.2f mV\n", this->shuntVoltage);
+            	//printf("[TEST INA] Shunt Voltage: %.2f mV\n", this->shuntVoltage);
             }
     else {
-    	printf("[TEST INA] read Shunt Voltage FAILED");
+    	//printf("[TEST INA] read Shunt Voltage FAILED");
     }
 }

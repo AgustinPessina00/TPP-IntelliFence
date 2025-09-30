@@ -1,0 +1,12 @@
+../Core/Src/cow.cpp:4:1:Cow::Cow(DeviceUID)	24	static
+../Core/Src/cow.cpp:13:6:void Cow::updatePosition(Position)	8	static
+../Core/Src/cow.cpp:17:6:void Cow::updateAcceleration(Acceleration)	32	static
+../Core/Src/cow.cpp:21:6:void Cow::updateState(CowState)	0	static
+../Core/Src/cow.cpp:25:6:void Cow::updateCurrentZone(zone_t)	0	static
+../Core/Src/cow.cpp:29:6:void Cow::updateDistanceToLimit(float)	0	static
+../Core/Src/cow.cpp:33:11:DeviceUID Cow::getId() const	0	static
+../Core/Src/cow.cpp:37:10:Position Cow::getPosition() const	8	static
+../Core/Src/cow.cpp:41:14:Acceleration Cow::getAcceleration() const	0	static
+../Core/Src/cow.cpp:45:10:CowState Cow::getState() const	0	static
+../Core/Src/cow.cpp:49:8:zone_t Cow::getCurrentZone() const	0	static
+../Core/Src/cow.cpp:53:7:float Cow::getDistanceToLimit() const	0	static

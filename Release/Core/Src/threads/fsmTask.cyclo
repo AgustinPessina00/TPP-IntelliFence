@@ -1,0 +1,26 @@
+../Core/Src/threads/fsmTask.cpp:491:6:void sendMessage(uint8_t, ModuleId_t)	1
+../Core/Src/threads/fsmTask.cpp:508:19:HAL_StatusTypeDef updatePosition(Message*, fsmTaskParams*)	4
+../Core/Src/threads/fsmTask.cpp:542:6:void sendPosition(uint8_t, ModuleId_t, fsmTaskParams*)	1
+../Core/Src/threads/fsmTask.cpp:550:19:HAL_StatusTypeDef loraTxResponse(Message*)	1
+../Core/Src/threads/fsmTask.cpp:595:6:void updateFence(fsmTaskParams*)	1
+../Core/Src/threads/fsmTask.cpp:599:19:HAL_StatusTypeDef isInFence(fsmTaskParams*)	1
+../Core/Src/threads/fsmTask.cpp:608:19:HAL_StatusTypeDef updateDistAndZone(Message*, fsmTaskParams*)	4
+../Core/Src/threads/fsmTask.cpp:637:19:HAL_StatusTypeDef updateAcceleration(Message*, fsmTaskParams*)	4
+../Core/Src/threads/fsmTask.cpp:673:10:CowState classifyMotion(Acceleration)	4
+../Core/Src/threads/fsmTask.cpp:669:6:void updateState(fsmTaskParams*)	1
+../Core/Src/threads/fsmTask.cpp:686:6:void updateGpsAdqTime(GpsRate)	1
+../Core/Src/threads/fsmTask.cpp:692:6:void enterLowPowerSleep()	1
+../Core/Src/threads/fsmTask.cpp:714:19:HAL_StatusTypeDef gpsResponse(Message*)	1
+../Core/Src/threads/fsmTask.cpp:730:6:void sendZoneToStimulus(zone_t, ModuleId_t)	1
+../Core/Src/threads/fsmTask.cpp:736:19:HAL_StatusTypeDef receivedStimulusResponse(Message*)	1
+C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\bin/../lib/gcc/arm-none-eabi/12.3.1/../../../../arm-none-eabi/include/c++/12.3.1/bits/stl_vector.h:364:7:std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = Vertex; _Alloc = std::allocator<Vertex>]	2
+C:\ST\STM32CubeIDE_1.16.1\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\arm-none-eabi\include\c++\12.3.1\bits\stl_uninitialized.h:655:9:static _ForwardIterator std::__uninitialized_default_n_1<true>::__uninit_default_n(_ForwardIterator, _Size) [with _ForwardIterator = Vertex*; _Size = unsigned int]	4
+../Core/Src/threads/fsmTask.cpp:567:19:HAL_StatusTypeDef receivedFence(Message*, fsmTaskParams*)	6
+../Core/Src/threads/fsmTask.cpp:496:19:HAL_StatusTypeDef dequeuedMessage(Message*, fsmTaskParams*)	4
+../Core/Src/threads/fsmTask.cpp:74:6:void runStartupRoutineFSM(MainFSM_t, StartupRoutineState_t*, Message*, uint8_t, fsmTaskParams*)	27
+../Core/Src/threads/fsmTask.cpp:13:6:void fsmTask(void*)	1
+../Core/Src/threads/fsmTask.cpp:202:6:void runInitializeFSM(NormalOpFSM_t, InitializeState_t, Message*, uint8_t, fsmTaskParams*)	9
+../Core/Src/threads/fsmTask.cpp:260:6:void runGreenZoneFSM(NormalOpFSM_t, GreenZoneState_t, Message*, uint8_t, fsmTaskParams*)	13
+../Core/Src/threads/fsmTask.cpp:359:6:void runStimulusZoneFSM(NormalOpFSM_t, StimulusZone_t, Message*, uint8_t, fsmTaskParams*)	4
+../Core/Src/threads/fsmTask.cpp:185:6:void runNormalOperationFSM(NormalOpFSM_t, InitializeState_t, GreenZoneState_t, StimulusZone_t, Message*, uint8_t, fsmTaskParams*)	4
+../Core/Src/threads/fsmTask.cpp:392:6:void runFenceTransitionFSM(MainFSM_t, FenceTransitionState_t, Message*, uint8_t, fsmTaskParams*)	14

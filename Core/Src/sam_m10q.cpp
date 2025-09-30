@@ -20,7 +20,7 @@ SamM10q::SamM10q(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr) {
 	this->version	= VALSET_VERSION;
     this->reserved	= RESERVED;
 
-    configure_gps();  //A partir de ahora lo llamamos en initSamM10q.
+    //configure_gps();  //A partir de ahora lo llamamos en initSamM10q.
 }
 
 /* Llamar luego de inicializar HAL e I2C */
@@ -30,8 +30,12 @@ void SamM10q::initSamM10q() {
 
 HAL_StatusTypeDef SamM10q::read_nmea_stream() {
     uint8_t buffer[NMEA_BUFFER_SIZE];
+    HAL_StatusTypeDef status = HAL_ERROR;
 
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Read(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, buffer, NMEA_BUFFER_SIZE, 10);
+    if (HAL_I2C_IsDeviceReady(hi2c, i2cAddr, 1, 2) == HAL_OK) {
+    	status = HAL_I2C_Mem_Read(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, buffer, NMEA_BUFFER_SIZE, 10);
+    }
+
 
     if (status != HAL_OK) {
         // Podés agregar manejo de error acá si querés
@@ -188,14 +192,14 @@ void SamM10q::ubx_calculate_checksum(std::vector<uint8_t> msg) {
 }
 
 void SamM10q::testGPS() {
-    printf("[TEST GPS] Iniciando test de GPS...\n");
+    //printf("[TEST GPS] Iniciando test de GPS...\n");
 
     if (this->read_gps_position() != HAL_OK) {
-        printf("[TEST GPS] Fallo al leer NMEA\n");
+        //printf("[TEST GPS] Fallo al leer NMEA\n");
         return;
     } else {
     	double lat = this->latitude;
 		double lon = this->longitude;
-		printf("[TEST GPS] Posición válida: %.6f, %.6f\n", lat, lon);
+		//printf("[TEST GPS] Posición válida: %.6f, %.6f\n", lat, lon);
     }
 }

@@ -51,6 +51,7 @@ void dispatcherTask(void *argument) {
             }
             //printf("[DISPATCHER] Mensaje de %d para %d (ID %d)\n", msg->sender, msg->receiver, msg->id);
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
+        //osDelay(10);
     }
 }
