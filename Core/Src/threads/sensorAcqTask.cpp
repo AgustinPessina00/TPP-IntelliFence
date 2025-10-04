@@ -7,6 +7,8 @@
 extern osMessageQueueId_t sensorAcqQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
 
+static int x = 0;
+
 void sensorAcqTask(void *argument) {
   sensorAcqTaskParams *sensorParams = static_cast<sensorAcqTaskParams *>(argument);
 
@@ -18,6 +20,8 @@ void sensorAcqTask(void *argument) {
 	//printf("[SENSORACQ] sensorAcqTask running...\n");
     msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
 
+    x++;
+    if(x == 100) x=0;
     // === Leer GPS ===
     if (sensorParams->gps->read_gps_position() != HAL_OK) {
       error_count++;
@@ -106,6 +110,7 @@ void sensorAcqTask(void *argument) {
     
     // Delay de adquisión de muestras.
     //osDelay(pdMS_TO_TICKS(SAMPLE_RATE));
-    vTaskDelay(pdMS_TO_TICKS(100));
+    //vTaskDelay(pdMS_TO_TICKS(10));
+    osDelay(1);
   }
 }

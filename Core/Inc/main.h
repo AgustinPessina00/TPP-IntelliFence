@@ -29,9 +29,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_hal.h"
 
-#include "stm32wlxx_nucleo.h"
-#include <stdio.h>
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -52,36 +49,30 @@ extern "C" {
 
 /* USER CODE END EM */
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-void MX_SUBGHZ_Init(void);
-void MX_RTC_Init(void);
-void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN EFP */
-void MX_ADC_Init(void);
-void MX_DMA_Init(void);
+
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define RTC_PREDIV_A ((1<<(15-RTC_N_PREDIV_S))-1)
+#define RTC_N_PREDIV_S 10
+#define RTC_PREDIV_S ((1<<RTC_N_PREDIV_S)-1)
 #define LED_ELECTRICAL_Pin GPIO_PIN_15
 #define LED_ELECTRICAL_GPIO_Port GPIOB
-#define RCC_OSC32_IN_Pin GPIO_PIN_14
-#define RCC_OSC32_IN_GPIO_Port GPIOC
 #define ALERT_IMU_Pin GPIO_PIN_3
 #define ALERT_IMU_GPIO_Port GPIOB
-#define VIV_MOTOR_L_Pin GPIO_PIN_9
-#define VIV_MOTOR_L_GPIO_Port GPIOB
-#define RCC_OSC32_OUT_Pin GPIO_PIN_15
-#define RCC_OSC32_OUT_GPIO_Port GPIOC
+#define VIB_MOTOR_L_Pin GPIO_PIN_9
+#define VIB_MOTOR_L_GPIO_Port GPIOB
 #define ENABLE_LDO1_Pin GPIO_PIN_13
 #define ENABLE_LDO1_GPIO_Port GPIOC
 #define AO_BUZZER_Pin GPIO_PIN_10
 #define AO_BUZZER_GPIO_Port GPIOA
 #define ALERT_GPS_Pin GPIO_PIN_5
 #define ALERT_GPS_GPIO_Port GPIOB
+#define ALERT_GPS_EXTI_IRQn EXTI9_5_IRQn
 #define VIB_MOTOR_R_Pin GPIO_PIN_8
 #define VIB_MOTOR_R_GPIO_Port GPIOB
 #define FE_CTRL3_Pin GPIO_PIN_3
@@ -108,10 +99,12 @@ void MX_DMA_Init(void);
 #define ENABLE_LDO2_GPIO_Port GPIOA
 #define IMU_INT1_Pin GPIO_PIN_7
 #define IMU_INT1_GPIO_Port GPIOA
+#define IMU_INT1_EXTI_IRQn EXTI9_5_IRQn
 #define GPS_SAFEBOOT_Pin GPIO_PIN_5
 #define GPS_SAFEBOOT_GPIO_Port GPIOA
 #define IMU_INT2_Pin GPIO_PIN_8
 #define IMU_INT2_GPIO_Port GPIOA
+#define IMU_INT2_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
 // RTC para medir tiempo real (reloj/calendario)
@@ -119,11 +112,11 @@ void MX_DMA_Init(void);
 // NUCLEO STM32WL55JC1 tiene un 32.768 kHz LSE crystal oscillator.
 // LSE_VALUE / [(RTC_N_PREDIV_A + 1) * (RTC_N_PREDIV_S + 1)] = tick per second [Hz]
 // 32.768 kHz / [(127 + 1) * (255 + 1)] = 1Hz (un tick x segundo).
-#define RTC_N_PREDIV_S   8   // (2^8 = 256)
-#define RTC_N_PREDIV_A   7   // (2^7 = 128)
+//#define RTC_N_PREDIV_S   8   // (2^8 = 256)
+//#define RTC_N_PREDIV_A   7   // (2^7 = 128)
 
-#define RTC_PREDIV_S   255   // (2^8 - 1) Máscara
-#define RTC_PREDIV_A   127   // (2^7 - 1) Máscara
+//#define RTC_PREDIV_S   255   // (2^8 - 1) Máscara
+//#define RTC_PREDIV_A   127   // (2^7 - 1) Máscara
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

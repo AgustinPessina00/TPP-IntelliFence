@@ -51,11 +51,9 @@ Middlewares/Third_Party/SubGHz_Phy/stm32_radio_driver/radio_fw.o: \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h \
- ../Core/Inc/main.h ../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo.h \
- ../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo_errno.h \
- ../Core/Inc/stm32wlxx_nucleo_conf.h \
+ ../Core/Inc/main.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_gpio.h \
- ../Core/Inc/main.h ../LoRaWAN/Target/mw_log_conf.h \
+ ../Core/Inc/subghz.h ../LoRaWAN/Target/mw_log_conf.h \
  ../Utilities/trace/adv_trace/stm32_adv_trace.h \
  ../LoRaWAN/Target/radio_board_if.h ../Core/Inc/utilities_def.h \
  ../Core/Inc/sys_debug.h ../Core/Inc/sys_conf.h ../Core/Inc/platform.h \
@@ -117,11 +115,8 @@ Middlewares/Third_Party/SubGHz_Phy/stm32_radio_driver/radio_fw.o: \
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h:
 ../Core/Inc/main.h:
-../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo.h:
-../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo_errno.h:
-../Core/Inc/stm32wlxx_nucleo_conf.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_gpio.h:
-../Core/Inc/main.h:
+../Core/Inc/subghz.h:
 ../LoRaWAN/Target/mw_log_conf.h:
 ../Utilities/trace/adv_trace/stm32_adv_trace.h:
 ../LoRaWAN/Target/radio_board_if.h:

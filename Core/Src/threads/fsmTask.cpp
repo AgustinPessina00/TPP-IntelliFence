@@ -40,6 +40,8 @@ void fsmTask(void *argument) {
   posicionFalsa.latitude = -99.999;   // Algo MUY lejos
   posicionFalsa.longitude = -99.999;
 
+  uint8_t* pfalsa = (uint8_t*)&posicionFalsa;
+
   // Creamos un mensaje falso
   Message *mensajeFake = new Message(MSG_ID_SEND_GPS, ModuleId_t::SENSOR_ACQ, ModuleId_t::FSM,(uint8_t*)&posicionFalsa,sizeof(Position));
 
@@ -50,13 +52,14 @@ void fsmTask(void *argument) {
 
   while (1) {
 	//printf("[FSM] fsmTask running...\n");
+	//osMessageQueueGet(fsmQueueHandle, &msgReceived, NULL, 0);
     switch (mainFSM) {
       case MainFSM_t::STARTUP_ROUTINE:
-        runStartupRoutineFSM(mainFSM, &startupRoutineState, msgReceived, tries, fsmParams);
+        runStartupRoutineFSM(mainFSM, &startupRoutineState, &msgReceived, tries, fsmParams);
         break;
 
       case MainFSM_t::NORMAL_OPERATION:
-        runNormalOperationFSM(normalOpFSM, initializeState, greenZoneState, stimulusZoneState, msgReceived, tries, fsmParams);
+        runNormalOperationFSM(normalOpFSM, initializeState, greenZoneState, stimulusZoneState, &msgReceived, tries, fsmParams);
         if (receivedMsgLoraRX) {
           mainFSM = MainFSM_t::FENCE_TRANSITION;
           receivedMsgLoraRX = false;
@@ -64,16 +67,16 @@ void fsmTask(void *argument) {
         break;
 
       case MainFSM_t::FENCE_TRANSITION:
-        runFenceTransitionFSM(mainFSM, fenceTransitionState, msgReceived, tries, fsmParams);
+        runFenceTransitionFSM(mainFSM, fenceTransitionState, &msgReceived, tries, fsmParams);
         break;
     }
 
-    vTaskDelay(pdMS_TO_TICKS(100));
-    //osDelay(10);
+    //vTaskDelay(pdMS_TO_TICKS(100));
+    osDelay(1);
   }
 }
 
-void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRoutineState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
+void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRoutineState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
 
   switch (*startupRoutineState) {
     case STARTUP_ROUTINE_BEGIN:
@@ -89,7 +92,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRouti
     
     case STARTUP_ROUTINE_WAIT_POSITION:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           *startupRoutineState = STARTUP_ROUTINE_SEND_POSITION_LORA;
           tries = 0;
         }
@@ -109,7 +112,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRouti
 
     case STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-		if (loraTxResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_LORA_SEND_POSITION_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+		if (loraTxResponse(*msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_LORA_SEND_POSITION_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
 			*startupRoutineState = STARTUP_ROUTINE_WAIT_FENCE;
     	    tries = 0;
 		}
@@ -143,7 +146,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRouti
     
     case STARTUP_ROUTINE_WAIT_NEW_POSITION:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           *startupRoutineState = STARTUP_ROUTINE_REQUEST_ZONE;
           tries = 0;
         }
@@ -162,7 +165,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRouti
 
     case STARTUP_ROUTINE_EVALUATE_ZONE:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if (updateDistAndZone(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (updateDistAndZone(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           *startupRoutineState = STARTUP_ROUTINE_END;
           tries = 0;
         }
@@ -184,7 +187,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRouti
   }
 }
 
-void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, GreenZoneState_t greenZoneState, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries,fsmTaskParams *fsmParams) {
+void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, GreenZoneState_t greenZoneState, StimulusZone_t stimulusZoneState, Message** msgReceived, uint8_t tries,fsmTaskParams *fsmParams) {
 
   switch (normalOpFSM) {
     case NormalOpFSM_t::INITIALIZE:
@@ -201,7 +204,7 @@ void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initiali
   }
 }
 
-void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
+void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
 
   switch (initializeState) {
     case INITIALIZE_BEGIN:
@@ -216,7 +219,7 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
     
     case INITIALIZE_WAIT_POSITION:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no eraMSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no eraMSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           initializeState = INITIALIZE_REQUEST_ZONE;
           tries = 0;
         }
@@ -236,7 +239,7 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
     
     case INITIALIZE_EVALUATE_ZONE:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if (updateDistAndZone(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (updateDistAndZone(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           initializeState = INITIALIZE_END;
           tries = 0;
         }
@@ -259,7 +262,7 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
   }
 }
 
-void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
+void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
   CowState state;
   switch (greenZoneState) {
     case GREEN_ZONE_BEGIN:
@@ -276,7 +279,7 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
     
     case GREEN_ZONE_WAIT_ACCELERATION:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if(updateAcceleration(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_IMU dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updateAcceleration(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_IMU dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
           tries = 0;
         }
@@ -338,7 +341,7 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
 
     case GREEN_ZONE_WAIT_GPS_ADQ_TIME:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if (gpsResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (gpsResponse(*msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           greenZoneState = GREEN_ZONE_END;
           tries = 0;
         }
@@ -358,7 +361,7 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
   }
 }
 
-void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
+void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams) {
   switch (stimulusZoneState) {
     case STIMULUS_ZONE_BEGIN:
       stimulusZoneState = STIMULUS_ZONE_SEND_ZONE;
@@ -371,7 +374,7 @@ void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneSt
     
     case STIMULUS_ZONE_WAIT_RESPONSE:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if (receivedStimulusResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (receivedStimulusResponse(*msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           stimulusZoneState = STIMULUS_ZONE_END;
           tries = 0;
         }
@@ -391,7 +394,7 @@ void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneSt
   }
 }
 
-void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams){
+void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams){
   switch (fenceTransitionState) {
     case FENCE_TRANSITION_BEGIN:
       tries = 0;
@@ -405,7 +408,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
 
     case FENCE_TRANSITION_WAIT_STIMULUS_RESPONSE:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-		if (receivedStimulusResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+		if (receivedStimulusResponse(*msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_STIMULUS_FEEDBACK dejo tal cual está y vuelvo a desencolar en la próxima pasada.
 			fenceTransitionState = FENCE_TRANSITION_UPDATE_FENCE;
 		  tries = 0;
 		}
@@ -431,7 +434,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
     
     case FENCE_TRANSITION_WAIT_GPS_ADQ_TIME:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if (gpsResponse(msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if (gpsResponse(*msgReceived) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_GPS_CONFIG_RESPONSE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
           tries = 0;
         }
@@ -450,7 +453,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
     
     case FENCE_TRANSITION_WAIT_POSITION:
       if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-        if(updatePosition(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+        if(updatePosition(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_GPS dejo tal cual está y vuelvo a desencolar en la próxima pasada.
           fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
           tries = 0;
         }
@@ -469,7 +472,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
 
     case FENCE_TRANSITION_EVALUATE_ZONE:
 	  if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-		if (updateDistAndZone(msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
+		if (updateDistAndZone(*msgReceived, fsmParams) == HAL_OK) { // Si desencolo el Message y no era MSG_ID_SEND_ZONE_TO_FENCE dejo tal cual está y vuelvo a desencolar en la próxima pasada.
 			fenceTransitionState = FENCE_TRANSITION_END;
 		  tries = 0;
 		}
@@ -495,10 +498,10 @@ void sendMessage(uint8_t msgId, ModuleId_t dest) {
   osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 0);
 }
 
-HAL_StatusTypeDef dequeuedMessage(Message *msgReceived, fsmTaskParams *fsmParams) {
-  if (osMessageQueueGet(dispatcherQueueHandle, &msgReceived, NULL, 0) == osOK) {
-	  if (msgReceived->id == MSG_ID_LORA_VERTEXES_RECEIVED){
-		  if(receivedFence(msgReceived, fsmParams) == HAL_OK){
+HAL_StatusTypeDef dequeuedMessage(Message **msgReceived, fsmTaskParams *fsmParams) {
+  if (osMessageQueueGet(fsmQueueHandle, msgReceived, NULL, 0) == osOK) {
+	  if ((*msgReceived)->id == MSG_ID_LORA_VERTEXES_RECEIVED){
+		  if(receivedFence(*msgReceived, fsmParams) == HAL_OK){
 			  receivedMsgLoraRX = true;
 		  }
 	  }

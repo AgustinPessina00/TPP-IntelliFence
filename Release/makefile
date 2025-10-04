@@ -27,7 +27,6 @@ RM := rm -rf
 -include LoRaWAN/Target/subdir.mk
 -include LoRaWAN/App/subdir.mk
 -include Drivers/STM32WLxx_HAL_Driver/Src/subdir.mk
--include Drivers/BSP/STM32WLxx_Nucleo/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/threads/subdir.mk
 -include Core/Src/subdir.mk

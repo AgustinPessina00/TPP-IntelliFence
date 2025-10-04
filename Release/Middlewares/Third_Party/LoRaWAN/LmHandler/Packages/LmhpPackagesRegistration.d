@@ -45,9 +45,7 @@ Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpPackagesRegistration.o: \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h \
- ../Core/Inc/main.h ../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo.h \
- ../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo_errno.h \
- ../Core/Inc/stm32wlxx_nucleo_conf.h \
+ ../Core/Inc/main.h \
  ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_gpio.h \
  ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpPackagesRegistration.h \
  ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhPackage.h \
@@ -70,7 +68,14 @@ Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpPackagesRegistration.o: \
  ../Middlewares/Third_Party/LoRaWAN/Mac/LoRaMacClassBNvm.h \
  ../Middlewares/Third_Party/LoRaWAN/LmHandler/LmHandler.h \
  ../Middlewares/Third_Party/LoRaWAN/LmHandler/LmHandlerTypes.h \
- ../Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionVersion.h
+ ../Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionVersion.h \
+ ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpClockSync.h \
+ ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpRemoteMcastSetup.h \
+ ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpFragmentation.h \
+ ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/FragDecoder.h \
+ ../LoRaWAN/Target/frag_decoder_if.h \
+ ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpFragmentation.h \
+ ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpFirmwareManagement.h
 ../Core/Inc/platform.h:
 ../Drivers/CMSIS/Device/ST/STM32WLxx/Include/stm32wlxx.h:
 ../Drivers/CMSIS/Device/ST/STM32WLxx/Include/stm32wl55xx.h:
@@ -117,9 +122,6 @@ Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpPackagesRegistration.o: \
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_hal_uart_ex.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_system.h:
 ../Core/Inc/main.h:
-../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo.h:
-../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo_errno.h:
-../Core/Inc/stm32wlxx_nucleo_conf.h:
 ../Drivers/STM32WLxx_HAL_Driver/Inc/stm32wlxx_ll_gpio.h:
 ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpPackagesRegistration.h:
 ../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhPackage.h:
@@ -147,3 +149,10 @@ Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpPackagesRegistration.o: \
 ../Middlewares/Third_Party/LoRaWAN/LmHandler/LmHandler.h:
 ../Middlewares/Third_Party/LoRaWAN/LmHandler/LmHandlerTypes.h:
 ../Middlewares/Third_Party/LoRaWAN/Mac/Region/RegionVersion.h:
+../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpClockSync.h:
+../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpRemoteMcastSetup.h:
+../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpFragmentation.h:
+../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/FragDecoder.h:
+../LoRaWAN/Target/frag_decoder_if.h:
+../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpFragmentation.h:
+../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages/LmhpFirmwareManagement.h:

@@ -101,15 +101,15 @@ typedef struct {
 }fsmTaskParams;
 
 void fsmTask(void *argument);
-void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRoutineState, Message* msgReceived, uint8_t tries,fsmTaskParams *fsmParams);
-void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, GreenZoneState_t greenZoneState, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries,fsmTaskParams *fsmParams);
-void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
-void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
-void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
-void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState, Message* msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
+void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* startupRoutineState, Message** msgReceived, uint8_t tries,fsmTaskParams *fsmParams);
+void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, GreenZoneState_t greenZoneState, StimulusZone_t stimulusZoneState, Message** msgReceived, uint8_t tries,fsmTaskParams *fsmParams);
+void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
+void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
+void runStimulusZoneFSM(NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
+void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState, Message** msgReceived, uint8_t tries, fsmTaskParams *fsmParams);
 
 void sendMessage(uint8_t msgId, ModuleId_t dest);
-HAL_StatusTypeDef dequeuedMessage(Message *msgReceived, fsmTaskParams *fsmParams);
+HAL_StatusTypeDef dequeuedMessage(Message **msgReceived, fsmTaskParams *fsmParams);
 HAL_StatusTypeDef updatePosition(Message *msgReceived, fsmTaskParams *fsmParams);
 void sendPosition(uint8_t msgId, ModuleId_t dest, fsmTaskParams *fsmParams);
 HAL_StatusTypeDef loraTxResponse(Message *msgReceived);

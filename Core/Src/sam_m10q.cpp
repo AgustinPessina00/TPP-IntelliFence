@@ -5,6 +5,9 @@
 #include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
+void BusyDelayMs(uint32_t ms);
+
+//static uint8_t buffer[NMEA_BUFFER_SIZE];
 
 SamM10q::SamM10q(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr) {
 	this->i2cAddr = i2cAddr;
@@ -25,7 +28,10 @@ SamM10q::SamM10q(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr) {
 
 /* Llamar luego de inicializar HAL e I2C */
 void SamM10q::initSamM10q() {
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     configure_gps();
+
 }
 
 HAL_StatusTypeDef SamM10q::read_nmea_stream() {
@@ -182,9 +188,16 @@ HAL_StatusTypeDef SamM10q::send_message(const std::vector<uint8_t>& message, uin
     HAL_StatusTypeDef status = HAL_I2C_Mem_Write(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, const_cast<uint8_t*>(message.data()), message.size(), 10);
 
     // Delay para que el módulo procese
-    HAL_Delay(delay_ms);
+    //HAL_Delay(delay_ms);
+    BusyDelayMs(delay_ms);
 
     return status;
+}
+
+void BusyDelayMs(uint32_t ms) {
+    uint32_t start = DWT->CYCCNT;
+    uint32_t ticks = (HAL_RCC_GetHCLKFreq() / 1000) * ms;
+    while ((DWT->CYCCNT - start) < ticks);
 }
 
 void SamM10q::ubx_calculate_checksum(std::vector<uint8_t> msg) {

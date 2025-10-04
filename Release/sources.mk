@@ -41,7 +41,6 @@ SUBDIRS := \
 Core/Src \
 Core/Src/threads \
 Core/Startup \
-Drivers/BSP/STM32WLxx_Nucleo \
 Drivers/STM32WLxx_HAL_Driver/Src \
 LoRaWAN/App \
 LoRaWAN/Target \

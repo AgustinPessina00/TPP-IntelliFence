@@ -17,7 +17,7 @@
 #define BBR 0x02
 #define RESERVED 0x0000
 
-#define NMEA_BUFFER_SIZE	64
+#define NMEA_BUFFER_SIZE	16
 
 enum class gpsRateSpeed {
   STOP,

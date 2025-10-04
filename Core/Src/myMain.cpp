@@ -26,9 +26,8 @@ extern I2C_HandleTypeDef hi2c2;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 512 * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityHigh,
-
 };
 
 /* Definitions for fsm_Task */
@@ -101,19 +100,17 @@ const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
 
 void StartDefaultTask(void *argument);
 
+//static SamM10q gps(&hi2c2, GPS_ADDRESS);
+
 extern "C" { // Use extern "C" to ensure C linkage for functions called from C
     void RunCppApplication() {
 
 		// TODO: Chequear Params de la imu y de los INA.
 		Lsm6dso imu(&hi2c2, IMU_ADDRESS, Lsm6dsoI3C::DISABLED, Lsm6dsoOdrAcc::ODR_52, Lsm6dsoFsAcc::FS_4G, Lsm6dsoOdrGyr::POWER_DOWN, Lsm6dsoFsGyr::FS_250DPS, Lsm6dsoWakeThs::THS_1, Lsm6dsoWakeDur::ODR_1, Lsm6dsoWakeWeight::FS_XL_64, Lsm6dsoSleepDur::DUR_1_512);
-		//HAL_Delay(50);
-		SamM10q gps(&hi2c2, GPS_ADDRESS);
-		//gps.initSamM10q();
-		//HAL_Delay(50);
+		static SamM10q gps(&hi2c2, GPS_ADDRESS);
+		gps.initSamM10q();
 		Ina226 inaMcu(&hi2c2, INA_MCU_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
-		//HAL_Delay(50);
 		Ina226 inaGps(&hi2c2, INA_GPS_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
-		//HAL_Delay(50);
 		Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
 
 		//HAL_Delay(50);
@@ -149,20 +146,8 @@ extern "C" { // Use extern "C" to ensure C linkage for functions called from C
     	/* creation of fsmQueue */
     	fsmQueueHandle = osMessageQueueNew (16, sizeof(Message*), &fsmQueue_attributes);
 
-
-    	/* creation of sensorAcq_Task */
-		sensorAcqTaskParams sensorParams = {
-			.gps = &gps,
-			.imu = &imu,
-			.inaMcu = &inaMcu,
-			.inaGps = &inaGps,
-			.inaImu = &inaImu
-		};
-
 		/* creation of defaultTask */
-		  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-		sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, &sensorParams, &sensorAcq_Task_attributes);
+		defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
     	/* Create the thread(s) */
     	/* creation of fsm_Task */
@@ -175,6 +160,15 @@ extern "C" { // Use extern "C" to ensure C linkage for functions called from C
     	/* creation of dispatcher_Task */
     	dispatcher_TaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcher_Task_attributes);
 
+    	/* creation of sensorAcq_Task */
+		sensorAcqTaskParams sensorParams = {
+			.gps = &gps,
+			.imu = &imu,
+			.inaMcu = &inaMcu,
+			.inaGps = &inaGps,
+			.inaImu = &inaImu
+		};
+		sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, &sensorParams, &sensorAcq_Task_attributes);
 
     	/* Start scheduler */
 		osKernelStart();
@@ -189,7 +183,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    osDelay(10);
   }
   /* USER CODE END 5 */
 }

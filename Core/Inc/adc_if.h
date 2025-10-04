@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "adc.h"
 #include "platform.h"
 
 /* USER CODE BEGIN Includes */

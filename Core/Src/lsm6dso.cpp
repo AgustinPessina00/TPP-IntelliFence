@@ -12,7 +12,7 @@ Lsm6dso::Lsm6dso(I2C_HandleTypeDef *hi2c, uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6d
 {
   this->hi2c = hi2c;
   this->i2cAddr = i2cAddr;
-  //configure(i3c, odrAcc, fsAcc, odrGyr, fsGyr, wakeThs, wakeDur, wakeWeight, sleepDur);
+  configure(i3c, odrAcc, fsAcc, odrGyr, fsGyr, wakeThs, wakeDur, wakeWeight, sleepDur);
 }
 
 HAL_StatusTypeDef Lsm6dso::readAcceleration()

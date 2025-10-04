@@ -22,6 +22,7 @@
 #include <math.h>
 #include "timer_if.h"
 #include "main.h" /*for STM32CubeMX generated RTC_N_PREDIV_S and RTC_N_PREDIV_A*/
+#include "rtc.h"
 #include "utilities_def.h"
 #include "stm32wlxx_ll_rtc.h"
 
@@ -371,7 +372,7 @@ void TIMER_IF_DelayMs(uint32_t delay)
   /* USER CODE END TIMER_IF_DelayMs_Last */
 }
 
-void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *h)
 {
   /* USER CODE BEGIN HAL_RTC_AlarmAEventCallback */
 
@@ -382,7 +383,7 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
   /* USER CODE END HAL_RTC_AlarmAEventCallback_Last */
 }
 
-void HAL_RTCEx_SSRUEventCallback(RTC_HandleTypeDef *hrtc)
+void HAL_RTCEx_SSRUEventCallback(RTC_HandleTypeDef *h)
 {
   /* USER CODE BEGIN HAL_RTCEx_SSRUEventCallback */
 
