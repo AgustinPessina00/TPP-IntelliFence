@@ -21,7 +21,11 @@ void sensorAcqTask(void *argument) {
     msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
 
     x++;
-    if(x == 100) x=0;
+    if(x == 100){
+    	int i;
+    	x=0;
+    	i = 1;
+    }
     // === Leer GPS ===
     if (sensorParams->gps->read_gps_position() != HAL_OK) {
       error_count++;
@@ -111,6 +115,6 @@ void sensorAcqTask(void *argument) {
     // Delay de adquisión de muestras.
     //osDelay(pdMS_TO_TICKS(SAMPLE_RATE));
     //vTaskDelay(pdMS_TO_TICKS(10));
-    osDelay(1);
+    osDelay(100);
   }
 }

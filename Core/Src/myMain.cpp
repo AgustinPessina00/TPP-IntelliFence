@@ -4,6 +4,9 @@
 #include "cmsis_os.h"
 #include "messages.h"
 #include "app_lorawan.h"
+#include "gpio.h"
+#include "stm32wlxx_hal.h"
+
 #include "cow.h"
 #include "fence.h"
 
@@ -21,6 +24,7 @@
 //#include "threads/stimulusTask.h"
 
 extern I2C_HandleTypeDef hi2c2;
+extern UART_HandleTypeDef huart2;
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -99,11 +103,16 @@ const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
 };
 
 void StartDefaultTask(void *argument);
+void uart_send_string(const char *str);
 
 //static SamM10q gps(&hi2c2, GPS_ADDRESS);
 
 extern "C" { // Use extern "C" to ensure C linkage for functions called from C
     void RunCppApplication() {
+
+    	HAL_GPIO_WritePin(GPIOC, ENABLE_LDO1_Pin, GPIO_PIN_SET);
+
+    	uart_send_string("Hola mundo\r\n");
 
 		// TODO: Chequear Params de la imu y de los INA.
 		Lsm6dso imu(&hi2c2, IMU_ADDRESS, Lsm6dsoI3C::DISABLED, Lsm6dsoOdrAcc::ODR_52, Lsm6dsoFsAcc::FS_4G, Lsm6dsoOdrGyr::POWER_DOWN, Lsm6dsoFsGyr::FS_250DPS, Lsm6dsoWakeThs::THS_1, Lsm6dsoWakeDur::ODR_1, Lsm6dsoWakeWeight::FS_XL_64, Lsm6dsoSleepDur::DUR_1_512);
@@ -183,9 +192,13 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(10);
+    osDelay(1000);
   }
   /* USER CODE END 5 */
+}
+
+void uart_send_string(const char *str) {
+    HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen(str), 10);
 }
 
 

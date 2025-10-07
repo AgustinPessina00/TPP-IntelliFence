@@ -26,25 +26,31 @@ void dispatcherTask(void *argument) {
                     osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0);
                     break;
                 case ModuleId_t::STIMULUS:
-                    osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0);
+                	delete msg;
+                	//osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0);
                     break;
                 case ModuleId_t::GPS:
-                    osMessageQueuePut(gpsQueueHandle, &msg, 0, 0);
+                	delete msg;
+                	//osMessageQueuePut(gpsQueueHandle, &msg, 0, 0);
                     break;
                 case ModuleId_t::LORA_TX:
-                    osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0);
+                	delete msg;
+                    //osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0);
                     break;
                 case ModuleId_t::LORA_RX:
-                    osMessageQueuePut(loraRxQueueHandle, &msg, 0, 0);
+                	delete msg;
+                    //osMessageQueuePut(loraRxQueueHandle, &msg, 0, 0);
                     break;
                 case ModuleId_t::FSM:
                     osMessageQueuePut(fsmQueueHandle, &msg, 0, 0);
                     break;
                 case ModuleId_t::DISTANCE:
-                    osMessageQueuePut(distanceToLimitQueueHandle, &msg, 0, 0);
+                	delete msg;
+                	//osMessageQueuePut(distanceToLimitQueueHandle, &msg, 0, 0);
                     break;
                 case ModuleId_t::FENCE_UPDATE:
-                    osMessageQueuePut(fenceUpdateQueueHandle, &msg, 0, 0);
+                	delete msg;
+                	//osMessageQueuePut(fenceUpdateQueueHandle, &msg, 0, 0);
                     break;
                 default:
                     break;
@@ -52,6 +58,6 @@ void dispatcherTask(void *argument) {
             //printf("[DISPATCHER] Mensaje de %d para %d (ID %d)\n", msg->sender, msg->receiver, msg->id);
         }
         //vTaskDelay(pdMS_TO_TICKS(100));
-        osDelay(1);
+        osDelay(100);
     }
 }

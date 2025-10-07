@@ -72,7 +72,7 @@ void fsmTask(void *argument) {
     }
 
     //vTaskDelay(pdMS_TO_TICKS(100));
-    osDelay(1);
+    osDelay(100);
   }
 }
 
