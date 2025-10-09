@@ -52,8 +52,8 @@ private:
 	void ubx_calculate_checksum(std::vector<uint8_t> msg);
 
 public:
-	double latitude = 0.0;
-	double longitude = 0.0;
+	double latitude = -34.570386;
+	double longitude = -58.444212;
 	uint32_t fechaUTC = 0; //yymmdd	//TODO: Chequear uint32_t
 	uint32_t horaUTC = 0; //hhmmss	//TODO: Chequear uint32_t
 

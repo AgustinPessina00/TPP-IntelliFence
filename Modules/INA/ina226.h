@@ -69,7 +69,7 @@ private:
 public:
     float shuntVoltage;
     float busVoltage;
-    float current;
+    float current = 3.2555848;
     float power;
 
 private:

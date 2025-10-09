@@ -21,7 +21,8 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "stm32wlxx_hal.h"
+#include <string.h>
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart2;
@@ -168,5 +169,50 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void uart_send_string(const char *str) {
+    HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen(str), 100);
+}
 
+// Convierte un double a string con N decimales (sin usar printf)
+// buffer: buffer donde escribir
+// num: número double
+// decimals: cantidad de cifras decimales (ej: 2 para 123.45)
+void double_to_str(char *buffer, double num, int decimals) {
+    if (num < 0) {
+        *buffer++ = '-';
+        num = -num;
+    }
+
+    // Parte entera
+    uint32_t int_part = (uint32_t)num;
+    double decimal_part = num - (double)int_part;
+
+    // Convertir parte entera
+    char temp[16];
+    int i = 0;
+    do {
+        temp[i++] = '0' + int_part % 10;
+        int_part /= 10;
+    } while (int_part);
+
+    // Escribir al buffer en orden correcto
+    while (i--) {
+        *buffer++ = temp[i];
+    }
+
+    // Parte decimal
+    if (decimals > 0) {
+        *buffer++ = '.';
+        while (decimals--) {
+            decimal_part *= 10;
+            int digit = (int)decimal_part;
+            *buffer++ = '0' + digit;
+            decimal_part -= digit;
+        }
+    }
+
+    *buffer++ = '\n';
+    *buffer++ = '\r';
+    *buffer = '\0';
+}
 /* USER CODE END 1 */

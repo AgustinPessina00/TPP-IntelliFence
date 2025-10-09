@@ -439,9 +439,9 @@ public:
 	// TEST
 	void testIMU();
 
-	float ax;
-    float ay;
-    float az;
+	float ax = 10.5165;
+    float ay = -15.0568794;
+    float az = 77.56525;
 
 private:
 	bool configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs,Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur);

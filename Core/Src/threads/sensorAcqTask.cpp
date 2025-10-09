@@ -1,5 +1,6 @@
 
 #include "threads/sensorAcqTask.h"
+#include "usart.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -7,12 +8,12 @@
 extern osMessageQueueId_t sensorAcqQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
 
-static int x = 0;
-
 void sensorAcqTask(void *argument) {
   sensorAcqTaskParams *sensorParams = static_cast<sensorAcqTaskParams *>(argument);
 
   Message* msgReceived;
+
+  //uart_send_string("[SensorAcqTask] Hola Mundo\n\r");
 
   int error_count = 0;
 
@@ -20,18 +21,21 @@ void sensorAcqTask(void *argument) {
 	//printf("[SENSORACQ] sensorAcqTask running...\n");
     msgReceived = nullptr;  // se reinicia el puntero antes de recibir algo
 
-    x++;
-    if(x == 100){
-    	int i;
-    	x=0;
-    	i = 1;
-    }
+    char str[15];
+
     // === Leer GPS ===
     if (sensorParams->gps->read_gps_position() != HAL_OK) {
       error_count++;
       // TODO: Manejo de errores.
       //continue;  // volver a intentar luego
     }
+
+	uart_send_string("Latitud: ");
+	double_to_str(str, sensorParams->gps->latitude, 5);
+    uart_send_string(str);
+    uart_send_string("Longitud: ");
+    double_to_str(str, sensorParams->gps->longitude, 5);
+    uart_send_string(str);
 
     // === Leer IMU ===
     if (sensorParams->imu->readAcceleration() != HAL_OK) {
@@ -40,12 +44,26 @@ void sensorAcqTask(void *argument) {
       //continue;  // volver a intentar luego
     }
 
+    uart_send_string("Accel X: ");
+    double_to_str(str, (double)sensorParams->imu->ax, 5);
+	uart_send_string(str);
+	uart_send_string("Accel Y: ");
+	double_to_str(str, (double)sensorParams->imu->ay, 5);
+	uart_send_string(str);
+	uart_send_string("Accel Z: ");
+	double_to_str(str, (double)sensorParams->imu->az, 5);
+	uart_send_string(str);
+
     // === Leer INA_MCU ===
     if (sensorParams->inaMcu->readCurrent_mA() != HAL_OK) {
       error_count++;
       // TODO: Manejo de errores.
       //continue;  // volver a intentar luego
     }
+
+    uart_send_string("INA_MCU: ");
+	double_to_str(str, (double)sensorParams->inaMcu->current, 5);
+	uart_send_string(str);
 
     // === Leer INA_GPS ===
     if (sensorParams->inaGps->readCurrent_mA() != HAL_OK) {
@@ -54,12 +72,20 @@ void sensorAcqTask(void *argument) {
       //continue;  // volver a intentar luego
     }
 
+    uart_send_string("INA_GPS: ");
+	double_to_str(str, (double)sensorParams->inaGps->current, 5);
+	uart_send_string(str);
+
     // === Leer INA_IMU ===
     if (sensorParams->inaImu->readCurrent_mA() != HAL_OK) {
       error_count++;
       // TODO: Manejo de errores.
       //continue;  // volver a intentar luego
     }
+
+    uart_send_string("INA_IMU: ");
+	double_to_str(str, (double)sensorParams->inaImu->current, 5);
+	uart_send_string(str);
 
     // RECIBE FLAGS DE LA COLA QUE LE MANDA fsmTask A sensorAcqTask
     Message *msg = nullptr;
