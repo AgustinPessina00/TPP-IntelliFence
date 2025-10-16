@@ -16,6 +16,7 @@ static const uint8_t INA_MCU_ADDRESS = 0xD6;
 static const uint8_t INA_GPS_ADDRESS = 0xD8;
 static const uint8_t INA_IMU_ADDRESS = 0xDA;
 
+
 #ifdef __cplusplus
 }
 #endif

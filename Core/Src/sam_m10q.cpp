@@ -31,7 +31,6 @@ void SamM10q::initSamM10q() {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     configure_gps();
-
 }
 
 HAL_StatusTypeDef SamM10q::read_nmea_stream() {
@@ -111,6 +110,8 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
 void SamM10q::configure_gps() {
     std::vector<uint8_t> sendMsgRAM, sendMsgBBR;
 
+    HAL_StatusTypeDef status = HAL_ERROR;
+
     for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
     	// GENERO EL MENSAJE.
     	sendMsgRAM = build_full_message_from_index(i, RAM);
@@ -121,8 +122,17 @@ void SamM10q::configure_gps() {
         //PESSI: AGREGO EL DELAY EN LA FUNCIÓN send_message.
 
         // TODO: sacar números mágicos/hardcodeados.
-		send_message(sendMsgRAM, 15);
-		send_message(sendMsgBBR, 15);
+		status = send_message(sendMsgRAM, 15);
+		if(status == HAL_OK){
+			status = send_message(sendMsgBBR, 15);
+			if(status != HAL_OK){
+				i--;
+			}
+		}
+		else {
+			i--;
+		}
+
     }
 }
 
@@ -138,7 +148,14 @@ std::vector<uint8_t> SamM10q::build_full_message_from_index(size_t i, uint8_t la
     size_t payloadlen = m10q_data_len[i];
 
     // Cada payload tiene un par de 2 bytes de checksum precalculado
-    const uint8_t* checksum = m10q_checksum_vals[i];
+    const uint8_t* checksum = nullptr;
+    if(layer == RAM){
+    	checksum = m10q_checksum_vals[2*i];
+    }
+    else if(layer == BBR){
+    	checksum = m10q_checksum_vals[2*i+1];
+    }
+
     size_t checksumlen = 2;
 
     // Llamamos a la función que arma el frame UBX completo
@@ -185,10 +202,16 @@ std::vector<uint8_t> SamM10q::build_ubx_message(uint8_t layer, const uint8_t* pa
 }
 
 HAL_StatusTypeDef SamM10q::send_message(const std::vector<uint8_t>& message, uint32_t delay_ms) {
-    HAL_StatusTypeDef status = HAL_I2C_Mem_Write(hi2c, i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, const_cast<uint8_t*>(message.data()), message.size(), 10);
+	HAL_StatusTypeDef status = HAL_ERROR;
+
+	uint8_t *data = const_cast<uint8_t*>(message.data());
+	uint16_t dataLength = message.size();
+
+	if(HAL_I2C_IsDeviceReady(this->hi2c, this->i2cAddr, 100, 100) == HAL_OK){
+		status = HAL_I2C_Master_Transmit(this->hi2c, this->i2cAddr, data, dataLength, 100);
+	}
 
     // Delay para que el módulo procese
-    //HAL_Delay(delay_ms);
     BusyDelayMs(delay_ms);
 
     return status;

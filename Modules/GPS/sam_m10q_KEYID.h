@@ -9,7 +9,7 @@
 // ========================
 constexpr size_t M10Q_NUM_RATE_OPTIONS   = 4;   // STOP, SLOW, MEDIUM, FAST
 constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 43;  // Cantidad de elementos en m10q_data
-constexpr size_t M10Q_NUM_CK_PAIRS       = 43;  // Un par de bytes por cada data element
+constexpr size_t M10Q_NUM_CK_PAIRS       = 86;  // Un par de bytes por cada data element
 
 // ======================================================
 // RATES: m10q_new_acq_time (payloads)  [4 elementos]
@@ -162,6 +162,50 @@ static const uint8_t m10q_ck_39[] = {0x08, 0xDC};
 static const uint8_t m10q_ck_40[] = {0xF8, 0x85};
 static const uint8_t m10q_ck_41[] = {0xF9, 0x8D};
 static const uint8_t m10q_ck_42[] = {0xFB, 0x98};
+static const uint8_t m10q_ck_43[] = {0xFC, 0xA0};
+static const uint8_t m10q_ck_44[] = {0xF8, 0x89};
+static const uint8_t m10q_ck_45[] = {0xF9, 0x91};
+static const uint8_t m10q_ck_46[] = {0x15, 0x1A};
+static const uint8_t m10q_ck_47[] = {0x16, 0x22};
+static const uint8_t m10q_ck_48[] = {0x19, 0x2E};
+static const uint8_t m10q_ck_49[] = {0x1A, 0x36};
+static const uint8_t m10q_ck_50[] = {0x16, 0x1F};
+static const uint8_t m10q_ck_51[] = {0x17, 0x27};
+static const uint8_t m10q_ck_52[] = {0x0B, 0xE8};
+static const uint8_t m10q_ck_53[] = {0x0C, 0xF0};
+static const uint8_t m10q_ck_54[] = {0x0F, 0xFC};
+static const uint8_t m10q_ck_55[] = {0x10, 0x04};
+static const uint8_t m10q_ck_56[] = {0x0C, 0xED};
+static const uint8_t m10q_ck_57[] = {0x0D, 0xF5};
+static const uint8_t m10q_ck_58[] = {0x10, 0x01};
+static const uint8_t m10q_ck_59[] = {0x11, 0x09};
+static const uint8_t m10q_ck_60[] = {0x14, 0x15};
+static const uint8_t m10q_ck_61[] = {0x15, 0x1D};
+static const uint8_t m10q_ck_62[] = {0x11, 0x06};
+static const uint8_t m10q_ck_63[] = {0x12, 0x0E};
+static const uint8_t m10q_ck_64[] = {0xFC, 0x9D};
+static const uint8_t m10q_ck_65[] = {0xFD, 0xA5};
+static const uint8_t m10q_ck_66[] = {0x00, 0xB1};
+static const uint8_t m10q_ck_67[] = {0x01, 0xB9};
+static const uint8_t m10q_ck_68[] = {0xFD, 0xA2};
+static const uint8_t m10q_ck_69[] = {0xFE, 0xAA};
+static const uint8_t m10q_ck_70[] = {0xEC, 0x55};
+static const uint8_t m10q_ck_71[] = {0xED, 0x60};
+static const uint8_t m10q_ck_72[] = {0xBB, 0x95};
+static const uint8_t m10q_ck_73[] = {0xBC, 0xA0};
+static const uint8_t m10q_ck_74[] = {0xA6, 0xD9};
+static const uint8_t m10q_ck_75[] = {0xA7, 0xE2};
+static const uint8_t m10q_ck_76[] = {0x93, 0x0A};
+static const uint8_t m10q_ck_77[] = {0x94, 0x12};
+static const uint8_t m10q_ck_78[] = {0x9C, 0x17};
+static const uint8_t m10q_ck_79[] = {0x9D, 0x1F};
+static const uint8_t m10q_ck_80[] = {0x85, 0xF8};
+static const uint8_t m10q_ck_81[] = {0x86, 0x00};
+static const uint8_t m10q_ck_82[] = {0x88, 0x07};
+static const uint8_t m10q_ck_83[] = {0x89, 0x0F};
+static const uint8_t m10q_ck_84[] = {0x8D, 0xF0};
+static const uint8_t m10q_ck_85[] = {0x8E, 0xF8};
+
 
 // Tabla de punteros a checksums (2 bytes c/u)
 static const uint8_t* const m10q_checksum_vals[M10Q_NUM_CK_PAIRS] = {
@@ -173,15 +217,16 @@ static const uint8_t* const m10q_checksum_vals[M10Q_NUM_CK_PAIRS] = {
     m10q_ck_25, m10q_ck_26, m10q_ck_27, m10q_ck_28, m10q_ck_29,
     m10q_ck_30, m10q_ck_31, m10q_ck_32, m10q_ck_33, m10q_ck_34,
     m10q_ck_35, m10q_ck_36, m10q_ck_37, m10q_ck_38, m10q_ck_39,
-    m10q_ck_40, m10q_ck_41, m10q_ck_42
-};
-// Longitudes (todas 2)
-static const uint8_t m10q_checksum_len[M10Q_NUM_CK_PAIRS] = {
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2,2,2,2,2,2,2,2,
-    2,2,2
+    m10q_ck_40, m10q_ck_41, m10q_ck_42, m10q_ck_43, m10q_ck_44,
+    m10q_ck_45, m10q_ck_46, m10q_ck_47, m10q_ck_48, m10q_ck_49,
+    m10q_ck_50, m10q_ck_51, m10q_ck_52, m10q_ck_53, m10q_ck_54,
+    m10q_ck_55, m10q_ck_56, m10q_ck_57, m10q_ck_58, m10q_ck_59,
+    m10q_ck_60, m10q_ck_61, m10q_ck_62, m10q_ck_63, m10q_ck_64,
+    m10q_ck_65, m10q_ck_66, m10q_ck_67, m10q_ck_68, m10q_ck_69,
+    m10q_ck_70, m10q_ck_71, m10q_ck_72, m10q_ck_73, m10q_ck_74,
+    m10q_ck_75, m10q_ck_76, m10q_ck_77, m10q_ck_78, m10q_ck_79,
+    m10q_ck_80, m10q_ck_81, m10q_ck_82, m10q_ck_83, m10q_ck_84,
+	m10q_ck_85
 };
 
 #endif /* MODULES_GPS_SAM_M10Q_KEYID_H_ */

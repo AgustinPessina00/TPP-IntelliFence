@@ -97,8 +97,7 @@ extern "C" {
 /*!
  * LoRaWAN default activation type
  */
-//#define LORAWAN_DEFAULT_ACTIVATION_TYPE             ACTIVATION_TYPE_OTAA
-#define LORAWAN_DEFAULT_ACTIVATION_TYPE             ACTIVATION_TYPE_ABP
+#define LORAWAN_DEFAULT_ACTIVATION_TYPE             ACTIVATION_TYPE_OTAA
 
 /*!
  * LoRaWAN force rejoin even if the NVM context is restored

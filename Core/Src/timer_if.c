@@ -372,7 +372,7 @@ void TIMER_IF_DelayMs(uint32_t delay)
   /* USER CODE END TIMER_IF_DelayMs_Last */
 }
 
-void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *h)
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
   /* USER CODE BEGIN HAL_RTC_AlarmAEventCallback */
 
@@ -383,7 +383,7 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *h)
   /* USER CODE END HAL_RTC_AlarmAEventCallback_Last */
 }
 
-void HAL_RTCEx_SSRUEventCallback(RTC_HandleTypeDef *h)
+void HAL_RTCEx_SSRUEventCallback(RTC_HandleTypeDef *hrtc)
 {
   /* USER CODE BEGIN HAL_RTCEx_SSRUEventCallback */
 

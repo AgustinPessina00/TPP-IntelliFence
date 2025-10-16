@@ -23,6 +23,10 @@
 #include "threads/sensorAcqTask.h"
 //#include "threads/stimulusTask.h"
 
+typedef struct {
+  SamM10q *gps;
+}defaultTaskParams;
+
 extern I2C_HandleTypeDef hi2c2;
 
 /* Definitions for defaultTask */
@@ -109,13 +113,14 @@ extern "C" { // Use extern "C" to ensure C linkage for functions called from C
     void RunCppApplication() {
 
     	HAL_GPIO_WritePin(GPIOC, ENABLE_LDO1_Pin, GPIO_PIN_SET);
+    	HAL_GPIO_WritePin(GPIOC, GPS_RESET_N_Pin, GPIO_PIN_SET);
 
     	//uart_send_string("[MyMain] Hola Mundo\n\r");
 
 		// TODO: Chequear Params de la imu y de los INA.
-		Lsm6dso imu(&hi2c2, IMU_ADDRESS, Lsm6dsoI3C::DISABLED, Lsm6dsoOdrAcc::ODR_52, Lsm6dsoFsAcc::FS_4G, Lsm6dsoOdrGyr::POWER_DOWN, Lsm6dsoFsGyr::FS_250DPS, Lsm6dsoWakeThs::THS_1, Lsm6dsoWakeDur::ODR_1, Lsm6dsoWakeWeight::FS_XL_64, Lsm6dsoSleepDur::DUR_1_512);
 		static SamM10q gps(&hi2c2, GPS_ADDRESS);
-		gps.initSamM10q();
+		//gps.initSamM10q();
+		Lsm6dso imu(&hi2c2, IMU_ADDRESS, Lsm6dsoI3C::DISABLED, Lsm6dsoOdrAcc::ODR_52, Lsm6dsoFsAcc::FS_4G, Lsm6dsoOdrGyr::POWER_DOWN, Lsm6dsoFsGyr::FS_250DPS, Lsm6dsoWakeThs::THS_1, Lsm6dsoWakeDur::ODR_1, Lsm6dsoWakeWeight::FS_XL_64, Lsm6dsoSleepDur::DUR_1_512);
 		Ina226 inaMcu(&hi2c2, INA_MCU_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
 		Ina226 inaGps(&hi2c2, INA_GPS_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
 		Ina226 inaImu(&hi2c2, INA_IMU_ADDRESS, 0.1f, 0.1f, Ina226Averaging::AVG_1, Ina226ConvTime::CT_140US, Ina226ConvTime::CT_140US, Ina226Mode::SHUNT_CONTINUOUS);
@@ -154,7 +159,10 @@ extern "C" { // Use extern "C" to ensure C linkage for functions called from C
     	fsmQueueHandle = osMessageQueueNew (16, sizeof(Message*), &fsmQueue_attributes);
 
 		/* creation of defaultTask */
-		defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+    	defaultTaskParams defaultParams = {
+    			.gps = &gps
+    	};
+		defaultTaskHandle = osThreadNew(StartDefaultTask, &defaultParams, &defaultTask_attributes);
 
     	/* Create the thread(s) */
     	/* creation of fsm_Task */
@@ -185,13 +193,15 @@ extern "C" { // Use extern "C" to ensure C linkage for functions called from C
 void StartDefaultTask(void *argument)
 {
   /* init code for LoRaWAN */
-  //uart_send_string("[LoraTask] Hola Mundo\n\r");
+  defaultTaskParams *defaultParams = static_cast<defaultTaskParams *>(argument);
+  uart_send_string("[LoraTask] Hola Mundo\n\r");
+  defaultParams->gps->initSamM10q();
   MX_LoRaWAN_Init();
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
   {
-	//uart_send_string("[LoraTask] Hola Mundo 2\n\r");
+
     osDelay(1000);
   }
   /* USER CODE END 5 */
