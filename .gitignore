@@ -1,2 +1,178 @@
-/Debug/
-/Release/
+# ===== BUILD DIRECTORIES =====
+# CMake build directories
+build/
+Build/
+BUILD/
+*/build/
+*/Build/
+*/BUILD/
+
+# STM32CubeIDE/Eclipse build directories
+Debug/
+Release/
+*/Debug/
+*/Release/
+
+# Visual Studio Code build directories
+.vscode/build/
+
+# ===== CMAKE GENERATED FILES =====
+# CMake cache and generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+!*-config.cmake
+!gcc-arm-none-eabi.cmake
+!starm-clang.cmake
+!mx-generated.cmake
+
+# Ninja build files
+build.ninja
+.ninja_deps
+.ninja_log
+
+# ===== COMPILER AND TOOLCHAIN =====
+# Object files
+*.o
+*.obj
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.su
+*.d
+
+# Linker files (generated)
+*.ld.bak
+
+# ===== IDE AND EDITOR FILES =====
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+# STM32CubeIDE/Eclipse
+.metadata/
+.settings/
+.project
+.cproject
+.mxproject
+
+# CLion
+.idea/
+cmake-build-*/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ===== STM32 SPECIFIC =====
+# STM32CubeMX generated (keep source, ignore temps)
+mx.scratch
+*.tmp
+*.bak
+
+# STM32 Programmer files
+*.stldr
+
+# HAL Driver binaries (keep source code)
+Drivers/**/Lib/
+Drivers/**/*.a
+
+# ===== SYSTEM AND OS =====
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===== DOCUMENTATION AND LOGS =====
+# Generated documentation
+doc/html/
+doc/latex/
+Doxygen/
+
+# Log files
+*.log
+*.out
+
+# ===== TEMPORARY AND BACKUP FILES =====
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# Swap files
+*.swp
+*.swo
+
+# ===== PYTHON (if using Python scripts) =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ===== KEEP THESE IMPORTANT FILES =====
+# Explicitly keep important configuration files
+!CMakeLists.txt
+!CMakePresets.json
+!*.ioc
+!*.cfg
+!*.ld
+!*.s
+!*.h
+!*.c
+!*.cpp
+!*.hpp
+
+# Keep source directories structure
+!Core/
+!Drivers/
+!Middlewares/
+!Common/
+!CM4/
+!CM0PLUS/
+!LoRaWAN/
+!Utilities/

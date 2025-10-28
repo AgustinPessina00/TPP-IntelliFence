@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Rename resource &apos;TPP-IntelliFence_CM4/Core/Src/sys_sensors.c&apos; to &apos;sys_sensors.cpp&apos;" description="Rename resource &apos;sys_sensors.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Src/sys_sensors.c" name="sys_sensors.cpp" stamp="1756158345155" updateReferences="true"/>&#x0A;<refactoring comment="Rename resource &apos;TPP-IntelliFence_CM4/Core/Src/usart_if.c&apos; to &apos;usart_if.cpp&apos;" description="Rename resource &apos;usart_if.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Src/usart_if.c" name="usart_if.cpp" stamp="1756170098856" updateReferences="true"/>
-</session>

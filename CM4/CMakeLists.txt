@@ -1,0 +1,122 @@
+cmake_minimum_required(VERSION 3.22)
+
+#
+# This file is generated only once,
+# and is not re-generated if converter is called multiple times.
+#
+# User is free to modify the file as much as necessary
+#
+
+# Setup compiler settings
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+
+# Define the build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+message("Build type: " ${CMAKE_BUILD_TYPE})
+
+# Enable compile command to ease indexing with e.g. clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+# Compiler options
+set(STM32_MCU_FLAGS  "-mcpu=cortex-m4 " )
+
+#Linker options
+set(STM32_LINKER_SCRIPT STM32WL55XX_FLASH_CM4.ld)
+set(STM32_LINKER_OPTION  )
+
+# Set the project name
+set(CMAKE_PROJECT_NAME TPP-Intellifence_CM4)
+project(${CMAKE_PROJECT_NAME})
+
+# Create an executable object type
+add_executable(${CMAKE_PROJECT_NAME})
+
+# Include mx-generated
+include("mx-generated.cmake")
+
+
+# In order to use CMake for cross-compiling
+set(CMAKE_CXX_COMPILER_FORCED "true")
+
+# Add project symbols (macros)
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined symbols
+)
+
+# Enable CMake support for ASM, C and C++ languages
+enable_language(C CXX ASM)
+
+# Setup C++ compiler settings
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+
+# Add include paths
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined include paths
+    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GPS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GPS/TinyGPSPlus
+    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/I2C
+    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/INA
+    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/IMU
+)
+
+# Add sources to executable
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user sources here
+    # GPS Module Sources (Original)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sam_m10q.cpp  
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gps_test_wrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/TinyGPS++.cpp
+    # GPS Module Sources (Melopero-based)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sam_m10q_melopero.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gps_test_melopero_wrapper.cpp
+    # I2C Thread-Safe Sources  
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/I2CBus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/I2CManager.cpp
+    # INA226 Current/Power Sensor Sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ina226.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ina226_test_wrapper.cpp
+    # LSM6DSO IMU Sensor Sources (Thread-Safe)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/lsm6dso.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/lsm6dso_test_wrapper.cpp
+    # Data Model Sources (Cow and Zone definitions)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow.cpp
+)
+
+# Link directories setup
+target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined library search paths
+)
+
+# Add linked libraries
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined libraries
+)
+
+# Enable printf/scanf with floating point support
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE
+    -u_printf_float
+)
+
+# Remove wrong libob.a library dependency when using cpp files
+list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
+
+# Validate that STM32CubeMX code is compatible with C standard
+if((CMAKE_C_STANDARD EQUAL 90) OR (CMAKE_C_STANDARD EQUAL 99))
+    message(ERROR "Generated code requires C11 or higher")
+endif()
+
+
+
+
+
+
+
+
+

@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">
-<refactoring comment="Delete resource &apos;TPP-IntelliFence_CM4/Core/Src/sam_m10q_data.cpp&apos;" deleteContents="false" description="Delete resource &apos;TPP-IntelliFence_CM4/Core/Src/sam_m10q_data.cpp&apos;" element1="/TPP-IntelliFence_CM4/Core/Src/sam_m10q_data.cpp" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1758158215356"/>
-</session>
