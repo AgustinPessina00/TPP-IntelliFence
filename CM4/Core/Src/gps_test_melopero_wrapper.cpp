@@ -103,8 +103,8 @@ extern "C" void gps_melopero_comprehensive_test(void) {
     int sucessfulReads = 0;
     int validFixes = 0;
 
-    for (int attempt = 1; attempt <= 45; attempt++) {
-        printf("\n[GPS-MELOPERO] --- Intento %d/10 (Tiempo transcurrido: %d minutos) ---\n", 
+    for (int attempt = 1; attempt <= 2; attempt++) {
+        printf("\n[GPS-MELOPERO] --- Intento %d/2 (Tiempo transcurrido: %d minutos) ---\n", 
                attempt, (attempt - 1) / 2); // Cada 2 intentos = 1 minuto aprox
         
         // Show satellite info every 3 attempts
@@ -178,7 +178,7 @@ extern "C" void gps_melopero_comprehensive_test(void) {
         }
         
         // Delay entre intentos (30 segundos para cold start)
-        if (attempt < 45) {
+        if (attempt < 2) {
             printf("[GPS-MELOPERO] Esperando 30 segundos para siguiente intento...\n");
             HAL_Delay(30000); // 30 seconds between attempts for cold start
         }

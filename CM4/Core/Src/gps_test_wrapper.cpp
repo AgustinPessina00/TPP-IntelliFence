@@ -71,7 +71,7 @@ extern "C" void gps_init_and_test(void) {
     // Inicializar GPS
     gps.initSamM10q();
     
-    printf("[GPS] ✅ GPS inicializado\n");
+    printf("[GPS] GPS inicializado\n");
     printf("[GPS] ========== CONFIGURACIÓN GPS ==========\n");
     
     // Test de configuración más detallado

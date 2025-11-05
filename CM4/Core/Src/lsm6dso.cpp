@@ -34,7 +34,7 @@ bool Lsm6dso::initialize() {
     // Get reference to I2C2 bus (same as GPS and INA226)
     i2cBus = &I2CManager::getBus2();
     
-    // ✅ SET INITIALIZED FLAG BEFORE CONFIGURE
+    // SET INITIALIZED FLAG BEFORE CONFIGURE
     isInitialized = true;
     
     // Configure the LSM6DSO
