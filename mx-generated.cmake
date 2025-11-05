@@ -3,7 +3,7 @@ set(ST_MULTICONTEXT MULTI_CONTEXT CACHE STRING "Type of multi-context")
 #-----------------------Build CM0PLUS Project-----------------------#
 if((${BUILD_CONTEXT} MATCHES .*CM0PLUS.*) OR (NOT DEFINED BUILD_CONTEXT))
     message("   Build context: " CM0PLUS)
-    ExternalProject_Add(TPP-Intellifence_CM0PLUS
+    ExternalProject_Add(TPP-IntelliFence_CM0PLUS
         BINARY_DIR                  ${CMAKE_SOURCE_DIR}/CM0PLUS/build
         SOURCE_DIR                  ${PROJECT_SOURCE_DIR}/CM0PLUS
         PREFIX                      CM0PLUS
@@ -14,12 +14,12 @@ if((${BUILD_CONTEXT} MATCHES .*CM0PLUS.*) OR (NOT DEFINED BUILD_CONTEXT))
     )
 
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_SOURCE_DIR}/CM0PLUS/build")
-	set(ST_MULTI_CONTEXT_CM0PLUS_PROJECT_BUILD_TARGET ${CMAKE_SOURCE_DIR}/CM0PLUS/build/TPP-Intellifence_CM0PLUS${CMAKE_EXECUTABLE_SUFFIX_CXX} CACHE FILEPATH "Path to cm0plus project target")
+	set(ST_MULTI_CONTEXT_CM0PLUS_PROJECT_BUILD_TARGET ${CMAKE_SOURCE_DIR}/CM0PLUS/build/TPP-IntelliFence_CM0PLUS${CMAKE_EXECUTABLE_SUFFIX_CXX} CACHE FILEPATH "Path to cm0plus project target")
 endif()
 #-----------------------Build CM4 Project-----------------------#
 if((${BUILD_CONTEXT} MATCHES .*CM4.*) OR (NOT DEFINED BUILD_CONTEXT))
     message("   Build context: " CM4)
-    ExternalProject_Add(TPP-Intellifence_CM4
+    ExternalProject_Add(TPP-IntelliFence_CM4
         BINARY_DIR                  ${CMAKE_SOURCE_DIR}/CM4/build
         SOURCE_DIR                  ${PROJECT_SOURCE_DIR}/CM4
         PREFIX                      CM4
@@ -30,6 +30,6 @@ if((${BUILD_CONTEXT} MATCHES .*CM4.*) OR (NOT DEFINED BUILD_CONTEXT))
     )
 
 	set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_SOURCE_DIR}/CM4/build")
-	set(ST_MULTI_CONTEXT_CM4_PROJECT_BUILD_TARGET ${CMAKE_SOURCE_DIR}/CM4/build/TPP-Intellifence_CM4${CMAKE_EXECUTABLE_SUFFIX_CXX} CACHE FILEPATH "Path to cm4 project target")
+	set(ST_MULTI_CONTEXT_CM4_PROJECT_BUILD_TARGET ${CMAKE_SOURCE_DIR}/CM4/build/TPP-IntelliFence_CM4${CMAKE_EXECUTABLE_SUFFIX_CXX} CACHE FILEPATH "Path to cm4 project target")
 endif()
 
