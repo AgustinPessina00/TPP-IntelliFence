@@ -4,7 +4,7 @@
 #include "sam_m10q.h"
 #include "lsm6dso.h"
 #include "ina226.h"
-#include "messages.h"
+#include "EmbeddedMessage.h"
 #include "FreeRTOS.h"
 #include "task.h"
 

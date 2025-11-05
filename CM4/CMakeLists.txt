@@ -69,6 +69,12 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    # Embedded Message System Sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/EmbeddedMessage.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/MessageExample.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/MessageTest.c
+    # RTOS Printf (Thread-Safe Logging)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtos_printf.c
     # GPS Module Sources (Original)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sam_m10q.cpp  
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gps_test_wrapper.cpp
@@ -87,6 +93,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/lsm6dso_test_wrapper.cpp
     # Data Model Sources (Cow and Zone definitions)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow.cpp
+    # Thread Sources (FreeRTOS Tasks)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/threads/dispatcherTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/threads/fsmTask_new.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/threads/sensorAcqTask_new.cpp
 )
 
 # Link directories setup
@@ -111,6 +121,10 @@ list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 if((CMAKE_C_STANDARD EQUAL 90) OR (CMAKE_C_STANDARD EQUAL 99))
     message(ERROR "Generated code requires C11 or higher")
 endif()
+
+# Forzar flags de debug completos para RTOS debugging
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g3" CACHE STRING "C Debug flags" FORCE)
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3" CACHE STRING "C++ Debug flags" FORCE)
 
 
 

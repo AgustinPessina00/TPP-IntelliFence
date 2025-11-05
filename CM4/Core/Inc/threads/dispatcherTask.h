@@ -1,7 +1,7 @@
 #ifndef DISPATCHER_TASK_H
 #define DISPATCHER_TASK_H
 
-#include "messages.h"
+#include "EmbeddedMessage.h"
 
 #ifdef __cplusplus
 extern "C" {

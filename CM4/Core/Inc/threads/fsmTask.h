@@ -1,9 +1,10 @@
 #ifndef FSMTASK_H
 #define FSMTASK_H
 
-#include "messages.h"
-#include "cow.h"
-#include "fence.h"
+#include "EmbeddedMessage.h"
+// TODO: Implementar versión embedded-friendly de cow y fence
+// #include "cow.h"
+// #include "fence.h"
 #include "stm32wlxx_hal.h"
 
 #ifdef __cplusplus

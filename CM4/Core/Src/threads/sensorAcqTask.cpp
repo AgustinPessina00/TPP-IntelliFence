@@ -1,8 +1,9 @@
 
+#include "FreeRTOS.h"
+#include "task.h"
 #include "threads/sensorAcqTask.h"
-#include "usart.h"
-#include <stdint.h>
-#include <string.h>
+#include "cmsis_os.h"
+#include "EmbeddedMessage.h"
 #include <stdio.h>
 
 extern osMessageQueueId_t sensorAcqQueueHandle;
