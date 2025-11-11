@@ -62,6 +62,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GPS
     ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GPS/TinyGPSPlus
     ${CMAKE_CURRENT_SOURCE_DIR}/Modules/I2C
+    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/UART
     ${CMAKE_CURRENT_SOURCE_DIR}/Modules/INA
     ${CMAKE_CURRENT_SOURCE_DIR}/Modules/IMU
 )
@@ -75,6 +76,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/MessageTest.c
     # RTOS Printf (Thread-Safe Logging)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtos_printf.c
+    # FreeRTOS Heap Configuration
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/heap_config.c
     # GPS Module Sources (Original)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sam_m10q.cpp  
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gps_test_wrapper.cpp
@@ -85,6 +88,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # I2C Thread-Safe Sources  
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/I2CBus.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/I2CManager.cpp
+    # UART Thread-Safe Sources
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/UARTBus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/UARTManager.cpp
     # INA226 Current/Power Sensor Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ina226.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ina226_test_wrapper.cpp

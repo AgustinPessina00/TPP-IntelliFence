@@ -22,6 +22,7 @@
 #include "dma.h"
 #include "i2c.h"
 #include "ipcc.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -236,6 +237,7 @@ void run_comprehensive_module_tests(void) {
     printf("Testing GPS connectivity and data acquisition...\n");
     
     // Test standard GPS implementation
+
     gps_init_and_test();
     
     printf("INFO - Testing Melopero GPS implementation...\n");
@@ -346,8 +348,6 @@ void initialize_system_threads(void) {
 
 /* USER CODE END 0 */
 
-
-
 /**
   * @brief  The application entry point.
   * @retval int
@@ -385,6 +385,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2C2_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -392,46 +393,6 @@ int main(void)
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
-
-  /* Initialize thread-safe printf for RTOS */
-  if (rtos_printf_init() != 0) {
-    printf("ERROR - Failed to initialize RTOS printf system\n");
-    Error_Handler();
-  }
-  printf("[RTOS_PRINTF] Thread-safe printf initialized successfully\n");
-
-  /* Print heap configuration info after RTOS initialization */
-  printf("\n=== FreeRTOS Heap Configuration ===\n");
-  vPrintHeapInfo();
-  
-  /* Test heap allocation to verify it's working in RAM2 */
-  void* test_ptr1 = pvPortMalloc(1000);  /* Allocate 1KB */
-  void* test_ptr2 = pvPortMalloc(500);   /* Allocate 500B */
-  
-  if (test_ptr1 && test_ptr2) {
-    printf("[HEAP TEST] Allocated 1.5KB successfully\n");
-    printf("[HEAP TEST] Ptr1: 0x%08X, Ptr2: 0x%08X\n", (unsigned int)test_ptr1, (unsigned int)test_ptr2);
-    
-    /* Verify addresses are in RAM2 range (0x20008000 - 0x2000BFFF) */
-    uint32_t addr1 = (uint32_t)test_ptr1;
-    uint32_t addr2 = (uint32_t)test_ptr2;
-    
-    if ((addr1 >= 0x20008000 && addr1 < 0x2000C000) && 
-        (addr2 >= 0x20008000 && addr2 < 0x2000C000)) {
-      printf("[HEAP TEST] SUCCESS - Heap is correctly located in RAM2\n");
-    } else {
-      printf("[HEAP TEST] WARNING - Heap may not be in RAM2 (addr1=0x%08X, addr2=0x%08X)\n", 
-             (unsigned int)addr1, (unsigned int)addr2);
-    }
-    
-    vPortFree(test_ptr1);
-    vPortFree(test_ptr2);
-  } else {
-    printf("[HEAP TEST] ERROR - Failed to allocate test memory\n");
-  }
-  
-  vPrintHeapInfo();  /* Print updated stats after test */
-  printf("====================================\n\n");
 
   /* Initialize leds */
   BSP_LED_Init(LED_BLUE);
@@ -453,33 +414,9 @@ int main(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TESTS */
-  // Ejecutar tests comprensivos de todos los módulos antes de FreeRTOS
+
   run_comprehensive_module_tests();
-  /* USER CODE END TESTS */
 
-  /* USER CODE BEGIN RTOS INIT */
-
-  MessagePool_Init();  // Inicializar el pool de mensajes estático thread-safe
-  // Paso 2: Crear colas de mensajes
-  initialize_message_queues();
-  
-  // Paso 3: Crear threads del sistema
-  initialize_system_threads();
-  
-  printf("[SYSTEM] Sistema FreeRTOS inicializado exitosamente\n");
-  printf("[SYSTEM] Memoria estática: ~3KB threads + ~2.6KB MessagePool\n");
-  printf("[SYSTEM] Listo para osKernelStart()\n\n");
-  printf("[SYSTEM] ========================================\n");
-  printf("[SYSTEM]        INICIANDO FREERTOS SCHEDULER      \n");
-  printf("[SYSTEM] ========================================\n");
-  printf("[SYSTEM] - Dispatcher Task: Ruteo de mensajes\n");
-  printf("[SYSTEM] - FSM Task: Máquina de estados principal\n");
-  printf("[SYSTEM] - SensorAcq Task: Adquisición de sensores\n");
-  printf("[SYSTEM] - MessagePool: Pool estático thread-safe\n");
-  printf("[SYSTEM] ========================================\n");
-  printf("[SYSTEM] Control transferido a FreeRTOS...\n\n");
-  /* USER CODE END RTOS INIT */
   /* Start scheduler */
   osKernelStart();
 
@@ -501,7 +438,10 @@ int main(void)
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5); // LED_RED
     HAL_Delay(1000);
     /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
   }
+  /* USER CODE END 3 */
 }
 
 /**
