@@ -3,6 +3,7 @@
 #include "../../Modules/GPS/sam_m10q.h"
 #include "stm32wlxx_hal.h"
 #include "I2CManager.h"
+#include "../../Modules/UART/UARTManager.h"
 #include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
@@ -12,13 +13,8 @@ void BusyDelayMs(uint32_t ms);
 
 SamM10q::SamM10q(uint8_t i2cAddr) {
 	this->i2cAddr = i2cAddr;
-    this->i2cBus = nullptr;  // Se inicializa en initSamM10q()
-
-    this->header[0] = UBX_HEADER1;
-	this->header[1] = UBX_HEADER2;
-    this->msgClass 	= VALSET_CLASS;
-	this->msgID		= VALSET_ID;
-
+    this->i2cBus = nullptr;   // Se inicializa en initSamM10q()
+    this->uartBus = nullptr;  // Se inicializa en initSamM10q()
     //this->length 	= Dejo vacio por ahora ya que pensamos hacer lo que dice en el .h.
 
 	this->version	= VALSET_VERSION;
@@ -34,6 +30,9 @@ void SamM10q::initSamM10q() {
     
     // Inicializar el bus I2C thread-safe
     i2cBus = &I2CManager::getBus2();
+    
+    // Inicializar el bus UART thread-safe
+    uartBus = &UARTManager::getInstance().getUART1();
     
     configure_gps();
 }
@@ -107,8 +106,8 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
     uint8_t sendMsgRAM[UBX_MAX_MESSAGE_SIZE];
     uint8_t sendMsgBBR[UBX_MAX_MESSAGE_SIZE];
     
-    uint16_t lenRAM = build_ubx_message(RAM, payload, payloadlen, checksum, checksumlen, sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
-    uint16_t lenBBR = build_ubx_message(BBR, payload, payloadlen, checksum, checksumlen, sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
+    uint16_t lenRAM = build_ubx_message(VALSET_CLASS, VALSET_ID, RAM, payload, payloadlen, checksum, checksumlen, sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
+    uint16_t lenBBR = build_ubx_message(VALSET_CLASS, VALSET_ID, BBR, payload, payloadlen, checksum, checksumlen, sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
 
 	const bool okRAM = (lenRAM > 0) && (send_message(sendMsgRAM, lenRAM, 15) == HAL_OK);
     const bool okBBR = (lenBBR > 0) && (send_message(sendMsgBBR, lenBBR, 15) == HAL_OK);
@@ -118,68 +117,59 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
 
 /* Configuración completa: recorre las 43 tuplas (payload + checksum) */
 void SamM10q::configure_gps() {
-    // Usar arrays estáticos en lugar de std::vector
-    uint8_t sendMsgRAM[UBX_MAX_MESSAGE_SIZE];
-    uint8_t sendMsgBBR[UBX_MAX_MESSAGE_SIZE];
+    uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
+    write_register_uart(m10q_data_44, m10q_data_len[0], RAM); // Configuración inicial via UART
+    HAL_Delay(1000);
+    uartBus->flushRxBuffer();
+    read_register_uart(m10q_data_44, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    
+    write_register_uart(m10q_data_43, m10q_data_len[0], RAM); // Configuración inicial via UART
+    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
 
-    HAL_StatusTypeDef status = HAL_ERROR;
-
+    write_register_uart(m10q_data_43, m10q_data_len[0], BBR); // Configuración inicial via I2C
+    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
     for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
-    	// GENERO EL MENSAJE.
-    	uint16_t lenRAM = build_full_message_from_index(i, RAM, sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
-    	uint16_t lenBBR = build_full_message_from_index(i, BBR, sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
-
-    	// ENVÍO EL MENSAJE.
-        // NACHO: ¡¡ RECORDAR EL TIEMPO ENTRE MSG DE SIGNAL Y MSG DE SIGNAL!! Ver Interface Description.
-        //PESSI: AGREGO EL DELAY EN LA FUNCIÓN send_message.
-
-        // TODO: sacar números mágicos/hardcodeados.
-        if (lenRAM > 0) {
-            status = send_message(sendMsgRAM, lenRAM, 15);
-            if(status == HAL_OK && lenBBR > 0){
-                status = send_message(sendMsgBBR, lenBBR, 15);
-                if(status != HAL_OK){
-                    i--;
-                }
-            }
-            else {
-                i--;
-            }
-        }
-        else {
+        const uint8_t* payload = m10q_data_payloads[i];
+        size_t payloadlen = m10q_data_len[i];
+        
+        // Escribir en RAM
+        if (!write_register(payload, payloadlen, RAM)) {
+            // Si falla la escritura en RAM, reintentar
             i--;
+            continue;
+        }
+        
+        // Verificar escritura en RAM leyendo el registro
+        // Las primeras 4 bytes del payload son la KEY
+        if (payloadlen >= 4) {
+            if (!read_register(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
+                // Si falla la lectura de verificación, reintentar
+                i--;
+                continue;
+            }
+        }
+        
+        // Escribir en BBR (persistente)
+        if (!write_register(payload, payloadlen, BBR)) {
+            // Si falla la escritura en BBR, reintentar
+            i--;
+            continue;
+        }
+        
+        // Verificar escritura en BBR
+        if (payloadlen >= 4) {
+            if (!read_register(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
+                // Si falla la lectura de verificación, reintentar
+                i--;
+                continue;
+            }
         }
     }
 }
 
-/* Toma i y arma el frame UBX completo usando las tablas sin heap global */
-uint16_t SamM10q::build_full_message_from_index(size_t i, uint8_t layer, uint8_t* buffer, uint16_t buffer_size) {
-	// Validación simple
-    if (i >= M10Q_NUM_DATA_ELEMENTS || !buffer || buffer_size < UBX_MAX_MESSAGE_SIZE) {
-    	// Índice fuera de rango o buffer inválido → devolvemos 0
-    	return 0;
-    }
-
-    const uint8_t* payload = m10q_data_payloads[i];
-    size_t payloadlen = m10q_data_len[i];
-
-    // Cada payload tiene un par de 2 bytes de checksum precalculado
-    const uint8_t* checksum = nullptr;
-    if(layer == RAM){
-    	checksum = m10q_checksum_vals[2*i];
-    }
-    else if(layer == BBR){
-    	checksum = m10q_checksum_vals[2*i+1];
-    }
-
-    size_t checksumlen = 2;
-
-    // Llamamos a la función que arma el frame UBX completo
-    return build_ubx_message(layer, payload, payloadlen, checksum, checksumlen, buffer, buffer_size);
-}
 
 /* Arma el frame UBX-VALSET usando array estático (embedded friendly) */
-uint16_t SamM10q::build_ubx_message(uint8_t layer, const uint8_t* payload, size_t payload_len, const uint8_t* ck, size_t ck_len, uint8_t* buffer, uint16_t buffer_size) {
+uint16_t SamM10q::build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* keyId, size_t keyLen, const uint8_t* value, size_t valueLen, uint8_t* buffer, uint16_t buffer_size) {
     if (!buffer || buffer_size < UBX_MAX_MESSAGE_SIZE) {
         return 0;  // Buffer inválido
     }
@@ -187,15 +177,15 @@ uint16_t SamM10q::build_ubx_message(uint8_t layer, const uint8_t* payload, size_
     uint16_t idx = 0;
 
 	// 1. Sync chars
-    buffer[idx++] = header[0];	// 0xB5
-    buffer[idx++] = header[1];	// 0x62
+    buffer[idx++] = UBX_HEADER1;	// 0xB5
+    buffer[idx++] = UBX_HEADER2;	// 0x62
 
 	// 2. Class & ID
-    buffer[idx++] = msgClass;	// 0x06
-    buffer[idx++] = msgID;		// 0x8A
+    buffer[idx++] = msgClass;
+    buffer[idx++] = msgID;
 
     // 3. Payload length = 4 (version, layer, reserved) + payload size
-    uint16_t payloadLength = static_cast<uint16_t>(4 + payload_len);
+    uint16_t payloadLength = static_cast<uint16_t>(4 + keyLen + valueLen);
     buffer[idx++] = static_cast<uint8_t>(payloadLength & 0xFF);			// Little endian LSB
     buffer[idx++] = static_cast<uint8_t>((payloadLength >> 8) & 0xFF);	// Little endian MSB
 
@@ -208,19 +198,25 @@ uint16_t SamM10q::build_ubx_message(uint8_t layer, const uint8_t* payload, size_
     buffer[idx++] = static_cast<uint8_t>((reserved >> 8) & 0xFF);	// MSB
 
     // 5. Append the actual payload (KEY + VALUEs)
-    if (payload_len > 0 && payload != nullptr) {
-        for (size_t i = 0; i < payload_len; i++) {
+    if (keyLen > 0 && keyId != nullptr) {
+        for (size_t i = 0; i < keyLen; i++) {
             if (idx >= buffer_size) return 0;  // Buffer overflow protection
-            buffer[idx++] = payload[i];
+            buffer[idx++] = keyId[i];
         }
     }
 
-	// 6. Append checksum directamente
-    if (ck_len >= 2 && ck != nullptr) {
-        if (idx + 1 >= buffer_size) return 0;  // Buffer overflow protection
-        buffer[idx++] = ck[0]; // CK_A
-        buffer[idx++] = ck[1]; // CK_B
+    if (msgID == VALSET_ID && valueLen > 0 && value != nullptr) {
+        for (size_t i = 0; i < valueLen; i++) {
+            if (idx >= buffer_size) return 0;  // Buffer overflow protection
+            buffer[idx++] = value[i];
+        }
     }
+
+    //calcular el checksum UBX
+    uint8_t ck_a = 0, ck_b = 0;
+    ubx_calculate_checksum(buffer, idx, &ck_a, &ck_b);
+    buffer[idx++] = ck_a;
+    buffer[idx++] = ck_b;
 
 	return idx;  // Retorna la longitud total del mensaje
 }
@@ -231,7 +227,7 @@ HAL_StatusTypeDef SamM10q::send_message(const uint8_t* message, uint16_t message
     }
 
     // Usar método transmit thread-safe del I2CBus para envío directo sin registros
-    I2CResult result = i2cBus->transmit(i2cAddr, message, message_length, 100);
+    I2CResult result = i2cBus->memWrite(i2cAddr, 0xFF, 1, message, message_length, 100);
     
     // Delay para que el módulo procese
     BusyDelayMs(delay_ms);
@@ -245,15 +241,34 @@ void BusyDelayMs(uint32_t ms) {
 }
 
 void SamM10q::ubx_calculate_checksum(const uint8_t* msg, uint16_t length, uint8_t* ck_a, uint8_t* ck_b) {
-    if (!msg || length == 0 || !ck_a || !ck_b) {
+    if (!msg || length < 6 || !ck_a || !ck_b) {  // Mínimo: sync(2) + class(1) + id(1) + len(2)
         return;
     }
     
     *ck_a = 0;
     *ck_b = 0;
     
-    // Calcular checksum UBX Fletcher (Class + ID + Length + Payload)
-    for (uint16_t i = 2; i < length - 2; i++) {  // Excluir sync chars y checksum final
+    // Calcular checksum UBX Fletcher sobre Class, ID, Length y Payload
+    // Excluir los 2 bytes de sync chars (0xB5 0x62) al inicio
+    
+    // Class (índice 2)
+    *ck_a += msg[2];
+    *ck_b += *ck_a;
+    
+    // ID (índice 3)
+    *ck_a += msg[3];
+    *ck_b += *ck_a;
+    
+    // Length LSB (índice 4)
+    *ck_a += msg[4];
+    *ck_b += *ck_a;
+    
+    // Length MSB (índice 5)
+    *ck_a += msg[5];
+    *ck_b += *ck_a;
+    
+    // Payload (desde índice 6 hasta length-2 para excluir checksum final)
+    for (uint16_t i = 6; i < length; i++) {
         *ck_a += msg[i];
         *ck_b += *ck_a;
     }
@@ -267,5 +282,201 @@ void SamM10q::testGPS() {
         return;
     } else {
 		//printf("[TEST GPS] Posición válida: %.6f, %.6f\n", this->latitude, this->longitude);
+    }
+}
+
+/* Escritura de registro usando UBX-CFG-VALSET */
+bool SamM10q::write_register(const uint8_t* key_value_data, size_t data_len, uint8_t layer) {
+    if (!key_value_data || data_len < 4) {
+        return false;
+    }
+    
+    uint8_t keyId[4];
+    for (size_t i = 0; i < 4; i++) {
+        keyId[i] = key_value_data[i];
+    }
+
+    uint8_t value[UBX_MAX_MESSAGE_SIZE];
+    for (size_t i = 0; i < data_len - 4; i++) {
+        value[i] = key_value_data[i + 4];
+    }
+    size_t value_len = data_len - 4;
+
+    uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
+
+    // Construir mensaje VALSET sin checksum
+    uint16_t msg_len = build_ubx_message(VALSET_CLASS, VALSET_ID, layer, keyId, 4, value, value_len, buffer, UBX_MAX_MESSAGE_SIZE);
+    
+    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+        return false;
+    }
+
+    // Enviar mensaje
+    return send_message(buffer, msg_len, 15) == HAL_OK;
+}
+
+/* Lectura de registro usando UBX-CFG-VALGET */
+bool SamM10q::read_register(const uint8_t* key_data, size_t len_key_data, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
+    if (!key_data || len_key_data == 0 || !response_buffer || buffer_size == 0) {
+        return false;
+    }
+
+    uint8_t keyId[4];
+    for (size_t i = 0; i < 4; i++) {
+        keyId[i] = key_data[i];
+    }
+
+
+    uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
+
+    // Construir mensaje VALGET sin checksum (las keys son el payload)
+    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, keyId, 4, nullptr, 0, buffer, UBX_MAX_MESSAGE_SIZE);
+    
+    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+        return false;
+    }
+    uint8_t response_buffer_1[UBX_MAX_MESSAGE_SIZE];
+    uint8_t response_buffer_2[UBX_MAX_MESSAGE_SIZE];
+    // Enviar mensaje de petición
+    if (send_message(buffer, msg_len, 15) != HAL_OK) {
+        return false;
+    }
+
+    HAL_Delay(1000);
+
+    // Leer respuesta del módulo GPS
+    if (!i2cBus) {
+        return false;
+    }
+
+    // Usar bus I2C thread-safe para leer la respuesta
+    I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, 1, response_buffer_1, 1, 100);
+    I2CResult result1 = i2cBus->memRead(i2cAddr, 0xFE, 1, response_buffer_2, 1, 100);
+    I2CResult result2 = i2cBus->memRead(i2cAddr, 0xFF, 1, response_buffer, (response_buffer_1[0] << 8) | response_buffer_2[0], 100);
+    return (result == I2C_OK) && (result1 == I2C_OK) && (result2 == I2C_OK);
+}
+
+/* ========== FUNCIONES UART PARA CONFIGURACIÓN INICIAL ========== */
+
+HAL_StatusTypeDef SamM10q::send_message_uart(const uint8_t* message, uint16_t message_length, uint32_t delay_ms) {
+    if (!uartBus || !message || message_length == 0) {
+        return HAL_ERROR;
+    }
+
+    // Usar método transmit thread-safe del UARTBus
+    UARTResult result = uartBus->transmit(message, message_length, 100);
+    
+    // Delay para que el módulo procese
+    BusyDelayMs(delay_ms);
+
+    return (result == UART_OK) ? HAL_OK : HAL_ERROR;
+}
+
+/* Escritura de registro usando UBX-CFG-VALSET via UART */
+bool SamM10q::write_register_uart(const uint8_t* key_value_data, size_t data_len, uint8_t layer) {
+    if (!key_value_data || data_len == 0) {
+        return false;
+    }
+
+    uint8_t keyId[4];
+    for (size_t i = 0; i < 4; i++) {
+        keyId[i] = key_value_data[i];
+    }
+
+    uint8_t value[UBX_MAX_MESSAGE_SIZE];
+    for (size_t i = 0; i < data_len - 4; i++) {
+        value[i] = key_value_data[i + 4];
+    }
+    size_t value_len = data_len - 4;
+
+    uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
+
+    // Construir mensaje VALSET sin checksum
+    uint16_t msg_len = build_ubx_message(VALSET_CLASS, VALSET_ID, layer, keyId, 4, value, value_len, buffer, UBX_MAX_MESSAGE_SIZE);
+    
+    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+        return false;
+    }
+    
+    // Enviar mensaje via UART
+    return send_message_uart(buffer, msg_len, 15) == HAL_OK;
+}
+
+/* Lectura de registro usando UBX-CFG-VALGET via UART */
+bool SamM10q::read_register_uart(const uint8_t* key_data, size_t len_key_data, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
+    if (!key_data || len_key_data == 0 || !response_buffer || buffer_size == 0) {
+        return false;
+    }
+
+    uint8_t keyId[4];
+    for (size_t i = 0; i < 4; i++) {
+        keyId[i] = key_data[i];
+    }
+
+    uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
+
+    // Construir mensaje VALGET sin checksum (las keys son el payload)
+    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, keyId, 4, nullptr, 0, buffer, UBX_MAX_MESSAGE_SIZE);
+    
+    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+        return false;
+    }
+
+    // Enviar mensaje de petición via UART
+    if (send_message_uart(buffer, msg_len, 1000) != HAL_OK) {
+        return false;
+    }
+
+    // Leer respuesta del módulo GPS via UART
+    if (!uartBus) {
+        return false;
+    }
+
+    // Usar bus UART thread-safe para leer la respuesta
+    UARTResult result = uartBus->receive(response_buffer, buffer_size, 1000);
+    
+    return (result == UART_OK);
+}
+
+/* Configuración inicial del GPS via UART */
+void SamM10q::configure_gps_uart() {
+    uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
+    
+    for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
+        const uint8_t* payload = m10q_data_payloads[i];
+        size_t payloadlen = m10q_data_len[i];
+        
+        // Escribir en RAM via UART
+        if (!write_register_uart(payload, payloadlen, RAM)) {
+            // Si falla la escritura en RAM, reintentar
+            i--;
+            continue;
+        }
+        
+        // Verificar escritura en RAM leyendo el registro
+        // Las primeras 4 bytes del payload son la KEY
+        if (payloadlen >= 4) {
+            if (!read_register_uart(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
+                // Si falla la lectura de verificación, reintentar
+                i--;
+                continue;
+            }
+        }
+        
+        // Escribir en BBR (persistente) via UART
+        if (!write_register_uart(payload, payloadlen, BBR)) {
+            // Si falla la escritura en BBR, reintentar
+            i--;
+            continue;
+        }
+        
+        // Verificar escritura en BBR
+        if (payloadlen >= 4) {
+            if (!read_register_uart(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
+                // Si falla la lectura de verificación, reintentar
+                i--;
+                continue;
+            }
+        }
     }
 }

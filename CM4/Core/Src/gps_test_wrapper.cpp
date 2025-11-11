@@ -10,21 +10,12 @@
 #include "I2CManager.h"
 #include "main.h"
 #include <stdio.h>
+#include "UARTManager.h"
+#include "stm32wlxx_hal_uart.h"
 
 // Handle I2C2 externo definido en i2c.c
 extern I2C_HandleTypeDef hi2c2;
-
-/**
- * @brief Software delay simple (no depende de systick)
- * @param ms Milisegundos aproximados a esperar
- */
-static void software_delay_ms(uint32_t ms) {
-    // Aproximadamente 8000 ciclos por ms a 48MHz
-    for (volatile uint32_t i = 0; i < (ms * 8000); i++) {
-        __NOP();  // No operation - evita optimización del compilador
-    }
-}
-
+extern UART_HandleTypeDef huart1;
 /**
  * @brief Función C wrapper para inicializar y probar GPS
  * 
@@ -41,9 +32,18 @@ extern "C" void gps_init_and_test(void) {
         printf("[GPS] Verifique que hi2c2 este correctamente configurado\n");
         return;
     }
-    
+
     printf("[GPS] OK - I2CManager inicializado correctamente\n");
     printf("[GPS] Verificando bus I2C...\n");
+
+    // Inicializar UARTManager con patrón Singleton
+    if(UARTManager::getInstance().initUART1(&huart1)) {
+        printf("[GPS] ERROR CRITICO: No se pudo inicializar UART1 para GPS\n");
+        return;
+    }
+    printf("[GPS] OK - UART1 inicializado correctamente\n");
+
+    
     
     // Test básico de conectividad I2C antes de crear GPS
     I2CBus& testBus = I2CManager::getBus2();
