@@ -86,8 +86,8 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
       if (TickPriority < (1UL << __NVIC_PRIO_BITS))
       {
         /* Configure the TIM IRQ priority */
-        HAL_NVIC_SetPriority(TIM2_IRQn, 3, 0U);
-        uwTickPrio = 3;
+        HAL_NVIC_SetPriority(TIM2_IRQn, TickPriority, 0U);
+        uwTickPrio = TickPriority;
       }
       else
       {
