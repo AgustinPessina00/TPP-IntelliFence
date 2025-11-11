@@ -93,6 +93,7 @@ static const uint8_t m10q_data_41[] = {0x0C, 0x00, 0xD0, 0x10, 0x01}; // PM-EXTI
 static const uint8_t m10q_data_42[] = {0x01, 0x00, 0xD0, 0x20, 0x01}; // PM-OPERATEMODE
 static const uint8_t m10q_data_43[] = {0x03, 0x00, 0x51, 0x10, 0x01}; // CFG-I2C-ENABLED - RAM
 static const uint8_t m10q_data_44[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-I2C-ENABLED - RAM
+static const uint8_t m10q_data_45[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-I2C-ENABLED - RAM
 // Tabla de punteros a payloads
 static const uint8_t* const m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
     m10q_data_43,m10q_data_00, m10q_data_01, m10q_data_02, m10q_data_03, m10q_data_04,

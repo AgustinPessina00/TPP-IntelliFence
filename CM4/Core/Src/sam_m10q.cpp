@@ -120,14 +120,17 @@ void SamM10q::configure_gps() {
     uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
     write_register_uart(m10q_data_44, m10q_data_len[0], RAM); // Configuración inicial via UART
     HAL_Delay(1000);
-    uartBus->flushRxBuffer();
-    read_register_uart(m10q_data_44, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    //uartBus->flushRxBuffer();
+    //read_register_uart(m10q_data_44, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
     
     write_register_uart(m10q_data_43, m10q_data_len[0], RAM); // Configuración inicial via UART
-    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    //read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
 
     write_register_uart(m10q_data_43, m10q_data_len[0], BBR); // Configuración inicial via I2C
-    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
+    //read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
+    
+    write_register(m10q_data_45, 5, RAM);
+
     for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
         const uint8_t* payload = m10q_data_payloads[i];
         size_t payloadlen = m10q_data_len[i];
