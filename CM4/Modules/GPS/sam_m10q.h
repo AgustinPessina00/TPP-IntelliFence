@@ -56,20 +56,19 @@ public:
 	void testGPS();
 
 	// Escritura y lectura de registros UBX (usa I2C por defecto)
-	bool write_register(const uint8_t* key_value_data, size_t data_len, uint8_t layer = RAM);
-	bool read_register(const uint8_t* keys, size_t num_keys, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer = RAM);
+	bool write_register(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
+	bool read_register(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer);
 
 	// Funciones específicas para UART (configuración inicial)
-	bool write_register_uart(const uint8_t* key_value_data, size_t data_len, uint8_t layer = RAM);
-	bool read_register_uart(const uint8_t* keys, size_t num_keys, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer = RAM);
+	bool write_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
+	bool read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer);
 	void configure_gps_uart();  // Configuración inicial via UART
 
 private:
 	void configure_gps();
 
 	// Armado de mensajes UBX usando arrays estáticos (embedded friendly)
-    uint16_t build_full_message_from_index(uint8_t msgClass, uint8_t msgID, size_t i, uint8_t layer, uint8_t* buffer, uint16_t buffer_size);
-   	uint16_t build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* keyId, size_t keyLen, const uint8_t* value, size_t valueLen, uint8_t* buffer, uint16_t buffer_size);
+	uint16_t build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* payload_data, size_t payload_len, uint8_t* buffer, uint16_t buffer_size);
 	HAL_StatusTypeDef send_message(const uint8_t* message, uint16_t message_len, uint32_t delay_ms);
 	HAL_StatusTypeDef send_message_uart(const uint8_t* message, uint16_t message_len, uint32_t delay_ms);
 	void ubx_calculate_checksum(const uint8_t* msg, uint16_t msg_len, uint8_t* ck_a, uint8_t* ck_b);
