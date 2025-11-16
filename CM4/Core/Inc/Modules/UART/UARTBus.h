@@ -161,6 +161,34 @@ public:
                       uint32_t timeout);
     
     /**
+     * @brief Recibe datos disponibles en el buffer UART sin esperar a llenarlo completamente
+     * @param pData Buffer donde almacenar los datos recibidos
+     * @param maxSize Tamaño máximo del buffer
+     * @param bytesReceived Cantidad de bytes realmente recibidos
+     * @param timeout Timeout en milisegundos para esperar al menos 1 byte
+     * @return UARTResult código de resultado
+     */
+    UARTResult receiveAvailable(uint8_t* pData,
+                               uint16_t maxSize,
+                               uint16_t* bytesReceived,
+                               uint32_t timeout);
+    
+    /**
+     * @brief Recibe datos hasta encontrar un byte delimitador o timeout
+     * @param pData Buffer donde almacenar los datos recibidos
+     * @param maxSize Tamaño máximo del buffer
+     * @param delimiter Byte delimitador que marca el fin de la recepción
+     * @param bytesReceived Cantidad de bytes realmente recibidos
+     * @param timeout Timeout en milisegundos
+     * @return UARTResult código de resultado
+     */
+    UARTResult receiveUntil(uint8_t* pData,
+                           uint16_t maxSize,
+                           uint8_t delimiter,
+                           uint16_t* bytesReceived,
+                           uint32_t timeout);
+    
+    /**
      * @brief Obtiene configuración predeterminada para el bus UART
      * @return Configuración con valores por defecto
      */

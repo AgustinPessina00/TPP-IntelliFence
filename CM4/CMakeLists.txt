@@ -65,6 +65,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/UART
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/INA
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/IMU
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Messages
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Threads
 )
 
 # Add sources to executable

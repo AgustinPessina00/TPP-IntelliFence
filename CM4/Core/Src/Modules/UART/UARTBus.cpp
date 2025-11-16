@@ -402,6 +402,125 @@ UARTResult UARTBus::receive(uint8_t* pData,
     return result;
 }
 
+UARTResult UARTBus::receiveAvailable(uint8_t* pData,
+                                    uint16_t maxSize,
+                                    uint16_t* bytesReceived,
+                                    uint32_t timeout) {
+    
+    if (!initialized || huart == nullptr || pData == nullptr || bytesReceived == nullptr) {
+        return UART_ERROR;
+    }
+    
+    *bytesReceived = 0;
+    
+    // Adquirir mutex
+    if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
+        return UART_TIMEOUT;
+    }
+    
+    UARTResult result = UART_OK;
+    uint32_t startTime = HAL_GetTick();
+    uint16_t index = 0;
+    
+    // Esperar al menos un byte con timeout
+    while (index == 0 && (HAL_GetTick() - startTime) < timeout) {
+        // Intentar recibir 1 byte sin bloqueo (timeout muy corto)
+        HAL_StatusTypeDef halResult = HAL_UART_Receive(huart, &pData[index], 1, 1);
+        
+        if (halResult == HAL_OK) {
+            index++;
+            break;  // Recibimos al menos 1 byte
+        } else if (halResult == HAL_TIMEOUT) {
+            osDelay(1);  // Pequeño delay antes de reintentar
+        } else {
+            result = halToUARTResult(halResult);
+            osMutexRelease(busMutex);
+            return result;
+        }
+    }
+    
+    if (index == 0) {
+        // No se recibió ningún byte en el timeout
+        osMutexRelease(busMutex);
+        return UART_TIMEOUT;
+    }
+    
+    // Recibir bytes adicionales mientras estén disponibles
+    while (index < maxSize) {
+        HAL_StatusTypeDef halResult = HAL_UART_Receive(huart, &pData[index], 1, 10);
+        
+        if (halResult == HAL_OK) {
+            index++;
+        } else if (halResult == HAL_TIMEOUT) {
+            // No hay más datos disponibles
+            break;
+        } else {
+            // Error real
+            result = halToUARTResult(halResult);
+            break;
+        }
+    }
+    
+    *bytesReceived = index;
+    
+    // Liberar mutex
+    osMutexRelease(busMutex);
+    
+    return result;
+}
+
+UARTResult UARTBus::receiveUntil(uint8_t* pData,
+                                 uint16_t maxSize,
+                                 uint8_t delimiter,
+                                 uint16_t* bytesReceived,
+                                 uint32_t timeout) {
+    
+    if (!initialized || huart == nullptr || pData == nullptr || bytesReceived == nullptr) {
+        return UART_ERROR;
+    }
+    
+    *bytesReceived = 0;
+    
+    // Adquirir mutex
+    if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
+        return UART_TIMEOUT;
+    }
+    
+    UARTResult result = UART_OK;
+    uint32_t startTime = HAL_GetTick();
+    uint16_t index = 0;
+    
+    // Recibir bytes hasta encontrar el delimitador o llenar el buffer
+    while (index < maxSize && (HAL_GetTick() - startTime) < timeout) {
+        HAL_StatusTypeDef halResult = HAL_UART_Receive(huart, &pData[index], 1, 50);
+        
+        if (halResult == HAL_OK) {
+            if (pData[index] == delimiter) {
+                index++;
+                break;  // Encontramos el delimitador
+            }
+            index++;
+        } else if (halResult == HAL_TIMEOUT) {
+            osDelay(1);  // Pequeño delay antes de reintentar
+        } else {
+            result = halToUARTResult(halResult);
+            break;
+        }
+    }
+    
+    *bytesReceived = index;
+    
+    // Si no recibimos nada, es un timeout
+    if (index == 0) {
+        result = UART_TIMEOUT;
+    }
+    
+    // Liberar mutex
+    osMutexRelease(busMutex);
+    
+    return result;
+}
+
 UARTConfig UARTBus::getDefaultConfig() {
     return defaultConfig;
 }

@@ -121,15 +121,15 @@ void SamM10q::configure_gps() {
     write_register_uart(m10q_data_44, m10q_data_len[0], RAM); // Configuración inicial via UART
     HAL_Delay(1000);
     //uartBus->flushRxBuffer();
-    //read_register_uart(m10q_data_44, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    read_register_uart(m10q_data_44, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
     
     write_register_uart(m10q_data_43, m10q_data_len[0], RAM); // Configuración inicial via UART
-    //read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
 
     write_register_uart(m10q_data_43, m10q_data_len[0], BBR); // Configuración inicial via I2C
-    //read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
+    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
     
-    write_register(m10q_data_45, 5, RAM);
+    //write_register(m10q_data_45, 5, RAM);
 
     for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
         const uint8_t* payload = m10q_data_payloads[i];
@@ -436,10 +436,15 @@ bool SamM10q::read_register_uart(const uint8_t* key_data, size_t len_key_data, u
         return false;
     }
 
-    // Usar bus UART thread-safe para leer la respuesta
-    UARTResult result = uartBus->receive(response_buffer, buffer_size, 1000);
+    // Usar bus UART thread-safe para leer la respuesta disponible
+    // El GPS puede enviar mensajes de longitud variable, por lo que usamos receiveAvailable
+    uint16_t bytesReceived = 0;
+    UARTResult result = uartBus->receiveAvailable(response_buffer, buffer_size, &bytesReceived, 500);
     
-    return (result == UART_OK);
+    // Opcional: Log de diagnóstico
+    printf("[GPS] Recibidos %u bytes, resultado: %d\n", bytesReceived, result);
+    
+    return (result == UART_OK && bytesReceived > 0);
 }
 
 /* Configuración inicial del GPS via UART */
