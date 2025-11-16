@@ -3,7 +3,7 @@
 #include "lsm6dso.h"
 #include "sam_m10q.h"
 #include "task.h"
-#include "threads/sensorAcqTask_new.h"
+#include "sensorAcqTask.h"
 #include "cmsis_os.h"
 #include "EmbeddedMessage.h"
 #define RTOS_PRINTF_AUTO  // Enable smart printf routing
