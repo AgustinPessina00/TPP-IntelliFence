@@ -1,7 +1,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "lsm6dso.h"
-#include "../../Core/Inc/I2CManager.h"
+#include "I2CManager.h"
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>

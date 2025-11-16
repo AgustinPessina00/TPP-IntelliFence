@@ -59,50 +59,50 @@ set(CMAKE_CXX_EXTENSIONS ON)
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GPS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GPS/TinyGPSPlus
-    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/I2C
-    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/UART
-    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/INA
-    ${CMAKE_CURRENT_SOURCE_DIR}/Modules/IMU
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/GPS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/GPS/TinyGPSPlus
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/I2C
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/UART
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/INA
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/IMU
 )
 
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     # Embedded Message System Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/EmbeddedMessage.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/MessageExample.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/MessageTest.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/EmbeddedMessage.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/MessageExample.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/MessageTest.c
     # RTOS Printf (Thread-Safe Logging)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtos_printf.c
     # FreeRTOS Heap Configuration
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/heap_config.c
     # GPS Module Sources (Original)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sam_m10q.cpp  
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gps_test_wrapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/TinyGPS++.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q.cpp  
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/gps_test_wrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/TinyGPS++.cpp
     # GPS Module Sources (Melopero-based)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sam_m10q_melopero.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gps_test_melopero_wrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q_melopero.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/gps_test_melopero_wrapper.cpp
     # I2C Thread-Safe Sources  
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/I2CBus.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/I2CManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/I2C/I2CBus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/I2C/I2CManager.cpp
     # UART Thread-Safe Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/UARTBus.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/UARTManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/UART/UARTBus.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/UART/UARTManager.cpp
     # INA226 Current/Power Sensor Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ina226.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ina226_test_wrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/ina226.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/ina226_test_wrapper.cpp
     # LSM6DSO IMU Sensor Sources (Thread-Safe)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/lsm6dso.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/lsm6dso_test_wrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso_test_wrapper.cpp
     # Data Model Sources (Cow and Zone definitions)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow.cpp
     # Thread Sources (FreeRTOS Tasks)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/threads/dispatcherTask.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/threads/fsmTask_new.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/threads/sensorAcqTask_new.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/dispatcherTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask_new.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask_new.cpp
 )
 
 # Link directories setup
