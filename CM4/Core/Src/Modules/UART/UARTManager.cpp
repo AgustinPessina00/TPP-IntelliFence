@@ -1,55 +1,138 @@
-#include "../../Modules/UART/UARTManager.h"
+#include "UARTManager.h"
+#include "usart.h"  // Para huart1
 
-// Inicialización del singleton
-UARTManager* UARTManager::instance = nullptr;
+// ========== CONFIGURACIÓN OPTIMIZADA PARA EMBEDDED ==========
 
-/**
- * @brief Constructor privado
- */
-UARTManager::UARTManager() {
-    // Los UARTBus se construyen automáticamente con configuración por defecto
+static UARTConfig getEmbeddedConfig() {
+    UARTConfig config = UARTBus::getDefaultConfig();
+    // Ajustar configuración para embedded (timeouts más cortos)
+    config.maxRetries = 3;
+    config.retryDelay = 5;      // 5ms - más rápido para MCU
+    config.busTimeout = 500;    // 500ms - timeout más agresivo
+    config.mutexTimeout = 2000; // 2s para mutex
+    return config;
 }
 
-/**
- * @brief Obtiene la instancia singleton del UARTManager
- */
-UARTManager& UARTManager::getInstance() {
-    if (instance == nullptr) {
-        instance = new UARTManager();
+// ========== INICIALIZACIÓN DE MIEMBROS ESTÁTICOS ==========
+
+bool UARTManager::initialized = false;
+static UARTConfig embeddedConfig = getEmbeddedConfig();
+UARTBus UARTManager::uart1(&huart1, &embeddedConfig);  // Construcción estática con configuración optimizada
+uint32_t UARTManager::uart1TotalOps = 0;
+uint32_t UARTManager::uart1SuccessOps = 0; 
+uint32_t UARTManager::uart1ErrorCount = 0;
+
+// ========== IMPLEMENTACIÓN DE UARTMANAGER ==========
+
+UARTBus& UARTManager::getUart1() {
+    return uart1;
+}
+
+bool UARTManager::initializeAll() {
+    if (!initialized) {
+        // uart1 ya tiene configuración optimizada desde su construcción estática
+        
+        // Inicializar bus UART1 con configuración optimizada
+        if (uart1.initialize() == UART_OK) {
+            initialized = true;
+            
+            // Resetear estadísticas
+            uart1TotalOps = 0;
+            uart1SuccessOps = 0;
+            uart1ErrorCount = 0;
+            
+            return true;
+        }
     }
-    return *instance;
+    return initialized;
 }
 
-/**
- * @brief Inicializa el bus UART1
- */
-UARTResult UARTManager::initUART1(UART_HandleTypeDef* huart1) {
-    if (huart1 == nullptr) {
-        return UART_ERROR;
-    }
-    
-    // Configuración específica para UART1 (GPS)
-    UARTConfig config;
-    config.mutexTimeout = 1000;  // 1 segundo
-    config.retryDelay = 10;      // 10ms entre reintentos
-    config.maxRetries = 3;       // Máximo 3 reintentos
-    
-    return uart1Bus.init(huart1, config);
+bool UARTManager::isInitialized() {
+    return initialized;
 }
 
-/**
- * @brief Inicializa el bus UART2
- */
-UARTResult UARTManager::initUART2(UART_HandleTypeDef* huart2) {
-    if (huart2 == nullptr) {
-        return UART_ERROR;
+bool UARTManager::reset() {
+    initialized = false;
+    
+    // Intentar reinicializar
+    return initializeAll();
+}
+
+void UARTManager::getUart1Stats(uint32_t& totalOperations, 
+                               uint32_t& successfulOperations, 
+                               uint32_t& errorCount) {
+    totalOperations = uart1TotalOps;
+    successfulOperations = uart1SuccessOps;
+    errorCount = uart1ErrorCount;
+}
+
+void UARTManager::updateStats(bool success) {
+    uart1TotalOps++;
+    if (success) {
+        uart1SuccessOps++;
+    } else {
+        uart1ErrorCount++;
+    }
+}
+
+// ========== FUNCIONES DE CONVENIENCIA GLOBALES ==========
+
+UARTBus& getUart1() {
+    return UARTManager::getUart1();
+}
+
+bool initUartSystem() {
+    return UARTManager::initializeAll();
+}
+
+bool isUartSystemReady() {
+    return UARTManager::isInitialized();
+}
+
+// ========== INTERFAZ C ==========
+
+extern "C" {
+
+int uartSystemInit(void) {
+    return initUartSystem() ? 1 : 0;
+}
+
+int uartSystemIsReady(void) {
+    return isUartSystemReady() ? 1 : 0;
+}
+
+int uartReadRegister(uint16_t deviceAddr, uint16_t regAddr, 
+                    uint8_t* data, uint16_t size) {
+    if (!isUartSystemReady() || data == nullptr) {
+        return 1; // ERROR
     }
     
-    // Configuración específica para UART2
-    UARTConfig config;
-    config.mutexTimeout = 500;   // 500ms
-    config.retryDelay = 5;       // 5ms entre reintentos
-    config.maxRetries = 2;       // Máximo 2 reintentos
+    UARTBus& bus = getUart1();
+    UARTResult result = bus.memRead(deviceAddr, regAddr, 
+                                    1,  // memAddrSize de 1 byte (equivalente a UART_MEMADD_SIZE_8BIT)
+                                    data, size, 1000);
     
-    return uart2Bus.init(huart2, config);
+    return static_cast<int>(result);
 }
+
+int uartWriteRegister(uint16_t deviceAddr, uint16_t regAddr, 
+                     const uint8_t* data, uint16_t size) {
+    if (!isUartSystemReady() || data == nullptr) {
+        return 1; // ERROR
+    }
+    
+    UARTBus& bus = getUart1();
+    UARTResult result = bus.memWrite(deviceAddr, regAddr, 
+                                     1,  // memAddrSize de 1 byte (equivalente a UART_MEMADD_SIZE_8BIT)
+                                     data, size, 1000);
+    
+    return static_cast<int>(result);
+}
+
+void getUartStatsCWrapper(uint32_t* total, uint32_t* success, uint32_t* errors) {
+    if (total && success && errors) {
+        UARTManager::getUart1Stats(*total, *success, *errors);
+    }
+}
+
+} // extern "C"

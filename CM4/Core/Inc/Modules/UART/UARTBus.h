@@ -1,53 +1,72 @@
-#ifndef MODULES_UART_UARTBUS_H_
-#define MODULES_UART_UARTBUS_H_
+#ifndef UART_BUS_H
+#define UART_BUS_H
 
-#include "stm32wlxx_hal.h"
-#include "cmsis_os2.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+#include <stddef.h>
+
+#ifdef __cplusplus
+}
+#include "IUART.h"
+#include "cmsis_os.h"
+#include "usart.h"
 
 /**
- * @brief Códigos de resultado para operaciones UART
+ * @brief Configuración de parámetros para el bus UART
  */
-enum UARTResult {
-    UART_OK = 0,
-    UART_ERROR,
-    UART_BUSY,
-    UART_TIMEOUT,
-    UART_NOT_INITIALIZED
+struct UARTConfig {
+    uint8_t maxRetries;      ///< Número máximo de reintentos por operación
+    uint32_t retryDelay;     ///< Delay entre reintentos en ms
+    uint32_t busTimeout;     ///< Timeout para operaciones individuales en ms
+    uint32_t mutexTimeout;   ///< Timeout para adquirir el mutex en ms
 };
 
 /**
- * @brief Configuración de UARTBus thread-safe
- */
-typedef struct {
-    uint32_t mutexTimeout;      // Timeout para adquisición de mutex (ms)
-    uint32_t retryDelay;        // Delay entre reintentos (ms) 
-    uint8_t maxRetries;         // Número máximo de reintentos
-} UARTConfig;
-
-/**
- * @brief Clase para manejo thread-safe de un bus UART específico
+ * @brief Wrapper thread-safe para bus UART con mutex, reintentos y recuperación
  * 
- * Esta clase encapsula un UART_HandleTypeDef de STM32 HAL y proporciona
- * acceso thread-safe usando mutex de FreeRTOS. Incluye manejo automático
- * de errores, reintentos y recuperación del bus.
+ * Esta clase implementa comunicación UART proporcionando:
+ * - Thread safety mediante mutex FreeRTOS
+ * - Lógica de reintentos automáticos
+ * - Recuperación del bus en caso de error
+ * - Detección y manejo de estados de error
  */
-class UARTBus {
+class UARTBus : public IUART {
 private:
-    UART_HandleTypeDef* huart;          // Handle HAL del UART
-    osMutexId_t busMutex;              // Mutex para thread safety
-    UARTConfig config;                 // Configuración del bus
-    bool initialized;                  // Estado de inicialización
+    UART_HandleTypeDef* huart;        ///< Handle del peripheral UART de HAL
+    osMutexId_t busMutex;             ///< Mutex para thread safety
+    UARTConfig config;                ///< Configuración del bus
+    bool initialized;                 ///< Estado de inicialización
     
-    // Métodos internos de utilidad
-    UARTResult halToUARTResult(HAL_StatusTypeDef halResult);
-    bool requiresBusRecovery(UARTResult result);
-    void recoverBus();
+    /**
+     * @brief Intenta recuperar el bus UART en caso de error
+     * @return true si la recuperación fue exitosa
+     */
+    bool recoverComm();
+    
+    /**
+     * @brief Convierte códigos de error HAL a UARTResult
+     * @param halStatus Estado retornado por HAL
+     * @return UARTResult equivalente
+     */
+    UARTResult halToUARTResult(HAL_StatusTypeDef halStatus);
+    
+    /**
+     * @brief Verifica si el error requiere recuperación del bus
+     * @param error Código de error a verificar
+     * @return true si requiere recuperación
+     */
+    bool requiresCommRecovery(UARTResult error);
 
 public:
     /**
-     * @brief Constructor por defecto
+     * @brief Constructor de UARTBus
+     * @param huart Handle del peripheral UART
+     * @param config Configuración del bus (opcional, usa defaults si es nullptr)
      */
-    UARTBus();
+    explicit UARTBus(UART_HandleTypeDef* huart, const UARTConfig* config = nullptr);
     
     /**
      * @brief Destructor
@@ -55,90 +74,99 @@ public:
     ~UARTBus();
     
     /**
-     * @brief Inicializa el bus UART con configuración thread-safe
-     * @param huart Handle HAL del UART 
-     * @param config Configuración del bus
+     * @brief Inicializa el bus UART y crea el mutex
      * @return UARTResult código de resultado
      */
-    UARTResult init(UART_HandleTypeDef* huart, const UARTConfig& config);
+    UARTResult initialize();
     
     /**
-     * @brief Transmite datos por UART de forma thread-safe
+     * @brief Verifica si el bus está inicializado correctamente
+     * @return true si está inicializado
+     */
+    bool isInitialized() const { return initialized; }
+    
+    /**
+     * @brief Lee datos de un registro de memoria del dispositivo UART
+     * @param deviceAddr Dirección del dispositivo
+     * @param memAddr Dirección del registro a leer
+     * @param memAddrSize Tamaño de la dirección de memoria
+     * @param pData Buffer donde almacenar los datos leídos
+     * @param size Cantidad de bytes a leer
+     * @param timeout Timeout en milisegundos
+     * @return UARTResult código de resultado
+     */
+    UARTResult memRead(uint16_t deviceAddr, 
+                     uint16_t memAddr, 
+                     uint16_t memAddrSize,
+                     uint8_t* pData, 
+                     uint16_t size, 
+                     uint32_t timeout) override;
+                     
+    /**
+     * @brief Escribe datos a un registro de memoria del dispositivo UART
+     * @param deviceAddr Dirección del dispositivo
+     * @param memAddr Dirección del registro a escribir
+     * @param memAddrSize Tamaño de la dirección de memoria
+     * @param pData Buffer con los datos a escribir
+     * @param size Cantidad de bytes a escribir
+     * @param timeout Timeout en milisegundos
+     * @return UARTResult código de resultado
+     */
+    UARTResult memWrite(uint16_t deviceAddr, 
+                      uint16_t memAddr, 
+                      uint16_t memAddrSize,
+                      const uint8_t* pData, 
+                      uint16_t size, 
+                      uint32_t timeout) override;
+                      
+    /**
+     * @brief Realiza una operación de escritura seguida de lectura
+     * @param deviceAddr Dirección del dispositivo
+     * @param pWriteData Buffer con los datos a escribir
+     * @param writeSize Cantidad de bytes a escribir
+     * @param pReadData Buffer donde almacenar los datos leídos
+     * @param readSize Cantidad de bytes a leer
+     * @param timeout Timeout en milisegundos
+     * @return UARTResult código de resultado
+     */
+    UARTResult writeRead(uint16_t deviceAddr, 
+                       const uint8_t* pWriteData, 
+                       uint16_t writeSize,
+                       uint8_t* pReadData, 
+                       uint16_t readSize, 
+                       uint32_t timeout) override;
+    
+    /**
+     * @brief Transmite datos por UART (para dispositivos de comunicación serial como GPS)
+     * @param deviceAddr Dirección del dispositivo (puede no ser usado en UART puro)
      * @param pData Buffer con los datos a transmitir
      * @param size Cantidad de bytes a transmitir
      * @param timeout Timeout en milisegundos
      * @return UARTResult código de resultado
      */
-    UARTResult transmit(const uint8_t* pData, uint16_t size, uint32_t timeout);
+    UARTResult transmit(uint16_t deviceAddr,
+                      const uint8_t* pData,
+                      uint16_t size,
+                      uint32_t timeout);
     
     /**
-     * @brief Recibe datos por UART de forma thread-safe
-     * @param pData Buffer para almacenar los datos recibidos
+     * @brief Recibe datos por UART
+     * @param pData Buffer donde almacenar los datos recibidos
      * @param size Cantidad de bytes a recibir
      * @param timeout Timeout en milisegundos
      * @return UARTResult código de resultado
      */
-    UARTResult receive(uint8_t* pData, uint16_t size, uint32_t timeout);
+    UARTResult receive(uint8_t* pData,
+                      uint16_t size,
+                      uint32_t timeout);
     
     /**
-     * @brief Transmite y luego recibe datos (útil para protocolos request/response)
-     * @param pTxData Buffer con los datos a transmitir
-     * @param txSize Cantidad de bytes a transmitir
-     * @param pRxData Buffer para almacenar los datos recibidos
-     * @param rxSize Cantidad de bytes a recibir
-     * @param timeout Timeout en milisegundos
-     * @return UARTResult código de resultado
+     * @brief Obtiene configuración predeterminada para el bus UART
+     * @return Configuración con valores por defecto
      */
-    UARTResult transmitReceive(const uint8_t* pTxData, uint16_t txSize,
-                              uint8_t* pRxData, uint16_t rxSize, 
-                              uint32_t timeout);
-    
-    /**
-     * @brief Limpia el buffer de recepción del UART
-     */
-    UARTResult flushRxBuffer() {
-        if (!initialized || !huart) {
-            return UART_NOT_INITIALIZED;
-        }
-
-        // Adquirir mutex para acceso exclusivo al bus
-        if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
-            return UART_BUSY;
-        }
-
-        // Abortar cualquier recepción en curso
-        HAL_UART_AbortReceive(huart);
-        
-        // Limpiar los flags de error del UART
-        __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_PEF);   // Parity Error
-        __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_FEF);   // Framing Error
-        __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_NEF);   // Noise Error
-        __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_OREF);  // Overrun Error
-        
-        // Leer datos residuales del registro de datos (si hay)
-        volatile uint8_t dummy;
-        while (__HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE)) {
-            dummy = (uint8_t)(huart->Instance->RDR & 0xFF);
-            (void)dummy;  // Evitar warning de variable no usada
-        }
-
-        // Liberar mutex
-        osMutexRelease(busMutex);
-        
-        return UART_OK;
-    }
-    
-    /**
-     * @brief Verifica si el bus está inicializado
-     * @return true si está inicializado, false en caso contrario
-     */
-    bool isInitialized() const { return initialized; }
-    
-    /**
-     * @brief Obtiene la configuración actual del bus
-     * @return Referencia a la configuración
-     */
-    const UARTConfig& getConfig() const { return config; }
+    static UARTConfig getDefaultConfig();
 };
 
-#endif /* MODULES_UART_UARTBUS_H_ */
+#endif // __cplusplus
+
+#endif // UART_BUS_H

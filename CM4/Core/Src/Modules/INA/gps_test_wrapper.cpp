@@ -36,8 +36,8 @@ extern "C" void gps_init_and_test(void) {
     printf("[GPS] OK - I2CManager inicializado correctamente\n");
     printf("[GPS] Verificando bus I2C...\n");
 
-    // Inicializar UARTManager con patrón Singleton
-    if(UARTManager::getInstance().initUART1(&huart1)) {
+    // Inicializar UARTManager
+    if(!UARTManager::initializeAll()) {
         printf("[GPS] ERROR CRITICO: No se pudo inicializar UART1 para GPS\n");
         return;
     }

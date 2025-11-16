@@ -1,76 +1,148 @@
-#ifndef MODULES_UART_UARTMANAGER_H_
-#define MODULES_UART_UARTMANAGER_H_
+#ifndef UART_MANAGER_H
+#define UART_MANAGER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+#include <stddef.h>
+
+#ifdef __cplusplus
+}
+#include "IUART.h"
 #include "UARTBus.h"
-#include "stm32wlxx_hal.h"
 
 /**
- * @brief Singleton Manager para múltiples buses UART thread-safe
+ * @brief Manager estático para instancias UART - Sin allocación dinámica
  * 
- * Esta clase gestiona múltiples instancias de UARTBus de forma centralizada,
- * proporcionando acceso thread-safe a diferentes puertos UART del sistema.
- * Sigue el patrón Singleton para garantizar una única instancia global.
+ * Este manager proporciona acceso thread-safe a buses UART usando el patrón
+ * Singleton con instancias estáticas. Evita los problemas de fragmentación
+ * y timing no determinístico de new/delete en microcontroladores.
  */
 class UARTManager {
-private:
-    static UARTManager* instance;
-    
-    UARTBus uart1Bus;    // Bus UART1
-    UARTBus uart2Bus;    // Bus UART2 (si es necesario)
-    
-    // Constructor privado para Singleton
-    UARTManager();
-    
-    // Prevenir copia y asignación
-    UARTManager(const UARTManager&) = delete;
-    UARTManager& operator=(const UARTManager&) = delete;
-
 public:
     /**
-     * @brief Obtiene la instancia singleton del UARTManager
-     * @return Referencia a la instancia única
+     * @brief Obtiene referencia al bus UART1 (instancia estática)
+     * @return Referencia al bus UART1
      */
-    static UARTManager& getInstance();
+    static UARTBus& getUart1();
     
     /**
-     * @brief Inicializa el bus UART1
-     * @param huart1 Handle HAL del UART1
-     * @return UARTResult código de resultado
+     * @brief Inicializa todos los buses UART disponibles
+     * @return true si la inicialización fue exitosa
      */
-    UARTResult initUART1(UART_HandleTypeDef* huart1);
+    static bool initializeAll();
     
     /**
-     * @brief Inicializa el bus UART2
-     * @param huart2 Handle HAL del UART2
-     * @return UARTResult código de resultado
+     * @brief Verifica si el sistema UART está inicializado
+     * @return true si está inicializado
      */
-    UARTResult initUART2(UART_HandleTypeDef* huart2);
+    static bool isInitialized();
     
     /**
-     * @brief Obtiene referencia al bus UART1 thread-safe
-     * @return Referencia al UARTBus del UART1
+     * @brief Reinicia el sistema UART (para recovery)
+     * @return true si el reinicio fue exitoso
      */
-    UARTBus& getUART1() { return uart1Bus; }
+    static bool reset();
     
     /**
-     * @brief Obtiene referencia al bus UART2 thread-safe
-     * @return Referencia al UARTBus del UART2
+     * @brief Obtiene estadísticas de uso del bus UART1
+     * @param totalOperations Número total de operaciones realizadas
+     * @param successfulOperations Número de operaciones exitosas
+     * @param errorCount Número de errores encontrados
      */
-    UARTBus& getUART2() { return uart2Bus; }
-    
-    /**
-     * @brief Verifica si UART1 está inicializado
-     * @return true si está inicializado, false en caso contrario
-     */
-    bool isUART1Ready() const { return uart1Bus.isInitialized(); }
-    
-    /**
-     * @brief Verifica si UART2 está inicializado
-     * @return true si está inicializado, false en caso contrario
-     */
-    bool isUART2Ready() const { return uart2Bus.isInitialized(); }
+    static void getUart1Stats(uint32_t& totalOperations, 
+                            uint32_t& successfulOperations, 
+                            uint32_t& errorCount);
 
+private:
+    static bool initialized;           ///< Estado de inicialización del sistema
+    static UARTBus uart1;               ///< Instancia estática del bus UART1
     
+    // Estadísticas (útiles para debugging embedded)
+    static uint32_t uart1TotalOps;      ///< Contador total de operaciones
+    static uint32_t uart1SuccessOps;    ///< Contador de operaciones exitosas
+    static uint32_t uart1ErrorCount;    ///< Contador de errores
+    
+    // Constructor privado (patrón Singleton)
+    UARTManager() = delete;
+    UARTManager(const UARTManager&) = delete;
+    UARTManager& operator=(const UARTManager&) = delete;
+    
+    /**
+     * @brief Incrementa contadores de estadísticas
+     * @param success true si la operación fue exitosa
+     */
+    static void updateStats(bool success);
+    
+    friend class UARTBus; // Para que UARTBus pueda actualizar estadísticas
 };
 
-#endif /* MODULES_UART_UARTMANAGER_H_ */
+// ========== FUNCIONES DE CONVENIENCIA GLOBALES ==========
+
+/**
+ * @brief Función de conveniencia para obtener el bus UART1
+ * @return Referencia al bus UART1
+ */
+UARTBus& getUart1();
+
+/**
+ * @brief Función de conveniencia para inicializar el sistema UART
+ * @return true si la inicialización fue exitosa
+ */
+bool initUartSystem();
+
+/**
+ * @brief Función de conveniencia para verificar inicialización
+ * @return true si el sistema está inicializado
+ */
+bool isUartSystemReady();
+
+#endif // __cplusplus
+
+// ========== INTERFAZ C ==========
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief Interfaz C para inicializar el sistema UART
+ * @return 1 si exitoso, 0 si falló
+ */
+int uartSystemInit(void);
+
+/**
+ * @brief Interfaz C para verificar si está inicializado
+ * @return 1 si inicializado, 0 si no
+ */
+int uartSystemIsReady(void);
+
+/**
+ * @brief Interfaz C para operaciones básicas de lectura
+ * @param deviceAddr Dirección del dispositivo (7-bit)
+ * @param regAddr Dirección del registro
+ * @param data Buffer para datos
+ * @param size Cantidad de bytes a leer
+ * @return 0=OK, 1=ERROR, 2=TIMEOUT, 3=BUSY, 4=NACK
+ */
+int uartReadRegister(uint16_t deviceAddr, uint16_t regAddr, 
+                   uint8_t* data, uint16_t size);
+
+/**
+ * @brief Interfaz C para operaciones básicas de escritura
+ * @param deviceAddr Dirección del dispositivo (7-bit)
+ * @param regAddr Dirección del registro
+ * @param data Buffer con datos a escribir
+ * @param size Cantidad de bytes a escribir
+ * @return 0=OK, 1=ERROR, 2=TIMEOUT, 3=BUSY, 4=NACK
+ */
+int uartWriteRegister(uint16_t deviceAddr, uint16_t regAddr, 
+                    const uint8_t* data, uint16_t size);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // UART_MANAGER_H

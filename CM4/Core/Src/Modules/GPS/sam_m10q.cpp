@@ -32,7 +32,7 @@ void SamM10q::initSamM10q() {
     i2cBus = &I2CManager::getBus2();
     
     // Inicializar el bus UART thread-safe
-    uartBus = &UARTManager::getInstance().getUART1();
+    uartBus = &UARTManager::getUart1();
     
     configure_gps();
 }
@@ -367,7 +367,8 @@ HAL_StatusTypeDef SamM10q::send_message_uart(const uint8_t* message, uint16_t me
     }
 
     // Usar método transmit thread-safe del UARTBus
-    UARTResult result = uartBus->transmit(message, message_length, 100);
+    // deviceAddr = 0 para UART puro (sin addressing)
+    UARTResult result = uartBus->transmit(0, message, message_length, 100);
     
     // Delay para que el módulo procese
     BusyDelayMs(delay_ms);

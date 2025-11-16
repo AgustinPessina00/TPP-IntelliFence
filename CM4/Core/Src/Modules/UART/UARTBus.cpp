@@ -1,45 +1,41 @@
 #include "UARTBus.h"
-#include <stdio.h>
+#include <string.h>
 
-/**
- * @brief Constructor por defecto
- */
-UARTBus::UARTBus() 
-    : huart(nullptr), busMutex(nullptr), initialized(false) {
-    // Configuración por defecto
-    config.mutexTimeout = 1000;  // 1 segundo
-    config.retryDelay = 10;      // 10ms
-    config.maxRetries = 3;       // 3 reintentos
+// Configuración por defecto
+static const UARTConfig defaultConfig = {
+    .maxRetries = 3,
+    .retryDelay = 10,     // 10ms entre reintentos
+    .busTimeout = 1000,   // 1 segundo timeout por operación
+    .mutexTimeout = 5000  // 5 segundos para adquirir mutex
+};
+
+UARTBus::UARTBus(UART_HandleTypeDef* huart, const UARTConfig* config) 
+    : huart(huart), busMutex(nullptr), initialized(false) {
+    
+    if (config != nullptr) {
+        this->config = *config;
+    } else {
+        this->config = defaultConfig;
+    }
 }
 
-/**
- * @brief Destructor
- */
 UARTBus::~UARTBus() {
     if (busMutex != nullptr) {
         osMutexDelete(busMutex);
-        busMutex = nullptr;
     }
-    initialized = false;
 }
 
-/**
- * @brief Inicializa el bus UART con configuración thread-safe
- */
-UARTResult UARTBus::init(UART_HandleTypeDef* huart, const UARTConfig& config) {
+UARTResult UARTBus::initialize() {
     if (huart == nullptr) {
         return UART_ERROR;
     }
-    
-    this->huart = huart;
-    this->config = config;
     
     // Crear mutex para thread safety
     const osMutexAttr_t mutexAttr = {
         .name = "UARTBusMutex",
         .attr_bits = osMutexRecursive,
         .cb_mem = nullptr,
-        .cb_size = 0
+        .cb_size = 0U
     };
     
     busMutex = osMutexNew(&mutexAttr);
@@ -51,47 +47,70 @@ UARTResult UARTBus::init(UART_HandleTypeDef* huart, const UARTConfig& config) {
     return UART_OK;
 }
 
-/**
- * @brief Convierte HAL_StatusTypeDef a UARTResult
- */
-UARTResult UARTBus::halToUARTResult(HAL_StatusTypeDef halResult) {
-    switch (halResult) {
-        case HAL_OK:      return UART_OK;
-        case HAL_ERROR:   return UART_ERROR;
-        case HAL_BUSY:    return UART_BUSY;
-        case HAL_TIMEOUT: return UART_TIMEOUT;
-        default:          return UART_ERROR;
-    }
-}
-
-/**
- * @brief Determina si se requiere recuperación del bus
- */
-bool UARTBus::requiresBusRecovery(UARTResult result) {
-    return (result == UART_ERROR || result == UART_BUSY);
-}
-
-/**
- * @brief Intenta recuperar el bus UART
- */
-void UARTBus::recoverBus() {
-    if (huart != nullptr) {
-        // Intentar reinicializar el UART
-        HAL_UART_DeInit(huart);
-        osDelay(1); // Pequeña pausa
-        HAL_UART_Init(huart);
-    }
-}
-
-/**
- * @brief Transmite datos por UART de forma thread-safe
- */
-UARTResult UARTBus::transmit(const uint8_t* pData, uint16_t size, uint32_t timeout) {
-    if (!initialized || huart == nullptr || pData == nullptr) {
-        return UART_NOT_INITIALIZED;
+bool UARTBus::recoverComm() {
+    if (huart == nullptr) {
+        return false;
     }
     
-    // Adquirir mutex para thread safety
+    // Intentar reset del peripheral UART
+    __HAL_UART_DISABLE(huart);
+    osDelay(10);  // Pequeño delay
+    __HAL_UART_ENABLE(huart);
+    
+    // Limpiar flags de error
+    __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_PEF);
+    __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_FEF);
+    __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_NEF);
+    __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_OREF);
+    
+    // Verificar que el UART esté listo
+    return (huart->gState == HAL_UART_STATE_READY);
+}
+
+UARTResult UARTBus::halToUARTResult(HAL_StatusTypeDef halStatus) {
+    switch (halStatus) {
+        case HAL_OK:
+            return UART_OK;
+        case HAL_TIMEOUT:
+            return UART_TIMEOUT;
+        case HAL_BUSY:
+            return UART_BUSY;
+        case HAL_ERROR:
+            // Verificar tipos específicos de error
+            if (huart->ErrorCode & HAL_UART_ERROR_PE) {
+                return UART_ERROR;  // Parity error
+            }
+            if (huart->ErrorCode & HAL_UART_ERROR_FE) {
+                return UART_ERROR;  // Frame error
+            }
+            if (huart->ErrorCode & HAL_UART_ERROR_NE) {
+                return UART_ERROR;  // Noise error
+            }
+            if (huart->ErrorCode & HAL_UART_ERROR_ORE) {
+                return UART_ERROR;  // Overrun error
+            }
+            return UART_ERROR;
+        default:
+            return UART_ERROR;
+    }
+}
+
+bool UARTBus::requiresCommRecovery(UARTResult error) {
+    return (error == UART_ERROR || error == UART_BUSY);
+}
+
+UARTResult UARTBus::memRead(uint16_t deviceAddr, 
+                           uint16_t memAddr, 
+                           uint16_t memAddrSize,
+                           uint8_t* pData, 
+                           uint16_t size, 
+                           uint32_t timeout) {
+    
+    if (!initialized || huart == nullptr || pData == nullptr) {
+        return UART_ERROR;
+    }
+    
+    // Adquirir mutex
     if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
         return UART_TIMEOUT;
     }
@@ -100,10 +119,102 @@ UARTResult UARTBus::transmit(const uint8_t* pData, uint16_t size, uint32_t timeo
     uint8_t attempts = 0;
     
     while (attempts <= config.maxRetries) {
+        // Para UART, primero enviamos la dirección del registro
+        uint8_t addrBuffer[2];
+        uint8_t addrSize = 0;
+        
+        if (memAddrSize == 1) {
+            addrBuffer[0] = (uint8_t)(memAddr & 0xFF);
+            addrSize = 1;
+        } else if (memAddrSize == 2) {
+            addrBuffer[0] = (uint8_t)((memAddr >> 8) & 0xFF);
+            addrBuffer[1] = (uint8_t)(memAddr & 0xFF);
+            addrSize = 2;
+        }
+        
+        // Transmitir dirección del registro
         HAL_StatusTypeDef halResult = HAL_UART_Transmit(
-            huart,
-            const_cast<uint8_t*>(pData),
-            size,
+            huart, 
+            addrBuffer, 
+            addrSize, 
+            timeout
+        );
+        
+        if (halResult == HAL_OK) {
+            // Si la escritura fue exitosa, intentar lectura
+            halResult = HAL_UART_Receive(
+                huart, 
+                pData, 
+                size, 
+                timeout
+            );
+        }
+        
+        result = halToUARTResult(halResult);
+        
+        if (result == UART_OK) {
+            break;  // Operación exitosa
+        }
+        
+        attempts++;
+        
+        // Si no es el último intento y el error requiere recuperación
+        if (attempts <= config.maxRetries && requiresCommRecovery(result)) {
+            recoverComm();
+            osDelay(config.retryDelay);
+        } else if (attempts <= config.maxRetries) {
+            // Delay simple para otros tipos de error
+            osDelay(config.retryDelay);
+        }
+    }
+    
+    // Liberar mutex
+    osMutexRelease(busMutex);
+    
+    return result;
+}
+
+UARTResult UARTBus::memWrite(uint16_t deviceAddr, 
+                            uint16_t memAddr, 
+                            uint16_t memAddrSize,
+                            const uint8_t* pData, 
+                            uint16_t size, 
+                            uint32_t timeout) {
+    
+    if (!initialized || huart == nullptr || pData == nullptr) {
+        return UART_ERROR;
+    }
+    
+    // Adquirir mutex
+    if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
+        return UART_TIMEOUT;
+    }
+    
+    UARTResult result = UART_ERROR;
+    uint8_t attempts = 0;
+    
+    while (attempts <= config.maxRetries) {
+        // Para UART, construimos un buffer con dirección + datos
+        uint8_t txBuffer[256];  // Buffer temporal
+        uint8_t addrSize = 0;
+        
+        if (memAddrSize == 1) {
+            txBuffer[0] = (uint8_t)(memAddr & 0xFF);
+            addrSize = 1;
+        } else if (memAddrSize == 2) {
+            txBuffer[0] = (uint8_t)((memAddr >> 8) & 0xFF);
+            txBuffer[1] = (uint8_t)(memAddr & 0xFF);
+            addrSize = 2;
+        }
+        
+        // Copiar datos después de la dirección
+        memcpy(&txBuffer[addrSize], pData, size);
+        
+        // Transmitir dirección + datos
+        HAL_StatusTypeDef halResult = HAL_UART_Transmit(
+            huart, 
+            txBuffer, 
+            addrSize + size, 
             timeout
         );
         
@@ -115,11 +226,12 @@ UARTResult UARTBus::transmit(const uint8_t* pData, uint16_t size, uint32_t timeo
         
         attempts++;
         
-        // Lógica de retry y recovery del bus
-        if (attempts <= config.maxRetries && requiresBusRecovery(result)) {
-            recoverBus();
+        // Si no es el último intento y el error requiere recuperación
+        if (attempts <= config.maxRetries && requiresCommRecovery(result)) {
+            recoverComm();
             osDelay(config.retryDelay);
         } else if (attempts <= config.maxRetries) {
+            // Delay simple para otros tipos de error
             osDelay(config.retryDelay);
         }
     }
@@ -130,15 +242,127 @@ UARTResult UARTBus::transmit(const uint8_t* pData, uint16_t size, uint32_t timeo
     return result;
 }
 
-/**
- * @brief Recibe datos por UART de forma thread-safe
- */
-UARTResult UARTBus::receive(uint8_t* pData, uint16_t size, uint32_t timeout) {
-    if (!initialized || huart == nullptr || pData == nullptr) {
-        return UART_NOT_INITIALIZED;
+UARTResult UARTBus::writeRead(uint16_t deviceAddr, 
+                             const uint8_t* pWriteData, 
+                             uint16_t writeSize,
+                             uint8_t* pReadData, 
+                             uint16_t readSize, 
+                             uint32_t timeout) {
+    
+    if (!initialized || huart == nullptr || 
+        pWriteData == nullptr || pReadData == nullptr) {
+        return UART_ERROR;
     }
     
-    // Adquirir mutex para thread safety
+    // Adquirir mutex
+    if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
+        return UART_TIMEOUT;
+    }
+    
+    UARTResult result = UART_ERROR;
+    uint8_t attempts = 0;
+    
+    while (attempts <= config.maxRetries) {
+        // Primero escribir
+        HAL_StatusTypeDef halResult = HAL_UART_Transmit(
+            huart, 
+            const_cast<uint8_t*>(pWriteData), 
+            writeSize, 
+            timeout
+        );
+        
+        if (halResult == HAL_OK) {
+            // Si la escritura fue exitosa, intentar lectura
+            halResult = HAL_UART_Receive(
+                huart, 
+                pReadData, 
+                readSize, 
+                timeout
+            );
+        }
+        
+        result = halToUARTResult(halResult);
+        
+        if (result == UART_OK) {
+            break;  // Operación exitosa
+        }
+        
+        attempts++;
+        
+        // Si no es el último intento y el error requiere recuperación
+        if (attempts <= config.maxRetries && requiresCommRecovery(result)) {
+            recoverComm();
+            osDelay(config.retryDelay);
+        } else if (attempts <= config.maxRetries) {
+            // Delay simple para otros tipos de error
+            osDelay(config.retryDelay);
+        }
+    }
+    
+    // Liberar mutex
+    osMutexRelease(busMutex);
+    
+    return result;
+}
+
+UARTResult UARTBus::transmit(uint16_t deviceAddr,
+                            const uint8_t* pData,
+                            uint16_t size,
+                            uint32_t timeout) {
+    
+    if (!initialized || huart == nullptr || pData == nullptr) {
+        return UART_ERROR;
+    }
+    
+    // Adquirir mutex
+    if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
+        return UART_TIMEOUT;
+    }
+    
+    UARTResult result = UART_ERROR;
+    uint8_t attempts = 0;
+    
+    while (attempts <= config.maxRetries) {
+        HAL_StatusTypeDef halResult = HAL_UART_Transmit(
+            huart, 
+            const_cast<uint8_t*>(pData),  // HAL no usa const
+            size, 
+            timeout
+        );
+        
+        result = halToUARTResult(halResult);
+        
+        if (result == UART_OK) {
+            break;  // Operación exitosa
+        }
+        
+        attempts++;
+        
+        // Si no es el último intento y el error requiere recuperación
+        if (attempts <= config.maxRetries && requiresCommRecovery(result)) {
+            recoverComm();
+            osDelay(config.retryDelay);
+        } else if (attempts <= config.maxRetries) {
+            // Delay simple para otros tipos de error
+            osDelay(config.retryDelay);
+        }
+    }
+    
+    // Liberar mutex
+    osMutexRelease(busMutex);
+    
+    return result;
+}
+
+UARTResult UARTBus::receive(uint8_t* pData,
+                           uint16_t size,
+                           uint32_t timeout) {
+    
+    if (!initialized || huart == nullptr || pData == nullptr) {
+        return UART_ERROR;
+    }
+    
+    // Adquirir mutex
     if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
         return UART_TIMEOUT;
     }
@@ -148,9 +372,9 @@ UARTResult UARTBus::receive(uint8_t* pData, uint16_t size, uint32_t timeout) {
     
     while (attempts <= config.maxRetries) {
         HAL_StatusTypeDef halResult = HAL_UART_Receive(
-            huart,
-            pData,
-            size,
+            huart, 
+            pData, 
+            size, 
             timeout
         );
         
@@ -162,11 +386,12 @@ UARTResult UARTBus::receive(uint8_t* pData, uint16_t size, uint32_t timeout) {
         
         attempts++;
         
-        // Lógica de retry y recovery del bus
-        if (attempts <= config.maxRetries && requiresBusRecovery(result)) {
-            recoverBus();
+        // Si no es el último intento y el error requiere recuperación
+        if (attempts <= config.maxRetries && requiresCommRecovery(result)) {
+            recoverComm();
             osDelay(config.retryDelay);
         } else if (attempts <= config.maxRetries) {
+            // Delay simple para otros tipos de error
             osDelay(config.retryDelay);
         }
     }
@@ -177,64 +402,6 @@ UARTResult UARTBus::receive(uint8_t* pData, uint16_t size, uint32_t timeout) {
     return result;
 }
 
-/**
- * @brief Transmite y luego recibe datos (útil para protocolos request/response)
- */
-UARTResult UARTBus::transmitReceive(const uint8_t* pTxData, uint16_t txSize,
-                                   uint8_t* pRxData, uint16_t rxSize, 
-                                   uint32_t timeout) {
-    if (!initialized || huart == nullptr || pTxData == nullptr || pRxData == nullptr) {
-        return UART_NOT_INITIALIZED;
-    }
-    
-    // Adquirir mutex para thread safety
-    if (osMutexAcquire(busMutex, config.mutexTimeout) != osOK) {
-        return UART_TIMEOUT;
-    }
-    
-    UARTResult result = UART_ERROR;
-    uint8_t attempts = 0;
-    
-    while (attempts <= config.maxRetries) {
-        // Primero transmitir
-        HAL_StatusTypeDef halResult = HAL_UART_Transmit(
-            huart,
-            const_cast<uint8_t*>(pTxData),
-            txSize,
-            timeout
-        );
-        
-        result = halToUARTResult(halResult);
-        
-        if (result == UART_OK) {
-            // Si transmisión exitosa, intentar recepción
-            halResult = HAL_UART_Receive(
-                huart,
-                pRxData,
-                rxSize,
-                timeout
-            );
-            
-            result = halToUARTResult(halResult);
-        }
-        
-        if (result == UART_OK) {
-            break;  // Operación exitosa
-        }
-        
-        attempts++;
-        
-        // Lógica de retry y recovery del bus
-        if (attempts <= config.maxRetries && requiresBusRecovery(result)) {
-            recoverBus();
-            osDelay(config.retryDelay);
-        } else if (attempts <= config.maxRetries) {
-            osDelay(config.retryDelay);
-        }
-    }
-    
-    // Liberar mutex
-    osMutexRelease(busMutex);
-    
-    return result;
+UARTConfig UARTBus::getDefaultConfig() {
+    return defaultConfig;
 }
