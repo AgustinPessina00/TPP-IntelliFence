@@ -20,6 +20,7 @@ SamM10q::SamM10q(uint8_t i2cAddr) {
 	this->version	= VALSET_VERSION;
     this->reserved	= RESERVED;
 
+    //initSamM10q();
     //configure_gps();  //A partir de ahora lo llamamos en initSamM10q.
 }
 

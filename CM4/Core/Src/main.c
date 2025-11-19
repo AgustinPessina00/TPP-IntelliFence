@@ -36,6 +36,8 @@
 #include "FreeRTOS.h"
 /* Include thread-safe printf for RTOS */
 #include "rtos_printf.h"
+/* Include C++ managers initialization wrapper */
+#include "system_init.h"
 
 
 // Forward declarations para sistema de mensajes embedded-friendly
@@ -58,13 +60,7 @@ extern void ina226_configuration_test(void);
 extern void lsm6dso_comprehensive_test(void);
 extern void lsm6dso_configuration_test(void);
 
-// Forward declarations para threads del sistema FreeRTOS
-extern void dispatcherTask(void *argument);
-extern void fsmTask(void *argument);
-extern void sensorAcqTask(void *argument);
-
 // Forward declaration para MessagePool
-extern void MessagePool_Init(void);
 
 /* USER CODE END Includes */
 
@@ -89,58 +85,6 @@ COM_InitTypeDef BspCOMInit;
 
 /* USER CODE BEGIN PV */
 
-// ===== DECLARACIONES DE COLAS FREERTOS =====
-// Colas para comunicación entre threads usando EmbeddedMessage_t*
-
-// Cola principal del dispatcher - recibe todos los mensajes
-osMessageQueueId_t dispatcherQueueHandle;
-const osMessageQueueAttr_t dispatcherQueue_attributes = {
-  .name = "dispatcherQueue"
-};
-
-// Cola para adquisición de sensores
-osMessageQueueId_t sensorAcqQueueHandle;
-const osMessageQueueAttr_t sensorAcqQueue_attributes = {
-  .name = "sensorAcqQueue"
-};
-
-// Cola para la máquina de estados finite state machine
-osMessageQueueId_t fsmQueueHandle;
-const osMessageQueueAttr_t fsmQueue_attributes = {
-  .name = "fsmQueue"
-};
-
-// Colas adicionales (para futuras implementaciones)
-osMessageQueueId_t stimulusQueueHandle;
-const osMessageQueueAttr_t stimulusQueue_attributes = {
-  .name = "stimulusQueue"
-};
-
-osMessageQueueId_t gpsQueueHandle;
-const osMessageQueueAttr_t gpsQueue_attributes = {
-  .name = "gpsQueue"
-};
-
-osMessageQueueId_t loraTxQueueHandle;
-const osMessageQueueAttr_t loraTxQueue_attributes = {
-  .name = "loraTxQueue"
-};
-
-osMessageQueueId_t loraRxQueueHandle;
-const osMessageQueueAttr_t loraRxQueue_attributes = {
-  .name = "loraRxQueue"
-};
-
-osMessageQueueId_t distanceToLimitQueueHandle;
-const osMessageQueueAttr_t distanceToLimitQueue_attributes = {
-  .name = "distanceToLimitQueue"
-};
-
-osMessageQueueId_t fenceUpdateQueueHandle;
-const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
-  .name = "fenceUpdateQueue"
-};
-
 // ===== DECLARACIONES DE THREADS FREERTOS =====
 
 // Thread principal para testing (compatible con myMain.cpp) - COMENTADO para evitar duplicación
@@ -150,31 +94,6 @@ const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
 //   .stack_size = 128 * 4,
 //   .priority = (osPriority_t) osPriorityHigh,
 // };
-
-// Thread dispatcher - rutea mensajes entre módulos
-osThreadId_t dispatcher_TaskHandle;
-const osThreadAttr_t dispatcher_Task_attributes = {
-  .name = "dispatcher_Task",
-  .stack_size = 512 * 4,  // Más stack para manejo de mensajes
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-// Thread FSM - máquina de estados principal
-osThreadId_t fsm_TaskHandle;
-const osThreadAttr_t fsm_Task_attributes = {
-  .name = "fsm_Task",
-  .stack_size = 256 * 4,  // Más stack para lógica de estados
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
-// Thread sensor acquisition - adquisición de datos de sensores
-osThreadId_t sensorAcq_TaskHandle;
-const osThreadAttr_t sensorAcq_Task_attributes = {
-  .name = "sensorAcq_Task",
-  .stack_size = 256 * 4,  // Más stack para manejo de sensores
-  .priority = (osPriority_t) osPriorityNormal,
-};
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -266,85 +185,7 @@ void run_comprehensive_module_tests(void) {
     }
 }
 
-/**
- * @brief Inicializar todas las colas FreeRTOS del sistema
- * @details Crea las colas para comunicación entre threads usando EmbeddedMessage_t*
- */
-void initialize_message_queues(void) {
-    printf("[QUEUES] Inicializando colas de mensajes FreeRTOS...\n");
-    
-    // Cola principal del dispatcher (más grande, recibe todos los mensajes)
-    dispatcherQueueHandle = osMessageQueueNew(32, sizeof(void*), &dispatcherQueue_attributes);
-    if (dispatcherQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación dispatcherQueue\n");
-        Error_Handler();
-    }
-    
-    // Cola para adquisición de sensores
-    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
-    if (sensorAcqQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
-        Error_Handler();
-    }
-    
-    // Cola para FSM
-    fsmQueueHandle = osMessageQueueNew(16, sizeof(void*), &fsmQueue_attributes);
-    if (fsmQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación fsmQueue\n");
-        Error_Handler();
-    }
-    
-    // Colas adicionales (tamaños más pequeños para funciones futuras)
-    stimulusQueueHandle = osMessageQueueNew(8, sizeof(void*), &stimulusQueue_attributes);
-    gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
-    loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
-    loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
-    distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
-    fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
-    
-    printf("[QUEUES] OK - Todas las colas creadas exitosamente\n");
-    printf("[QUEUES] - DispatcherQueue: 32 slots\n");
-    printf("[QUEUES] - SensorAcqQueue: 16 slots\n");
-    printf("[QUEUES] - FSMQueue: 16 slots\n");
-    printf("[QUEUES] - Colas adicionales: 4-12 slots c/u\n");
-    printf("[QUEUES] - Tamaño por slot: %u bytes (puntero EmbeddedMessage_t*)\n", 
-           (unsigned int)sizeof(void*));
-}
 
-/**
- * @brief Inicializar todos los threads FreeRTOS del sistema
- * @details Crea los threads principales: dispatcher, FSM, sensor acquisition
- */
-void initialize_system_threads(void) {
-    printf("[THREADS] Inicializando threads del sistema FreeRTOS...\n");
-    
-    // Thread dispatcher - alta prioridad (ruteo de mensajes crítico)
-    dispatcher_TaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcher_Task_attributes);
-    if (dispatcher_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación dispatcher_Task\n");
-        Error_Handler();
-    }
-    
-    //Thread FSM - prioridad normal (lógica de aplicación)
-    fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
-    if (fsm_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
-        Error_Handler();
-    }
-    
-    //Thread sensor acquisition - prioridad normal (adquisición periódica)
-    sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
-    if (sensorAcq_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
-        Error_Handler();
-    }
-    
-    printf("[THREADS] OK - Todos los threads creados exitosamente\n");
-    printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 1KB\n");
-    printf("[THREADS] - fsm_Task: Prioridad NORMAL, Stack 1KB\n");
-    printf("[THREADS] - sensorAcq_Task: Prioridad NORMAL, Stack 1KB\n");
-    printf("[THREADS] Total stack allocated: ~3KB\n");
-}
 
 /* USER CODE END 0 */
 
@@ -378,6 +219,8 @@ int main(void)
   MX_IPCC_Init();
 
   /* USER CODE BEGIN SysInit */
+  /* Initialize C++ managers (I2C, UART) before peripheral usage */
+  
 
   /* USER CODE END SysInit */
 
@@ -387,12 +230,20 @@ int main(void)
   MX_I2C2_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  if (initialize_cpp_managers() != 0) {
+    printf("[MAIN] CRITICAL ERROR - Failed to initialize C++ managers\n");
+    Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
+
+  /* Initialize RTOS printf AFTER kernel initialization */
+  if (rtos_printf_init() != 0) {
+    Error_Handler();  // Critical error if printf system fails
+  }
 
   /* Initialize leds */
   BSP_LED_Init(LED_BLUE);
@@ -415,8 +266,8 @@ int main(void)
     Error_Handler();
   }
 
-  run_comprehensive_module_tests();
-
+  //run_comprehensive_module_tests();
+    
   /* Start scheduler */
   osKernelStart();
 

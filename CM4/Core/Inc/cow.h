@@ -23,9 +23,9 @@ struct Position {
 };
 
 struct Acceleration {
-    float ax;
-    float ay;
-    float az;
+    double ax;
+    double ay;
+    double az;
 };
 
 class Cow {

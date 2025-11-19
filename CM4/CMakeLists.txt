@@ -103,8 +103,11 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow.cpp
     # Thread Sources (FreeRTOS Tasks)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/dispatcherTask.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask_new.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/system_init.cpp
+
 )
 
 # Link directories setup

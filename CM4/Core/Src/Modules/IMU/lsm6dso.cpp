@@ -21,6 +21,8 @@ Lsm6dso::Lsm6dso(uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoF
   this->wakeDurConfig = wakeDur;
   this->wakeWeightConfig = wakeWeight;
   this->sleepDurConfig = sleepDur;
+
+  initialize();
 }
 
 bool Lsm6dso::initialize() {

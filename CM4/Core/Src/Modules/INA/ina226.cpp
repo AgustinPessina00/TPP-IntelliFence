@@ -12,6 +12,8 @@ Ina226::Ina226(uint8_t i2cAddr, float rShunt, float currentLSB,
                Ina226ConvTime vshCt, Ina226Mode mode)
     : i2cAddr(i2cAddr), i2cBus(nullptr), rShunt(rShunt), currentLSB(currentLSB), 
       isInitialized(false) {
+
+    initialize();
     // Constructor solo guarda parámetros
 }
 
