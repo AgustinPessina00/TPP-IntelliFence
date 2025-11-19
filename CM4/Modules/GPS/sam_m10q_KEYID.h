@@ -8,8 +8,7 @@
 // Constantes y contadores
 // ========================
 constexpr size_t M10Q_NUM_RATE_OPTIONS   = 4;   // STOP, SLOW, MEDIUM, FAST
-constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 45;  // Cantidad de elementos en m10q_data
-constexpr size_t M10Q_NUM_CK_PAIRS       = 88;  // Un par de bytes por cada data element
+constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 46;  // Cantidad de elementos en m10q_data
 
 // ======================================================
 // RATES: m10q_new_acq_time (payloads)  [4 elementos]
@@ -27,25 +26,10 @@ static const uint8_t* const m10q_new_acq_time[M10Q_NUM_RATE_OPTIONS] = {
     m10q_new_acq_time_2,
     m10q_new_acq_time_3
 };
-static const uint8_t m10q_new_acq_time_len[M10Q_NUM_RATE_OPTIONS] = {5, 5, 5, 5};
-
-// “Checksums” tal como figura en tu archivo (mismos 5 bytes que payloads)
-static const uint8_t m10q_new_acq_ck_0[] = {0x1F, 0x00, 0x31, 0x10, 0x01};
-static const uint8_t m10q_new_acq_ck_1[] = {0x01, 0x00, 0x31, 0x10, 0x01};
-static const uint8_t m10q_new_acq_ck_2[] = {0x20, 0x00, 0x31, 0x10, 0x01};
-static const uint8_t m10q_new_acq_ck_3[] = {0x05, 0x00, 0x31, 0x10, 0x01};
-
-static const uint8_t* const m10q_new_acq_ck[M10Q_NUM_RATE_OPTIONS] = {
-    m10q_new_acq_ck_0,
-    m10q_new_acq_ck_1,
-    m10q_new_acq_ck_2,
-    m10q_new_acq_ck_3
-};
-static const uint8_t m10q_new_acq_ck_len[M10Q_NUM_RATE_OPTIONS] = {5, 5, 5, 5};
 
 // ======================================================
-// m10q_data (43 elementos) → payloads de longitud variable
-// m10q_checksum (43 pares de 2 bytes) → checksums precalculados
+// m10q_data (45 elementos) → payloads de longitud variable
+// m10q_checksum (45 pares de 2 bytes) → checksums precalculados
 // ======================================================
 // --- Payloads ---
 static const uint8_t m10q_data_00[] = {0x1F, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-GPS_ENA
@@ -91,9 +75,10 @@ static const uint8_t m10q_data_39[] = {0x07, 0x00, 0xD0, 0x20, 0x0A}; // PM-MAXA
 static const uint8_t m10q_data_40[] = {0x09, 0x00, 0xD0, 0x10, 0x01}; // PM-WAITTIMEFIX
 static const uint8_t m10q_data_41[] = {0x0C, 0x00, 0xD0, 0x10, 0x01}; // PM-EXTINTWAKE
 static const uint8_t m10q_data_42[] = {0x01, 0x00, 0xD0, 0x20, 0x01}; // PM-OPERATEMODE
-static const uint8_t m10q_data_43[] = {0x03, 0x00, 0x51, 0x10, 0x01}; // CFG-I2C-ENABLED - RAM
-static const uint8_t m10q_data_44[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-I2C-ENABLED - RAM
-static const uint8_t m10q_data_45[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-I2C-ENABLED - RAM
+static const uint8_t m10q_data_43[] = {0x03, 0x00, 0x51, 0x10, 0x01}; // CFG-I2C-ENABLED
+static const uint8_t m10q_data_44[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
+static const uint8_t m10q_data_45[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-UART1OUTPROT-NMEA ENABLED
+static const uint8_t m10q_data_46[] = {0x02, 0x00, 0x72, 0x10, 0x00}; // CFG-I2COUTPROT-NMEA DISABLED
 
 // Tabla de punteros a payloads
 static const uint8_t* const m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
