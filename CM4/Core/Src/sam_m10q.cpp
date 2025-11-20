@@ -36,102 +36,91 @@ void SamM10q::initSamM10q() {
     configure_gps();
 }
 
-/*
-HAL_StatusTypeDef SamM10q::read_nmea_stream() {
-    uint8_t buffer[NMEA_BUFFER_SIZE];
-    
-    if (!i2cBus) {
-        return HAL_ERROR;
-    }
 
-    // Usar bus I2C thread-safe en lugar de HAL directo
-    I2CResult result = i2cBus->memRead(i2cAddr, 0xFF, 1, buffer, NMEA_BUFFER_SIZE, 10);
-    
-    if (result != I2C_OK) {
-        // Podés agregar manejo de error acá si querés
-        return HAL_ERROR;
-    }
-
-    for (uint8_t i = 0; i < NMEA_BUFFER_SIZE; ++i) {
-        trackerGPS.encode(buffer[i]); // Podemos hacer también (*gps).encode(buffer[i])
-    }
-
-    return HAL_OK;
-}
-*/
-
-/*
-HAL_StatusTypeDef SamM10q::read_gps_position() {
-	if (this->read_nmea_stream() != HAL_OK) {
-		return HAL_ERROR;
-	}
-	this->update_location_and_time();
-	return HAL_OK;
-}
-*/
-
-/*
-void SamM10q::update_location_and_time() {
-    if (trackerGPS.location.isUpdated() && trackerGPS.location.isValid()) {
-        latitude = trackerGPS.location.lat();
-        longitude = trackerGPS.location.lng();
-    }
-
-
-    if (trackerGPS.date.isUpdated() && trackerGPS.date.isValid()) {
-        uint16_t year = trackerGPS.date.year();   // Ej: 2025
-        uint8_t month = trackerGPS.date.month();  // Ej: 6
-        uint8_t day   = trackerGPS.date.day();    // Ej: 12
-
-        fechaUTC = (year % 100) * 10000 + month * 100 + day; // yymmdd
-    }
-
-    if (trackerGPS.time.isUpdated() && trackerGPS.time.isValid()) {
-        uint8_t hour = trackerGPS.time.hour();
-        uint8_t minute = trackerGPS.time.minute();
-        uint8_t second = trackerGPS.time.second();
-        horaUTC = hour * 10000 + minute * 100 + second; // hhmmss como entero
-    }
-}
-*/
-
-/*
 bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
+    if (gpsRate > gpsRateSpeed::FAST) {
+        return false;
+    }
+
     const size_t idx = static_cast<size_t>(gpsRate);
 
-    // Tablas definidas en sam_m10q_KEYID.h (punteros + len)
+    // Obtener payload desde la tabla en sam_m10q_KEYID.h
     const uint8_t* payload = m10q_new_acq_time[idx];
-    size_t payloadlen = m10q_new_acq_time_len[idx];
+    const size_t payloadLen = 5; // Todos los payloads de acq_time son de 5 bytes
 
-    // Nota: en el header original m10q_new_adq_time_checksum tenía los mismos 5 bytes.
-    // Respetamos ese "checksum" 1:1 para no romper nada.
-    const uint8_t* checksum = m10q_new_acq_ck[idx];
-    size_t checksumlen = m10q_new_acq_ck_len[idx];
-
-    // Usar arrays estáticos en lugar de std::vector
+    // Usar arrays estáticos para evitar allocación dinámica
     uint8_t sendMsgRAM[UBX_MAX_MESSAGE_SIZE];
     uint8_t sendMsgBBR[UBX_MAX_MESSAGE_SIZE];
     
-    uint16_t lenRAM = build_ubx_message(VALSET_CLASS, VALSET_ID, RAM, payload, payloadlen, checksum, checksumlen, sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
-    uint16_t lenBBR = build_ubx_message(VALSET_CLASS, VALSET_ID, BBR, payload, payloadlen, checksum, checksumlen, sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
+    // Construir mensajes UBX-CFG-VALSET para RAM y BBR
+    uint16_t lenRAM = build_ubx_message(VALSET_CLASS, VALSET_ID, RAM, 
+                                        payload, payloadLen, 
+                                        sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
+    uint16_t lenBBR = build_ubx_message(VALSET_CLASS, VALSET_ID, BBR, 
+                                        payload, payloadLen, 
+                                        sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
 
-	const bool okRAM = (lenRAM > 0) && (send_message(sendMsgRAM, lenRAM, 15) == HAL_OK);
+    // Enviar a RAM (temporal) y BBR (batería respaldada)
+    const bool okRAM = (lenRAM > 0) && (send_message(sendMsgRAM, lenRAM, 15) == HAL_OK);
     const bool okBBR = (lenBBR > 0) && (send_message(sendMsgBBR, lenBBR, 15) == HAL_OK);
 
     return okRAM && okBBR;
 }
-*/
+
 
 void SamM10q::testGPS() {
     //printf("[TEST GPS] Iniciando test de GPS...\n");
 
-    if (this->read_gps_position() != HAL_OK) {
+    if (!this->update_location_and_time()) {
         //printf("[TEST GPS] Fallo al leer NMEA\n");
         return;
     } else {
 		//printf("[TEST GPS] Posición válida: %.6f, %.6f\n", this->latitude, this->longitude);
     }
 }
+
+/**
+ * @brief Actualiza los atributos de ubicación y tiempo de la clase
+ * @details Obtiene datos PVT del GPS y actualiza latitude, longitude, fechaUTC y horaUTC
+ * @return true si se obtuvieron datos válidos, false en caso contrario
+ */
+bool SamM10q::update_location_and_time() {
+    UBX_NAV_PVT_data_t pvtData;
+    
+    // Obtener datos PVT del GPS con timeout de 2 segundos
+    if (getPVT(&pvtData, 2000)) {
+        // Actualizar latitud y longitud (convertir de deg*1e-7 a grados decimales)
+        latitude = pvtData.lat * 1e-7;
+        longitude = pvtData.lon * 1e-7;
+        
+        // Actualizar fecha UTC en formato YYMMDD
+        fechaUTC = (pvtData.year % 100) * 10000 + 
+                   pvtData.month * 100 + 
+                   pvtData.day;
+        
+        // Actualizar hora UTC en formato HHMMSS
+        horaUTC = pvtData.hour * 10000 + 
+                  pvtData.min * 100 + 
+                  pvtData.sec;
+        
+        return true;
+    }
+    
+    // Si falla, mantener valores anteriores (no los sobrescribimos con 0)
+    // Esto evita perder la última posición válida en caso de pérdida temporal de señal
+    return false;
+}
+/*EJEMPLO DE USO.
+// En un task FreeRTOS:
+while(1) {
+    gps.update_location_and_time();
+    
+    printf("Lat: %.7f°, Lon: %.7f°\n", gps.latitude, gps.longitude);
+    printf("Fecha: %06lu, Hora: %06lu UTC\n", gps.fechaUTC, gps.horaUTC);
+    
+    osDelay(5000); // Actualizar cada 5 segundos
+}
+*/
 
 /* =========================================================== */
 /* ========== CONFIGURACION INICIAL DEL GPS VIA I2C ========== */

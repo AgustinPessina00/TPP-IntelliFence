@@ -2,7 +2,6 @@
 #define MODULES_GPS_SAM_M10Q_H_
 
 #include "sam_m10q_KEYID.h"
-#include "TinyGPSPlus/TinyGPS++.h"
 #include "stm32wlxx_hal.h"
 #include "stm32wlxx_hal_i2c.h"
 
@@ -92,9 +91,7 @@ public:
 	// Llamar explícitamente luego de HAL_Init() y MX_I2C_Init()
     void initSamM10q();
 
-	HAL_StatusTypeDef read_nmea_stream();
-	HAL_StatusTypeDef read_gps_position();
-	void update_location_and_time();
+	bool update_location_and_time();
 	bool set_new_acq_time(gpsRateSpeed gpsRate);
 
 	// TEST
@@ -109,9 +106,6 @@ public:
 	bool read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer);
 	void configure_gps_uart();  // Configuración inicial via UART
 
-	// ====== NUEVAS FUNCIONES PARA PVT ======
-    bool getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs = 1000);
-
 private:
 	void configure_gps();
 
@@ -122,6 +116,7 @@ private:
 	void ubx_calculate_checksum(const uint8_t* msg, uint16_t msg_len, uint8_t* ck_a, uint8_t* ck_b);
 
 	// ====== NUEVAS FUNCIONES PRIVADAS PARA PVT ======
+    bool getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs = 1000);
     bool requestPVT();
     bool receivePVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs);
     bool receivePVTValidateOption(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs);
@@ -136,7 +131,6 @@ public:
 
 private:
     uint8_t i2cAddr;
-	TinyGPSPlus trackerGPS;
 
 	//uint16_t length;	Es fijo, lo conocemos del KEYID.
 	uint8_t version;
