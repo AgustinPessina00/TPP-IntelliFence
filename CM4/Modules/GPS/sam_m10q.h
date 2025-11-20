@@ -119,7 +119,7 @@ private:
     bool getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs = 1000);
     bool requestPVT();
     bool receivePVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs);
-    bool receivePVTValidateOption(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs);
+    bool receivePVTValidateOption(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs); //Esta función hace varias validaciones para evitar el ruido de tramas NMEA. Solo debemos usarla si no eliminamos los mensajes NMEA.
     bool parseUBXMessage(const uint8_t* buffer, uint16_t bufferLen, UBX_NAV_PVT_data_t* pvtData);
     bool verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen);
 

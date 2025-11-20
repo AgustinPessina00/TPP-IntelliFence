@@ -110,6 +110,7 @@ bool SamM10q::update_location_and_time() {
     // Esto evita perder la última posición válida en caso de pérdida temporal de señal
     return false;
 }
+
 /*EJEMPLO DE USO.
 // En un task FreeRTOS:
 while(1) {
@@ -542,7 +543,7 @@ bool SamM10q::receivePVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
         uint16_t available = (bytesAvailable[1] << 8) | bytesAvailable[0];
         available &= 0x7FFF; // Limpiar bit 15 (bug conocido del firmware GPS)
         
-        // Si hay suficientes bytes disponibles, leer el mensaje completo en chunks
+        // Si hay suficientes bytes disponibles, leer el mensaje completo en chunks de 64 Bytes.
         if (available >= PVT_MESSAGE_SIZE) {
             const uint8_t CHUNK_SIZE = 64;
             uint16_t totalRead = 0;

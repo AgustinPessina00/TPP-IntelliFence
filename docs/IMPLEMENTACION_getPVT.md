@@ -974,7 +974,7 @@ La implementación está lista para ser integrada en el sistema de cerco virtual
 
 ---
 
-**Autor:** GitHub Copilot  
+**Autor:** Agustin Pessina
 **Fecha:** 12 de Noviembre de 2025  
 **Proyecto:** TPP-IntelliFence  
 **Versión:** 1.0
