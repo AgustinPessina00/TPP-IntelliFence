@@ -186,11 +186,11 @@ void initialize_system_threads(void) {
     }
     
     //Thread FSM - prioridad normal (lógica de aplicación)
-    fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
-    if (fsm_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
-        Error_Handler();
-    }
+    // fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
+    // if (fsm_TaskHandle == NULL) {
+    //     printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
+    //     Error_Handler();
+    // }
     
     //Thread sensor acquisition - prioridad normal (adquisición periódica)
     sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);

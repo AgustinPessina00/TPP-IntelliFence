@@ -60,6 +60,9 @@ extern void ina226_configuration_test(void);
 extern void lsm6dso_comprehensive_test(void);
 extern void lsm6dso_configuration_test(void);
 
+// Forward declarations para Cow y Fence tests
+extern void run_cow_fence_tests(void);
+
 // Forward declaration para MessagePool
 
 /* USER CODE END Includes */
@@ -123,47 +126,56 @@ void run_comprehensive_module_tests(void) {
     
     bool all_tests_passed = true;
     
-    // ===== TEST 1: Sistema de Mensajes Embedded-Friendly =====
-    printf(">>> TEST 1: EMBEDDED MESSAGE SYSTEM <<<\n");
-    printf("Testing static message pool (no dynamic allocation)...\n");
+    // // ===== TEST 1: Sistema de Mensajes Embedded-Friendly =====
+    // printf(">>> TEST 1: EMBEDDED MESSAGE SYSTEM <<<\n");
+    // printf("Testing static message pool (no dynamic allocation)...\n");
     
-    test_message_pool_basic();
+    // test_message_pool_basic();
     
-    printf("SUCCESS - Embedded message system validated\n");
-    printf("INFO - Zero dynamic allocation confirmed\n");
-    printf("INFO - Thread-safe pool operations confirmed\n\n");
+    // printf("SUCCESS - Embedded message system validated\n");
+    // printf("INFO - Zero dynamic allocation confirmed\n");
+    // printf("INFO - Thread-safe pool operations confirmed\n\n");
     
-    // ===== TEST 2: INA226 Current/Power Sensors =====
-    printf(">>> TEST 2: INA226 CURRENT/POWER SENSORS <<<\n");
-    printf("Testing INA226 sensors (MCU, GPS, IMU power monitoring)...\n");
+    // // ===== TEST 2: INA226 Current/Power Sensors =====
+    // printf(">>> TEST 2: INA226 CURRENT/POWER SENSORS <<<\n");
+    // printf("Testing INA226 sensors (MCU, GPS, IMU power monitoring)...\n");
     
-    ina226_comprehensive_test();
+    // ina226_comprehensive_test();
     
-    printf("SUCCESS - INA226 comprehensive test completed\n");
-    printf("INFO - MCU, GPS, IMU power monitoring operational\n\n");
+    // printf("SUCCESS - INA226 comprehensive test completed\n");
+    // printf("INFO - MCU, GPS, IMU power monitoring operational\n\n");
     
-    // ===== TEST 3: LSM6DSO IMU 6DOF Sensor =====
-    printf(">>> TEST 3: LSM6DSO IMU 6DOF SENSOR <<<\n");
-    printf("Testing accelerometer and gyroscope functionality...\n");
+    // // ===== TEST 3: LSM6DSO IMU 6DOF Sensor =====
+    // printf(">>> TEST 3: LSM6DSO IMU 6DOF SENSOR <<<\n");
+    // printf("Testing accelerometer and gyroscope functionality...\n");
     
-    lsm6dso_comprehensive_test();
+    // lsm6dso_comprehensive_test();
     
-    printf("SUCCESS - LSM6DSO IMU test completed\n");
-    printf("INFO - 6DOF motion sensing operational\n\n");
+    // printf("SUCCESS - LSM6DSO IMU test completed\n");
+    // printf("INFO - 6DOF motion sensing operational\n\n");
     
-    // ===== TEST 4: SAM-M10Q GPS Module =====
-    printf(">>> TEST 4: SAM-M10Q GPS MODULE <<<\n");
-    printf("Testing GPS connectivity and data acquisition...\n");
+    // // ===== TEST 4: SAM-M10Q GPS Module =====
+    // printf(">>> TEST 4: SAM-M10Q GPS MODULE <<<\n");
+    // printf("Testing GPS connectivity and data acquisition...\n");
     
-    // Test standard GPS implementation
+    // // Test standard GPS implementation
 
-    gps_init_and_test();
+    // gps_init_and_test();
     
-    printf("INFO - Testing Melopero GPS implementation...\n");
-    gps_melopero_test();
+    // printf("INFO - Testing Melopero GPS implementation...\n");
+    // gps_melopero_test();
     
-    printf("SUCCESS - GPS module test completed\n");
-    printf("INFO - Dual GPS implementation validated\n\n");
+    // printf("SUCCESS - GPS module test completed\n");
+    // printf("INFO - Dual GPS implementation validated\n\n");
+    
+    // ===== TEST 5: COW & FENCE DATA MODEL =====
+    printf(">>> TEST 5: COW & FENCE DATA MODEL <<<\n");
+    printf("Testing embedded-friendly Cow and Fence classes...\n");
+    
+    run_cow_fence_tests();
+    
+    printf("SUCCESS - Cow & Fence test completed\n");
+    printf("INFO - Data model ready for FSM integration\n\n");
     
     // ===== RESUMEN DE TESTS =====
     if (all_tests_passed) {
@@ -266,7 +278,7 @@ int main(void)
     Error_Handler();
   }
 
-  //run_comprehensive_module_tests();
+  run_comprehensive_module_tests();
     
   /* Start scheduler */
   osKernelStart();

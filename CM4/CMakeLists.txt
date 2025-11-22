@@ -99,11 +99,15 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # LSM6DSO IMU Sensor Sources (Thread-Safe)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso_test_wrapper.cpp
-    # Data Model Sources (Cow and Zone definitions)
+    # Data Model Sources (Cow, Fence, and Zone definitions)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/fence.cpp
+    # Test Sources (Validation and Unit Tests)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow_fence_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/fence_test.cpp
     # Thread Sources (FreeRTOS Tasks)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/dispatcherTask.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/system_init.cpp

@@ -1,11 +1,16 @@
 #ifndef FENCE_H
 #define FENCE_H
 
-#include <vector>
 #include "zone.h"
-#include "stdio.h"
+#include <stdint.h>
+#include <stdio.h>
 
-#define TOTAL_TRESHOLDS  5
+// ============================================================================
+// EMBEDDED-FRIENDLY FENCE IMPLEMENTATION (NO STL, STATIC ALLOCATION)
+// ============================================================================
+
+#define MAX_VERTICES 20      // Máximo número de vértices del cerco
+#define TOTAL_TRESHOLDS 5    // Número de umbrales de zona
 
 typedef float threshold_t;
 
@@ -23,29 +28,63 @@ class Fence {
 public:
     Fence();
 
-    void saveVertices(const std::vector<Vertex> v);
-    void createLimits();    // recalcula segmentos a partir de vértices
-    void clearVertex();     // Elimina los vertices para luego cargar los nuevos cuando actualizamos el cerco
+    // ===== VERTEX MANAGEMENT =====
+    /**
+     * @brief Guardar vértices del cerco recibidos de LoRa
+     * @param v Puntero al array de vértices
+     * @param count Número de vértices (max MAX_VERTICES)
+     * @return true si se guardaron exitosamente, false si count > MAX_VERTICES
+     */
+    bool saveVertices(const Vertex* v, uint8_t count);
+    
+    /**
+     * @brief Recalcular segmentos (límites) a partir de vértices
+     * @note Debe llamarse después de saveVertices()
+     */
+    void createLimits();
+    
+    /**
+     * @brief Limpiar vértices para actualización de cerco
+     */
+    void clearVertices();
 
-    const std::vector<Vertex>& getVertices() const;
-    const std::vector<Line>& getLimits() const;
-    Vertex getCenterFence() const;
+    // ===== GETTERS =====
+    const Vertex* getVertices() const { return vertices; }
+    uint8_t getVertexCount() const { return vertexCount; }
+    
+    const Line* getLimits() const { return limites; }
+    uint8_t getLimitCount() const { return limitCount; }
+    
+    Vertex getCenterFence() const { return centerFence; }
 
-    // Setea umbrales para cada zona desde el límite del polígono
+    // ===== ZONE THRESHOLDS =====
+    /**
+     * @brief Configurar umbrales de zona desde el límite del polígono (en metros)
+     * @note Por defecto: GREEN(0-10m), ORANGE(10-20m), RED(20-30m), BLACK(>30m)
+     */
     void setZoneThresholds();
-
-    // Devuelve los umbrales definidos
+    
+    /**
+     * @brief Obtener umbral de una zona específica
+     * @param zone Zona a consultar
+     * @return Distancia en metros desde el límite
+     */
     float getThreshold(zone_t zone) const;
 
+    // Array público de umbrales (compatible con código legacy)
     float thresholds[TOTAL_TRESHOLDS];
 
 private:
     void updateCenterFence();
 
-    std::vector<Vertex> vertices;
-    std::vector<Line> limites;
+    // ===== STATIC ARRAYS (NO DYNAMIC ALLOCATION) =====
+    Vertex vertices[MAX_VERTICES];   // Array estático de vértices
+    uint8_t vertexCount;              // Cantidad actual de vértices
 
-    Vertex centerFence;     // Centro promedio de los vertices.
+    Line limites[MAX_VERTICES];       // Array estático de límites (mismo tamaño que vértices)
+    uint8_t limitCount;               // Cantidad actual de límites
+
+    Vertex centerFence;               // Centro promedio de los vértices
 
     // Umbrales desde el límite hasta la respectiva zona (en metros)
     threshold_t lightBlue;

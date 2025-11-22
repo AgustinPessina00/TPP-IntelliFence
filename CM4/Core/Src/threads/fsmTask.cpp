@@ -16,14 +16,18 @@ extern osMessageQueueId_t dispatcherQueueHandle;
 // Variables globales para la FSM
 static bool receivedMsgLoraRX = false;
 
+// TODO: Obtener DeviceUID real del hardware
+static DeviceUID deviceUID = {0x12345678, 0x9ABCDEF0, 0x11223344};
+
 // ============================================================================
 // MAIN FSM TASK
 // ============================================================================
 
 void fsmTask(void *argument) {
-    // TODO: Descomentar cuando Cow y Fence estén listos
-    // fsmTaskParams *fsmParams = static_cast<fsmTaskParams *>(argument);
-    Cow cow(DeviceUID);
+    (void)argument; // Unused parameter
+    
+    // Initialize Cow and Fence objects
+    Cow cow(deviceUID);
     Fence fence;
 
     MainFSM_t mainFSM = MainFSM_t::STARTUP_ROUTINE;
@@ -46,12 +50,12 @@ void fsmTask(void *argument) {
     while(1) {
         switch (mainFSM) {
             case MainFSM_t::STARTUP_ROUTINE:
-                runStartupRoutineFSM(mainFSM, &startupRoutineState, &msgReceived, tries, NULL);
+                runStartupRoutineFSM(mainFSM, &startupRoutineState, &msgReceived, tries, cow, fence);
                 break;
                 
             case MainFSM_t::NORMAL_OPERATION:
                 runNormalOperationFSM(normalOpFSM, initializeState, greenZoneState, 
-                                     stimulusZoneState, &msgReceived, tries, NULL);
+                                     stimulusZoneState, &msgReceived, tries, cow, fence);
                 if (receivedMsgLoraRX) {
                     mainFSM = MainFSM_t::FENCE_TRANSITION;
                     receivedMsgLoraRX = false;
@@ -59,7 +63,7 @@ void fsmTask(void *argument) {
                 break;
                 
             case MainFSM_t::FENCE_TRANSITION:
-                runFenceTransitionFSM(mainFSM, fenceTransitionState, &msgReceived, tries, NULL);
+                runFenceTransitionFSM(mainFSM, fenceTransitionState, &msgReceived, tries, cow, fence);
                 break;
         }
         
@@ -71,9 +75,9 @@ void fsmTask(void *argument) {
 // STARTUP ROUTINE FSM
 // ============================================================================
 
-void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state, 
-                         EmbeddedMessage_t** msgReceived, uint8_t tries, 
-                         fsmTaskParams *fsmParams) {
+void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state, 
+                         EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                         Cow& cow, Fence& fence) {
     switch (*state) {
         case STARTUP_ROUTINE_BEGIN:
             tries = 0;
@@ -88,8 +92,8 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_WAIT_POSITION:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updatePosition(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updatePosition(cow, *msgReceived) == HAL_OK) {
                     *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
                     tries = 0;
                 }
@@ -103,12 +107,12 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_SEND_POSITION_LORA:
-            sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, fsmParams);
+            sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
             *state = STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE;
             break;
             
         case STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (loraTxResponse(*msgReceived) == HAL_OK) {
                     *state = STARTUP_ROUTINE_WAIT_FENCE;
                     tries = 0;
@@ -122,7 +126,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_WAIT_FENCE:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (receivedMsgLoraRX) {
                     *state = STARTUP_ROUTINE_SAVE_FENCE;
                     receivedMsgLoraRX = false;
@@ -131,7 +135,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_SAVE_FENCE:
-            updateFence(fsmParams);
+            updateFence(fence);
             *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
             break;
             
@@ -141,8 +145,8 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_WAIT_NEW_POSITION:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updatePosition(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updatePosition(cow, *msgReceived) == HAL_OK) {
                     *state = STARTUP_ROUTINE_REQUEST_ZONE;
                     tries = 0;
                 }
@@ -160,8 +164,8 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_EVALUATE_ZONE:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updateDistAndZone(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
                     *state = STARTUP_ROUTINE_END;
                     tries = 0;
                 }
@@ -175,7 +179,7 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
             
         case STARTUP_ROUTINE_END:
             *state = STARTUP_ROUTINE_BEGIN;
-            if (isInFence(fsmParams) == HAL_OK) {
+            if (isInFence(cow) == HAL_OK) {
                 mainFSM = MainFSM_t::NORMAL_OPERATION;
                 RTOS_LOG_INFO("[FSM] Startup complete - entering NORMAL_OPERATION\n");
             } else {
@@ -190,21 +194,21 @@ void runStartupRoutineFSM(MainFSM_t mainFSM, StartupRoutineState_t* state,
 // NORMAL OPERATION FSM
 // ============================================================================
 
-void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState,
-                          GreenZoneState_t greenZoneState, StimulusZone_t stimulusZoneState,
-                          EmbeddedMessage_t** msgReceived, uint8_t tries, 
-                          fsmTaskParams *fsmParams) {
+void runNormalOperationFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState,
+                          GreenZoneState_t& greenZoneState, StimulusZone_t& stimulusZoneState,
+                          EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                          Cow& cow, Fence& fence) {
     switch (normalOpFSM) {
         case NormalOpFSM_t::INITIALIZE:
-            runInitializeFSM(normalOpFSM, initializeState, msgReceived, tries, fsmParams);
+            runInitializeFSM(normalOpFSM, initializeState, msgReceived, tries, cow, fence);
             break;
             
         case NormalOpFSM_t::GREEN_ZONE:
-            runGreenZoneFSM(normalOpFSM, greenZoneState, msgReceived, tries, fsmParams);
+            runGreenZoneFSM(normalOpFSM, greenZoneState, msgReceived, tries, cow, fence);
             break;
             
         case NormalOpFSM_t::STIMULUS_ZONE:
-            runStimulusZoneFSM(normalOpFSM, stimulusZoneState, msgReceived, tries, fsmParams);
+            runStimulusZoneFSM(normalOpFSM, stimulusZoneState, msgReceived, tries, cow, fence);
             break;
     }
 }
@@ -213,9 +217,9 @@ void runNormalOperationFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initiali
 // INITIALIZE SUB-FSM
 // ============================================================================
 
-void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeState,
-                     EmbeddedMessage_t** msgReceived, uint8_t tries, 
-                     Cow& cow) {
+void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState,
+                     EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                     Cow& cow, Fence& fence) {
     switch (initializeState) {
         case INITIALIZE_BEGIN:
             tries = 0;
@@ -228,8 +232,8 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
             break;
             
         case INITIALIZE_WAIT_POSITION:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updatePosition(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updatePosition(cow, *msgReceived) == HAL_OK) {
                     initializeState = INITIALIZE_REQUEST_ZONE;
                     tries = 0;
                 }
@@ -247,8 +251,8 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
             break;
             
         case INITIALIZE_EVALUATE_ZONE:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updateDistAndZone(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
                     initializeState = INITIALIZE_END;
                     tries = 0;
                 }
@@ -262,9 +266,9 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
             
         case INITIALIZE_END:
             initializeState = INITIALIZE_BEGIN;
-            if (isInFence(fsmParams) == HAL_OK) {
+            if (isInFence(cow) == HAL_OK) {
                 normalOpFSM = NormalOpFSM_t::GREEN_ZONE;
-                endZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
+                sendZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
             } else {
                 normalOpFSM = NormalOpFSM_t::STIMULUS_ZONE;
             }
@@ -276,14 +280,14 @@ void runInitializeFSM(NormalOpFSM_t normalOpFSM, InitializeState_t initializeSta
 // GREEN ZONE SUB-FSM
 // ============================================================================
 
-void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
-                    EmbeddedMessage_t** msgReceived, uint8_t tries, 
-                    fsmTaskParams *fsmParams) {
+void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneState,
+                    EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                    Cow& cow, Fence& fence) {
     // CowState state;
     
     switch (greenZoneState) {
         case GREEN_ZONE_BEGIN:
-            // TODO: sendZoneToStimulus(fsmParams->cow->getCurrentZone(), MODULE_STIMULUS);
+            sendZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
             tries = 0;
             greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
             break;
@@ -294,8 +298,8 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
             break;
             
         case GREEN_ZONE_WAIT_ACCELERATION:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updateAcceleration(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updateAcceleration(*msgReceived, cow) == HAL_OK) {
                     greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
                     tries = 0;
                 }
@@ -308,11 +312,18 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
             break;
             
         case GREEN_ZONE_EVALUATE_COWSTATE:
-            // TODO: Descomentar cuando Cow esté implementado
-            // updateState(fsmParams);
-            // state = fsmParams->cow->getState();
-            // Por ahora, asume MOVEMENT
-            greenZoneState = GREEN_ZONE_MOVEMENT;
+            updateState(cow);
+            switch (cow.getState()) {
+                case CowState::GRAZING:
+                    greenZoneState = GREEN_ZONE_GRAZING;
+                    break;
+                case CowState::SLEEP:
+                    greenZoneState = GREEN_ZONE_SLEEP;
+                    break;
+                case CowState::MOVEMENT:
+                    greenZoneState = GREEN_ZONE_MOVEMENT;
+                    break;
+            }
             break;
             
         case GREEN_ZONE_GRAZING:
@@ -327,8 +338,11 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
             break;
             
         case GREEN_ZONE_MOVEMENT:
-            // TODO: if (fsmParams->cow->getDistanceToLimit() <= NEAR_LIMIT)
-            greenZoneState = GREEN_ZONE_FAR_LIMIT; // Por ahora
+            if (cow.getDistanceToLimit() <= NEAR_LIMIT) {
+                greenZoneState = GREEN_ZONE_NEAR_LIMIT;
+            } else {
+                greenZoneState = GREEN_ZONE_FAR_LIMIT;
+            }
             break;
             
         case GREEN_ZONE_NEAR_LIMIT:
@@ -342,7 +356,7 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
             break;
             
         case GREEN_ZONE_WAIT_GPS_ADQ_TIME:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (gpsResponse(*msgReceived) == HAL_OK) {
                     greenZoneState = GREEN_ZONE_END;
                     tries = 0;
@@ -366,9 +380,9 @@ void runGreenZoneFSM(NormalOpFSM_t normalOpFSM, GreenZoneState_t greenZoneState,
 // STIMULUS ZONE SUB-FSM
 // ============================================================================
 
-void runStimulusZoneFSM(Cow& cow, NormalOpFSM_t normalOpFSM, StimulusZone_t stimulusZoneState,
-                       EmbeddedMessage_t** msgReceived, uint8_t tries, 
-                       fsmTaskParams *fsmParams) {
+void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZoneState,
+                       EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                       Cow& cow, Fence& fence) {
     switch (stimulusZoneState) {
         case STIMULUS_ZONE_BEGIN:
             stimulusZoneState = STIMULUS_ZONE_SEND_ZONE;
@@ -380,7 +394,7 @@ void runStimulusZoneFSM(Cow& cow, NormalOpFSM_t normalOpFSM, StimulusZone_t stim
             break;
             
         case STIMULUS_ZONE_WAIT_RESPONSE:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (receivedStimulusResponse(*msgReceived) == HAL_OK) {
                     stimulusZoneState = STIMULUS_ZONE_END;
                     tries = 0;
@@ -404,9 +418,9 @@ void runStimulusZoneFSM(Cow& cow, NormalOpFSM_t normalOpFSM, StimulusZone_t stim
 // FENCE TRANSITION FSM
 // ============================================================================
 
-void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransitionState,
-                          EmbeddedMessage_t** msgReceived, uint8_t tries, 
-                          fsmTaskParams *fsmParams) {
+void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTransitionState,
+                          EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                          Cow& cow, Fence& fence) {
     switch (fenceTransitionState) {
         case FENCE_TRANSITION_BEGIN:
             tries = 0;
@@ -415,12 +429,12 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
             break;
             
         case FENCE_TRANSITION_DISABLE_STIMULUS:
-            // TODO: sendZoneToStimulus(BLACK_ZONE, MODULE_STIMULUS);
+            sendZoneToStimulus(BLACK_ZONE, MODULE_STIMULUS);
             fenceTransitionState = FENCE_TRANSITION_WAIT_STIMULUS_RESPONSE;
             break;
             
         case FENCE_TRANSITION_WAIT_STIMULUS_RESPONSE:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (receivedStimulusResponse(*msgReceived) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_UPDATE_FENCE;
                     tries = 0;
@@ -434,7 +448,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
             break;
             
         case FENCE_TRANSITION_UPDATE_FENCE:
-            updateFence(fsmParams);
+            updateFence(fence);
             fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
             break;
             
@@ -444,7 +458,7 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
             break;
             
         case FENCE_TRANSITION_WAIT_GPS_ADQ_TIME:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (gpsResponse(*msgReceived) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
                     tries = 0;
@@ -463,8 +477,8 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
             break;
             
         case FENCE_TRANSITION_WAIT_POSITION:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updatePosition(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updatePosition(cow, *msgReceived) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
                     tries = 0;
                 }
@@ -482,8 +496,8 @@ void runFenceTransitionFSM(MainFSM_t mainFSM, FenceTransitionState_t fenceTransi
             break;
             
         case FENCE_TRANSITION_EVALUATE_ZONE:
-            if (dequeuedMessage(msgReceived, fsmParams) == HAL_OK) {
-                if (updateDistAndZone(*msgReceived, fsmParams) == HAL_OK) {
+            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
+                if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_END;
                     tries = 0;
                 }
@@ -517,10 +531,10 @@ void sendMessage(uint8_t msgId, ModuleId_t dest) {
     }
 }
 
-HAL_StatusTypeDef dequeuedMessage(EmbeddedMessage_t **msgReceived, fsmTaskParams *fsmParams) {
+HAL_StatusTypeDef dequeuedMessage(EmbeddedMessage_t **msgReceived, Fence& fence) {
     if (osMessageQueueGet(fsmQueueHandle, msgReceived, NULL, 0) == osOK) {
         if ((*msgReceived)->id == MSG_ID_LORA_VERTEXES_RECEIVED) {
-            if (receivedFence(*msgReceived, fsmParams) == HAL_OK) {
+            if (receivedFence(*msgReceived, fence) == HAL_OK) {
                 receivedMsgLoraRX = true;
             }
         }
@@ -529,7 +543,7 @@ HAL_StatusTypeDef dequeuedMessage(EmbeddedMessage_t **msgReceived, fsmTaskParams
     return HAL_ERROR;
 }
 
-HAL_StatusTypeDef updatePosition(Cow& cow, EmbeddedMessage_t *msgReceived, fsmTaskParams *fsmParams) {
+HAL_StatusTypeDef updatePosition(Cow& cow, EmbeddedMessage_t *msgReceived) {
     if (msgReceived->id != MSG_ID_SEND_GPS) {
         MessagePool_Free(msgReceived);
         return HAL_ERROR;
@@ -553,7 +567,7 @@ HAL_StatusTypeDef updatePosition(Cow& cow, EmbeddedMessage_t *msgReceived, fsmTa
     return HAL_ERROR;
 }
 
-void sendPosition(uint8_t msgId, ModuleId_t dest, cow& cow) {
+void sendPosition(uint8_t msgId, ModuleId_t dest, Cow& cow) {
     EmbeddedMessage_t *msg = MessagePool_Allocate();
     if (msg != NULL) {
         Position pos = cow.getPosition();
@@ -580,17 +594,19 @@ HAL_StatusTypeDef loraTxResponse(EmbeddedMessage_t *msgReceived) {
     return status;
 }
 
-HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, fsmTaskParams *fsmParams) {
+HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence) {
     if (msgReceived->id != MSG_ID_LORA_VERTEXES_RECEIVED) {
         MessagePool_Free(msgReceived);
         return HAL_ERROR;
     }
     
-    // TODO: Implementar cuando Fence esté listo
-    // int vertexCount = msgReceived->length / sizeof(Vertex);
-    // fsmParams->fence->saveVertices(...);
+    uint8_t vertexCount = msgReceived->length / sizeof(Vertex);
+    if (vertexCount > 0 && vertexCount <= MAX_VERTICES) {
+        Vertex* vertices = (Vertex*)msgReceived->payload;
+        fence.saveVertices(vertices, vertexCount);
+        RTOS_LOG_INFO("[FSM] Received %d fence vertices\n", vertexCount);
+    }
     
-    RTOS_LOG_INFO("[FSM] Received fence vertices\n");
     MessagePool_Free(msgReceived);
     return HAL_OK;
 }
@@ -654,11 +670,7 @@ HAL_StatusTypeDef updateAcceleration(EmbeddedMessage_t *msgReceived, Cow& cow) {
     return HAL_ERROR;
 }
 
-void updateState(Cow& cow) {
-    cow.updateState(classifyMotion(cow.getAcceleration()));
-}
-
-CowState classifyMotion(Acceleration acc) {
+static CowState classifyMotion(Acceleration acc) {
     double abs_ax = fabs(acc.ax);
     double abs_ay = fabs(acc.ay);
     double abs_az = fabs(acc.az);
@@ -669,6 +681,10 @@ CowState classifyMotion(Acceleration acc) {
         return CowState::GRAZING;
     else
         return CowState::MOVEMENT;
+}
+
+void updateState(Cow& cow) {
+    cow.updateState(classifyMotion(cow.getAcceleration()));
 }
 
 void updateGpsAdqTime(GpsRate gpsRate) {

@@ -25,7 +25,7 @@ void Cow::updateCurrentZone(zone_t zone) {
     currentZone = zone;
 }
 
-void Cow::updateDistanceToLimit(float distance) {
+void Cow::updateDistanceToLimit(double distance) {
     distanceToLimit = distance;
 }
 
@@ -49,7 +49,6 @@ zone_t Cow::getCurrentZone() const {
     return currentZone;
 }
 
-float Cow::getDistanceToLimit() const
-{
+double Cow::getDistanceToLimit() const {
     return distanceToLimit;
 }
