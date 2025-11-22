@@ -279,7 +279,7 @@ Después de regenerar código con STM32CubeMX:
 - [ ] **FreeRTOSConfig.h**:
   - [ ] Agregar `#define xPortSysTickHandler SysTick_Handler`
   - [ ] Agregar runtime stats defines
-  - [ ] Verificar heap size (20000)
+  - [ ] Verificar heap size (10000)
   - [ ] Verificar interrupt priorities
 
 - [ ] **main.c**:
@@ -365,7 +365,7 @@ printf("Stack remaining: %lu words\n", watermark);
 #define configTICK_RATE_HZ                       ((TickType_t)1000)
 #define configMAX_PRIORITIES                     ( 56 )
 #define configMINIMAL_STACK_SIZE                 ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE                    ((size_t)20000)
+#define configTOTAL_HEAP_SIZE                    ((size_t)10000)
 #define configMAX_TASK_NAME_LEN                  ( 16 )
 #define configUSE_TRACE_FACILITY                 1
 #define configUSE_16_BIT_TICKS                   0
