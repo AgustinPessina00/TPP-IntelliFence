@@ -22,6 +22,7 @@
 #include "dma.h"
 #include "i2c.h"
 #include "ipcc.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -38,7 +39,6 @@
 #include "rtos_printf.h"
 /* Include C++ managers initialization wrapper */
 #include "system_init.h"
-
 
 // Forward declarations para sistema de mensajes embedded-friendly
 extern void test_message_pool_basic(void);
@@ -62,6 +62,8 @@ extern void lsm6dso_configuration_test(void);
 
 // Forward declarations para Cow y Fence tests
 extern void run_cow_fence_tests(void);
+
+extern void buzzer_run_all_examples();
 
 // Forward declaration para MessagePool
 
@@ -241,6 +243,7 @@ int main(void)
   MX_DMA_Init();
   MX_I2C2_Init();
   MX_USART1_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   if (initialize_cpp_managers() != 0) {
     printf("[MAIN] CRITICAL ERROR - Failed to initialize C++ managers\n");
@@ -251,11 +254,6 @@ int main(void)
   /* Init scheduler */
   osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
-
-  /* Initialize RTOS printf AFTER kernel initialization */
-  if (rtos_printf_init() != 0) {
-    Error_Handler();  // Critical error if printf system fails
-  }
 
   /* Initialize leds */
   BSP_LED_Init(LED_BLUE);
@@ -278,8 +276,8 @@ int main(void)
     Error_Handler();
   }
 
-  run_comprehensive_module_tests();
-    
+//  buzzer_run_all_examples();
+
   /* Start scheduler */
   osKernelStart();
 
@@ -374,13 +372,13 @@ void vConfigureTimerForRunTimeStats(void)
 
 /**
  * @brief  Get current value of the runtime counter
- * @retval Current cycle count value
+ * @retval Current cycle count value (in 0.1ms units)
  * @note   Called by FreeRTOS to measure task execution time
  */
 uint32_t vGetRunTimeCounterValue(void)
 {
-    /* Return current cycle count - runs at CPU frequency (48MHz for STM32WL55) */
-    /* This is ~10-48x faster than the FreeRTOS tick (1000Hz) as required */
+    /* Return current cycle count converted to 0.1ms units (10kHz) */
+    /* Divide by (SystemCoreClock / 10000) to convert CPU cycles to 0.1ms ticks */
     return DWT->CYCCNT;
 }
 

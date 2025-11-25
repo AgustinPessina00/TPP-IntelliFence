@@ -10,6 +10,7 @@
 extern osMessageQueueId_t dispatcherQueueHandle;
 extern osMessageQueueId_t sensorAcqQueueHandle;
 extern osMessageQueueId_t fsmQueueHandle;
+extern osMessageQueueId_t stimulusQueueHandle;
 
 void dispatcherTask(void *argument) {
     EmbeddedMessage_t *msg = NULL;
@@ -39,6 +40,11 @@ void dispatcherTask(void *argument) {
                     }
                     break;
                 case MODULE_STIMULUS:
+                    if (osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0) != osOK) {
+                            RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to FSM\n");
+                            MessagePool_Free(msg);
+                    }
+                    break;
                 case MODULE_GPS:
                 case MODULE_LORA_TX:
                 case MODULE_LORA_RX:

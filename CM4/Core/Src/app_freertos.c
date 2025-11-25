@@ -29,6 +29,7 @@
 extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
 extern void sensorAcqTask(void *argument);
+extern void stimulusTask(void *argument);
 extern void MessagePool_Init(void);
 /* USER CODE END Includes */
 
@@ -102,7 +103,7 @@ const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
 osThreadId_t dispatcher_TaskHandle;
 const osThreadAttr_t dispatcher_Task_attributes = {
   .name = "dispatcher_Task",
-  .stack_size = 512 * 4,  // Más stack para manejo de mensajes
+  .stack_size = 256 * 4,  // 1KB suficiente para ruteo de mensajes
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -110,7 +111,14 @@ const osThreadAttr_t dispatcher_Task_attributes = {
 osThreadId_t fsm_TaskHandle;
 const osThreadAttr_t fsm_Task_attributes = {
   .name = "fsm_Task",
-  .stack_size = 256 * 4,  // Más stack para lógica de estados
+  .stack_size = 256 * 5,  // Más stack para lógica de estados
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+osThreadId_t stimulus_TaskHandle;
+const osThreadAttr_t stimulus_Task_attributes = {
+  .name = "stimulus_Task",
+  .stack_size = 128 * 4,  // Más stack para lógica de estados
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -118,11 +126,17 @@ const osThreadAttr_t fsm_Task_attributes = {
 osThreadId_t sensorAcq_TaskHandle;
 const osThreadAttr_t sensorAcq_Task_attributes = {
   .name = "sensorAcq_Task",
-  .stack_size = 512 * 4,  // Más stack para manejo de sensores
+  .stack_size = 384 * 4,  // 1.5KB para manejo de sensores
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 2  // 256 bytes suficiente
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -141,21 +155,20 @@ void initialize_message_queues(void) {
     }
     
     // Cola para adquisición de sensores
-    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
-    if (sensorAcqQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
-        Error_Handler();
-    }
-    
-    // Cola para FSM
-    fsmQueueHandle = osMessageQueueNew(16, sizeof(void*), &fsmQueue_attributes);
-    if (fsmQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación fsmQueue\n");
+    // sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
+    // if (sensorAcqQueueHandle == NULL) {
+    //     printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
+    //     Error_Handler();
+    // }
+
+    // Cola para estímulos
+    stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
+    if (stimulusQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
         Error_Handler();
     }
     
     // Colas adicionales (tamaños más pequeños para funciones futuras)
-    stimulusQueueHandle = osMessageQueueNew(8, sizeof(void*), &stimulusQueue_attributes);
     gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
     loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
     loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
@@ -186,19 +199,26 @@ void initialize_system_threads(void) {
     }
     
     //Thread FSM - prioridad normal (lógica de aplicación)
-    // fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
-    // if (fsm_TaskHandle == NULL) {
-    //     printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
-    //     Error_Handler();
-    // }
-    
+    fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
+    if (fsm_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
+        Error_Handler();
+    }
+
+    //Thread FSM - prioridad normal (lógica de aplicación)
+    stimulus_TaskHandle = osThreadNew(stimulusTask, NULL, &stimulus_Task_attributes);
+    if (stimulus_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación stimulus_Task\n");
+        Error_Handler();
+    }
+
     //Thread sensor acquisition - prioridad normal (adquisición periódica)
     sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
     if (sensorAcq_TaskHandle == NULL) {
         printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
         Error_Handler();
     }
-    
+
     printf("[THREADS] OK - Todos los threads creados exitosamente\n");
     printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 1KB\n");
     printf("[THREADS] - fsm_Task: Prioridad NORMAL, Stack 1KB\n");
@@ -240,7 +260,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  //defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+ //defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

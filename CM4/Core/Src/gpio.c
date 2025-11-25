@@ -33,6 +33,7 @@
 /* USER CODE END 1 */
 
 /** Configure pins
+     PB8   ------> S_TIM16_CH1
 */
 void MX_GPIO_Init(void)
 {
@@ -53,6 +54,14 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(ENABLE_LDO1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF14_TIM16;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : GPS_RESET_N_Pin */
   GPIO_InitStruct.Pin = GPS_RESET_N_Pin;

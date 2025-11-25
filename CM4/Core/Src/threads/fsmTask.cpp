@@ -3,6 +3,7 @@
 #include "threads/fsmTask.h"
 #include "cmsis_os.h"
 #include "EmbeddedMessage.h"
+#include "zone.h"
 #define RTOS_PRINTF_AUTO
 #include "rtos_printf.h"
 #include <string.h>
@@ -13,11 +14,19 @@
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
 
-// Variables globales para la FSM
+// Variables globales para la FSM (static para no usar stack)
 static bool receivedMsgLoraRX = false;
+static Cow* s_cow = nullptr;
+static Fence* s_fence = nullptr;
 
-// TODO: Obtener DeviceUID real del hardware
-static DeviceUID deviceUID = {0x12345678, 0x9ABCDEF0, 0x11223344};
+// Variables de estado de las FSMs (static para ahorrar stack)
+static MainFSM_t s_mainFSM = MainFSM_t::STARTUP_ROUTINE;
+static NormalOpFSM_t s_normalOpFSM = NormalOpFSM_t::INITIALIZE;
+static StartupRoutineState_t s_startupRoutineState = STARTUP_ROUTINE_BEGIN;
+static InitializeState_t s_initializeState = INITIALIZE_BEGIN;
+static GreenZoneState_t s_greenZoneState = GREEN_ZONE_BEGIN;
+static StimulusZone_t s_stimulusZoneState = STIMULUS_ZONE_BEGIN;
+static FenceTransitionState_t s_fenceTransitionState = FENCE_TRANSITION_BEGIN;
 
 // ============================================================================
 // MAIN FSM TASK
@@ -25,45 +34,46 @@ static DeviceUID deviceUID = {0x12345678, 0x9ABCDEF0, 0x11223344};
 
 void fsmTask(void *argument) {
     (void)argument; // Unused parameter
-    
-    // Initialize Cow and Fence objects
-    Cow cow(deviceUID);
-    Fence fence;
 
-    MainFSM_t mainFSM = MainFSM_t::STARTUP_ROUTINE;
-    NormalOpFSM_t normalOpFSM = NormalOpFSM_t::INITIALIZE;
+    // Inicializar objetos Cow y Fence en memoria static (una sola vez)
+    DeviceUID deviceUID = {HAL_GetUIDw0(), HAL_GetUIDw1(), HAL_GetUIDw2()};
+    static Cow cow(deviceUID);
+    static Fence fence;
     
-    StartupRoutineState_t startupRoutineState = STARTUP_ROUTINE_BEGIN;
-    InitializeState_t initializeState = INITIALIZE_BEGIN;
-    GreenZoneState_t greenZoneState = GREEN_ZONE_BEGIN;
-    StimulusZone_t stimulusZoneState = STIMULUS_ZONE_BEGIN;
-    FenceTransitionState_t fenceTransitionState = FENCE_TRANSITION_BEGIN;
+    s_cow = &cow;
+    s_fence = &fence;
     
     EmbeddedMessage_t *msgReceived = NULL;
     uint8_t tries = 0;
     
     RTOS_LOG_INFO("[FSM] Task initialized successfully\n");
-    
-    // Para testing inicial - simular startup completo
-    // mainFSM = MainFSM_t::NORMAL_OPERATION;
-    
+
     while(1) {
-        switch (mainFSM) {
+
+        //test para el stimulus
+        // for(int i = GREEN_ZONE; i <= BLACK_ZONE; i++) {
+        //     zone_t zone = static_cast<zone_t>(i);
+        //     RTOS_LOG_INFO("[FSM] Zone enum value: %d\n", zone);
+        //     sendZoneToStimulus(zone, MODULE_STIMULUS);
+        //     osDelay(1000);
+        // }
+        
+        switch (s_mainFSM) {
             case MainFSM_t::STARTUP_ROUTINE:
-                runStartupRoutineFSM(mainFSM, &startupRoutineState, &msgReceived, tries, cow, fence);
+                runStartupRoutineFSM(s_mainFSM, &s_startupRoutineState, &msgReceived, tries, *s_cow, *s_fence);
                 break;
                 
             case MainFSM_t::NORMAL_OPERATION:
-                runNormalOperationFSM(normalOpFSM, initializeState, greenZoneState, 
-                                     stimulusZoneState, &msgReceived, tries, cow, fence);
+                runNormalOperationFSM(s_normalOpFSM, s_initializeState, s_greenZoneState, 
+                                     s_stimulusZoneState, &msgReceived, tries, *s_cow, *s_fence);
                 if (receivedMsgLoraRX) {
-                    mainFSM = MainFSM_t::FENCE_TRANSITION;
+                    s_mainFSM = MainFSM_t::FENCE_TRANSITION;
                     receivedMsgLoraRX = false;
                 }
                 break;
                 
             case MainFSM_t::FENCE_TRANSITION:
-                runFenceTransitionFSM(mainFSM, fenceTransitionState, &msgReceived, tries, cow, fence);
+                runFenceTransitionFSM(s_mainFSM, s_fenceTransitionState, &msgReceived, tries, *s_cow, *s_fence);
                 break;
         }
         
@@ -698,10 +708,10 @@ void updateGpsAdqTime(GpsRate gpsRate) {
 }
 
 void enterLowPowerSleep() {
-    __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
-    HAL_SuspendTick();
-    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
-    HAL_ResumeTick();
+    // __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+    // HAL_SuspendTick();
+    // HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
+    // HAL_ResumeTick();
     RTOS_LOG_DEBUG("[FSM] Woke from sleep\n");
 }
 

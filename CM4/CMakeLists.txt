@@ -66,6 +66,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/INA
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/IMU
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Messages
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Buzzer
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Threads
 )
 
@@ -99,6 +100,11 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # LSM6DSO IMU Sensor Sources (Thread-Safe)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso_test_wrapper.cpp
+    # Buzzer Module Sources (PWM Control)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_example.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm_example.c
     # Data Model Sources (Cow, Fence, and Zone definitions)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/fence.cpp
@@ -107,8 +113,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/fence_test.cpp
     # Thread Sources (FreeRTOS Tasks)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/dispatcherTask.cpp
-    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/stimulusTask.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/system_init.cpp
 
