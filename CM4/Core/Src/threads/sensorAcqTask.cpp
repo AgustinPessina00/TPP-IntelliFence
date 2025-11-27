@@ -23,6 +23,7 @@ void sensorAcqTask(void *argument) {
 
     EmbeddedMessage_t *msgReceived = NULL;
     EmbeddedMessage_t *msgToSend = NULL;
+    gpsRateSpeed rateGPS;
     RTOS_LOG_INFO("[SENSOR_ACQ] Task initialized successfully\n");
     double gpsData[2] = {0.0, 0.0};
     double imuData[3] = {0.0, 0.0, 0.0};
@@ -89,6 +90,16 @@ void sensorAcqTask(void *argument) {
                     osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                     RTOS_LOG_DEBUG("[SENSOR_ACQ]] Sent INA IMU data to FSM\n");
                     msgToSend = NULL;
+                    break;
+
+                case MSG_ID_GPS_REQUEST_CONFIG:
+                    rateGPS = static_cast<gpsRateSpeed>(msgReceived->payload[0]);
+                    if (gps.set_new_acq_time(rateGPS)) {
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS acquisition time set to %d\n", static_cast<int>(rateGPS));
+                    }
+                    else {
+                        RTOS_LOG_WARN("[SENSOR_ACQ] Failed to set GPS acquisition time\n");
+                    }
                     break;
         
                 default:
