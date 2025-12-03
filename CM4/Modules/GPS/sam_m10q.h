@@ -3,6 +3,7 @@
 
 #include "sam_m10q_KEYID.h"
 #include "stm32wlxx_hal.h"
+#include "stm32wlxx_hal_def.h"
 #include "stm32wlxx_hal_i2c.h"
 
 // Forward declaration para evitar dependencias circulares
@@ -91,6 +92,7 @@ public:
 	// Llamar explícitamente luego de HAL_Init() y MX_I2C_Init()
     void initSamM10q();
 
+    HAL_StatusTypeDef read_gps_position();
 	bool update_location_and_time();
 	bool set_new_acq_time(gpsRateSpeed gpsRate);
 

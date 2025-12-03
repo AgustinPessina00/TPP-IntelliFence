@@ -79,6 +79,15 @@ void SamM10q::testGPS() {
     }
 }
 
+HAL_StatusTypeDef SamM10q::read_gps_position() {
+    // Intentar obtener datos PVT del GPS
+    if (update_location_and_time()) {
+        return HAL_OK;
+    } else {
+        return HAL_ERROR;
+    }
+}
+
 /**
  * @brief Actualiza los atributos de ubicación y tiempo de la clase
  * @details Obtiene datos PVT del GPS y actualiza latitude, longitude, fechaUTC y horaUTC

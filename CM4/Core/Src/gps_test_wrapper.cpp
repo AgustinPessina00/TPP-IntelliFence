@@ -129,14 +129,15 @@ extern "C" void gps_init_and_test(void) {
     printf("[GPS] ========== DIAGNOSTICO FINAL ==========\n");
     
     // Test directo de stream NMEA
-    printf("[GPS] Test directo de stream NMEA...\n");
-    HAL_StatusTypeDef streamResult = gps.read_nmea_stream();
+    //PESSI: REALIZO CAMBIOS YA QUE NO USAMOS NMEA STREAM AHORA, USAMOS GETPVT.
+    printf("[GPS] Test directo de getPVT...\n");
+    HAL_StatusTypeDef streamResult = gps.read_gps_position();
     
     if (streamResult == HAL_OK) {
-        printf("[GPS] OK - Stream NMEA leido correctamente\n");
-        printf("[GPS] Datos procesados por TinyGPS++\n");
+        printf("[GPS] OK - getPVT leido correctamente\n");
+        printf("[GPS] Datos procesados en la estructura de datos PVT\n");
     } else {
-        printf("[GPS] ERROR - Error leyendo stream NMEA\n");
+        printf("[GPS] ERROR - Error utilizando la función getPVT\n");
     }
     
     printf("[GPS] ========== CONCLUSION ==========\n");
