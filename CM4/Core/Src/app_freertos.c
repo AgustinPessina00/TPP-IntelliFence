@@ -23,6 +23,8 @@
 #include "main.h"
 #include "cmsis_os.h"
 
+#include "app_lorawan.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 // Forward declarations para threads del sistema FreeRTOS
@@ -30,7 +32,9 @@ extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
 extern void sensorAcqTask(void *argument);
 extern void stimulusTask(void *argument);
-extern void MessagePool_Init(void);
+// Include necesario para LoraGpsData_t y MessagePool_Init
+#include "threads/loraTask.h"
+#include "EmbeddedMessage.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -131,11 +135,11 @@ const osThreadAttr_t sensorAcq_Task_attributes = {
 };
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+osThreadId_t lora_TaskHandle;
+const osThreadAttr_t lora_Task_attributes = {
+  .name = "lora_Task",
   .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 2  // 256 bytes suficiente
+  .stack_size = 128 * 4
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -170,7 +174,14 @@ void initialize_message_queues(void) {
     
     // Colas adicionales (tamaños más pequeños para funciones futuras)
     gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
-    loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
+    
+    // Cola específica para LoRa TX - contiene estructuras LoraGpsData_t (lat/lon/zone/distance)
+    loraTxQueueHandle = osMessageQueueNew(8, sizeof(LoraGpsData_t), &loraTxQueue_attributes);
+    if (loraTxQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación loraTxQueue\n");
+        Error_Handler();
+    }
+    
     loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
     distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
     fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
@@ -219,6 +230,13 @@ void initialize_system_threads(void) {
         Error_Handler();
     }
 
+    //Thread LoRa communication - prioridad normal (manejo de radio LoRa)
+    lora_TaskHandle = osThreadNew(loraTask, NULL, &lora_Task_attributes);
+    if (lora_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación lora_Task\n");
+        Error_Handler();
+    }
+
     printf("[THREADS] OK - Todos los threads creados exitosamente\n");
     printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 1KB\n");
     printf("[THREADS] - fsm_Task: Prioridad NORMAL, Stack 1KB\n");
@@ -259,8 +277,6 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
- //defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -280,16 +296,6 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-  /* USER CODE BEGIN StartDefaultTask */
-//   /* Infinite loop */
-//   for(;;)
-//   {
-//     osDelay(1);
-//   }
-  /* USER CODE END StartDefaultTask */
-}
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
