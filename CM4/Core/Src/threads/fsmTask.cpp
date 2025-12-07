@@ -8,8 +8,7 @@
 #include "rtos_printf.h"
 #include <string.h>
 #include <math.h>
-#include "cow.h"
-#include "fence.h"
+
 // Declaraciones externas de las colas
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;

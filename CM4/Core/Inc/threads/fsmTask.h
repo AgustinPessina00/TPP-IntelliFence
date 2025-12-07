@@ -11,12 +11,10 @@ extern "C" {
 
 #include "FreeRTOS.h"
 #include "task.h"
-
-// Forward declarations for C++ classes
-#ifdef __cplusplus
-class Cow;
-class Fence;
-#endif
+#include "cow.h"
+#include "fence.h"
+//TODO: Integration of GetZone in this task
+#include "getZone.h"
 
 #define NEAR_LIMIT  10.0f   // en metros
 #define MAX_TRIES   10
@@ -149,56 +147,6 @@ void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
 HAL_StatusTypeDef receivedStimulusResponse(EmbeddedMessage_t *msgReceived);
 
 #endif // __cplusplus
-
-/*class FSM {
-
-private:
-
-  void sendMessage(uint8_t msgId, ModuleId_t dest);
-  HAL_StatusTypeDef dequeuedMessage();
-  HAL_StatusTypeDef updatePosition();
-  void sendPosition(uint8_t msgId, ModuleId_t dest);
-  HAL_StatusTypeDef recievedFence();
-  void updateFence();
-  HAL_StatusTypeDef isInFence();
-  HAL_StatusTypeDef updateDistAndZone();
-  HAL_StatusTypeDef updateAcceleration();
-  void updateState();
-  CowState classifyMotion(Acceleration acc);
-  HAL_StatusTypeDef gpsResponse();
-  void updateGpsAdqTime(GpsRate gpsRate);
-  void enterLowPowerSleep();
-  void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
-  HAL_StatusTypeDef recievedStimulusResponse();
-  
-
-  MainFSM_t mainFSM;
-  NormalOpFSM_t normalOpFSM;
-
-  StartupRoutineState_t startupRoutineState;
-
-  InitializeState_t initializeState;
-  GreenZoneState_t greenZoneState;
-  StimulusZone_t stimulusZoneState;
-
-  FenceTransitionState_t fenceTransitionState;
-
-  uint8_t tries;
-
-  Message* msgReceived;
-  
-public:
-  FSM();
-  
-  void fsmTask(void *argument);
-  void runStartupRoutineFSM();
-  void runNormalOperationFSM();
-  void runInitializeFSM();
-  void runGreenZoneFSM();
-  void runStimulusZoneFSM();
-  void runFenceTransitionFSM();
-
-};*/
 
 
 #ifdef __cplusplus
