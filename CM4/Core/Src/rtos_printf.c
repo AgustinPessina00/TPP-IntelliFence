@@ -13,6 +13,24 @@
 #include <string.h>
 
 /* ============================================================================
+ * Macros
+ * ============================================================================ */
+
+/**
+ * @brief Check if code is running in an ISR context
+ * @note Uses ARM Cortex-M IPSR register (Interrupt Program Status Register)
+ *       IPSR = 0 means Thread mode (not in ISR)
+ *       IPSR > 0 means Handler mode (in ISR)
+ */
+static inline uint32_t get_ipsr(void) {
+    uint32_t result;
+    __asm volatile ("MRS %0, ipsr" : "=r" (result));
+    return result;
+}
+
+#define IS_IRQ() (get_ipsr() != 0U)
+
+/* ============================================================================
  * Private Variables
  * ============================================================================ */
 
@@ -125,37 +143,44 @@ int rtos_vprintf(const char *format, va_list args)
     int result = -1;
     int formatted_length;
 
-    // Check if initialized
+    // Check if initialized and mutex is valid
     if (!printf_initialized || printf_mutex == NULL) {
         // If not initialized, use standard vprintf (not thread-safe)
         return vprintf(format, args);
     }
 
-    // Acquire mutex with timeout
-    osStatus_t status = osMutexAcquire(printf_mutex, RTOS_PRINTF_MUTEX_TIMEOUT);
-    
-    if (status != osOK) {
-        // Mutex acquisition failed
-        return -1;
-    }
+    // Check if we're in an ISR context - if so, don't use mutex
+    if (osKernelGetState() == osKernelRunning && !IS_IRQ()) {
+        // Acquire mutex with timeout
+        osStatus_t status = osMutexAcquire(printf_mutex, RTOS_PRINTF_MUTEX_TIMEOUT);
+        
+        if (status != osOK) {
+            // Mutex acquisition failed - fallback to non-protected printf
+            // This can happen during scheduler transitions
+            return vprintf(format, args);
+        }
 
-    // Format string into buffer
-    formatted_length = vsnprintf(printf_buffer, RTOS_PRINTF_BUFFER_SIZE, format, args);
+        // Format string into buffer
+        formatted_length = vsnprintf(printf_buffer, RTOS_PRINTF_BUFFER_SIZE, format, args);
 
-    if (formatted_length < 0) {
-        // Formatting error
-        result = -1;
-    } else if (formatted_length >= RTOS_PRINTF_BUFFER_SIZE) {
-        // Buffer overflow - output truncated message
-        printf_buffer[RTOS_PRINTF_BUFFER_SIZE - 1] = '\0';
-        result = _rtos_printf_write(printf_buffer, RTOS_PRINTF_BUFFER_SIZE - 1);
+        if (formatted_length < 0) {
+            // Formatting error
+            result = -1;
+        } else if (formatted_length >= RTOS_PRINTF_BUFFER_SIZE) {
+            // Buffer overflow - output truncated message
+            printf_buffer[RTOS_PRINTF_BUFFER_SIZE - 1] = '\0';
+            result = _rtos_printf_write(printf_buffer, RTOS_PRINTF_BUFFER_SIZE - 1);
+        } else {
+            // Normal case - output formatted string
+            result = _rtos_printf_write(printf_buffer, formatted_length);
+        }
+
+        // Release mutex
+        osMutexRelease(printf_mutex);
     } else {
-        // Normal case - output formatted string
-        result = _rtos_printf_write(printf_buffer, formatted_length);
+        // Scheduler not running or in ISR - use direct vprintf
+        result = vprintf(format, args);
     }
-
-    // Release mutex
-    osMutexRelease(printf_mutex);
 
     return result;
 }

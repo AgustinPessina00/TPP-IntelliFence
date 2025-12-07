@@ -38,9 +38,9 @@ extern osThreadId_t Thd_LoraSendProcessId;
 void loraTask(void *argument) {
     (void)argument;
     
-    RTOS_LOG_INFO("[LORA_TASK] Inicializando LoRaWAN...\n");
-    
-    // Inicializar el middleware LoRaWAN
+    // Inicializar el middleware LoRaWAN (incluye SystemApp_Init que arranca CM0PLUS)
+    // NOTA: No usar RTOS_LOG antes de MX_LoRaWAN_Init() para evitar race conditions
+    // con la inicialización del mutex de rtos_printf
     MX_LoRaWAN_Init();
     
     RTOS_LOG_INFO("[LORA_TASK] LoRaWAN iniciado, esperando JOIN...\n");
@@ -97,6 +97,12 @@ void loraTriggerSend(void) {
         RTOS_LOG_DEBUG("[LORA_TASK] Envío LoRa disparado\n");
     }
 }
+
+// ============================================================================
+// FUNCIONES EXPUESTAS A C (extern "C")
+// ============================================================================
+
+extern "C" {
 
 /**
  * @brief Callback llamada cuando se completa el JOIN a la red LoRaWAN
@@ -155,3 +161,5 @@ uint8_t loraTaskGetPayload(uint8_t *buffer, uint8_t maxSize) {
 bool loraTaskHasNewData(void) {
     return s_hasNewData;
 }
+
+} // extern "C"

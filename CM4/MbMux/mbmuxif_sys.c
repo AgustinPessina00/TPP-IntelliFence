@@ -27,6 +27,7 @@
 #include "sys_app.h"
 #include "msg_id.h"
 #include "utilities_def.h"
+#include "rtos_printf.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -157,17 +158,15 @@ int8_t MBMUXIF_SystemInit(void)
 
   if (OptionsBytesStruct.IPCCdataBufAddr != (uint32_t) pMb_RefTable)
   {
-    APP_PPRINTF("There is a difference between the MAPPING_TABLE placement in memory: 0x%X \r\n",
+    rtos_printf("There is a difference between the MAPPING_TABLE placement in memory: 0x%X \r\n",
                 (uint32_t) pMb_RefTable);
-    APP_PPRINTF("and the address calculated according to the IPCCDBA option byte: 0x%X \r\n",
+    rtos_printf("and the address calculated according to the IPCCDBA option byte: 0x%X \r\n",
                 OptionsBytesStruct.IPCCdataBufAddr);
-    APP_PPRINTF("IPCCDBA is automatically updated\n\rSystem restarting...\r\n\r\n");
-    APP_PPRINTF("Please check the CM4\\MbMux\\mbmuxif_sys.c for more info \r\n\r\n");
+    rtos_printf("IPCCDBA is automatically updated\n\rSystem restarting...\r\n\r\n");
+    rtos_printf("Please check the CM4\\MbMux\\mbmuxif_sys.c for more info \r\n\r\n");
 
-    while (1 != UTIL_ADV_TRACE_IsBufferEmpty())
-    {
-      /* Wait that all printfs are completed*/
-    }
+    /* Small delay to allow UART to transmit before reset */
+    osDelay(100);
 
     /* Next code reprograms the IPCCDBA option byte which automatically resets the chip. */
     /* It might be that this is not what you want. In that case check your linker file. */
@@ -339,11 +338,39 @@ void MBMUXIF_SetCpusSynchroFlag(uint16_t flag)
 
 void MBMUXIF_WaitCm0MbmuxIsInitialized(void)
 {
+  /* USER CODE BEGIN MBMUXIF_WaitCm0MbmuxIsInitialized */
+  uint32_t timeout_counter = 0;
+  uint32_t last_print = 0;
+  
+  rtos_printf("[MBMUX] Esperando CM0PLUS... (flag actual: 0x%04X, esperado: 0x%04X)\n", 
+             pMb_RefTable->SynchronizeCpusAtBoot, CPUS_BOOT_SYNC_CPU2_INIT_COMPLETED);
+  
   while (pMb_RefTable->SynchronizeCpusAtBoot != CPUS_BOOT_SYNC_CPU2_INIT_COMPLETED)
   {
+    timeout_counter++;
+    
+    // Print cada 10 millones de iteraciones para no saturar el UART
+    if ((timeout_counter - last_print) >= 10000000) {
+      rtos_printf("[MBMUX] Todavia esperando CM0PLUS... flag=0x%04X (iter: %lu)\n", 
+                 pMb_RefTable->SynchronizeCpusAtBoot, timeout_counter);
+      last_print = timeout_counter;
+    }
+    
+    // Timeout de seguridad: ~100 millones de iteraciones
+    if (timeout_counter > 100000000) {
+      rtos_printf("[MBMUX] ERROR - TIMEOUT esperando CM0PLUS!\n");
+      rtos_printf("[MBMUX] Flag actual: 0x%04X (esperado: 0x%04X)\n", 
+                 pMb_RefTable->SynchronizeCpusAtBoot, CPUS_BOOT_SYNC_CPU2_INIT_COMPLETED);
+      rtos_printf("[MBMUX] POSIBLES CAUSAS:\n");
+      rtos_printf("[MBMUX]   1. CM0PLUS no esta flasheado en 0x08020000\n");
+      rtos_printf("[MBMUX]   2. CM0PLUS esta colgado en su inicializacion\n");
+      rtos_printf("[MBMUX]   3. IPCC (Inter-Processor Communication) no funciona\n");
+      Error_Handler();
+    }
   }
-  /* USER CODE BEGIN MBMUXIF_WaitCm0MbmuxIsInitialized */
-
+  
+  rtos_printf("[MBMUX] CM0PLUS inicializado correctamente! (flag: 0x%04X)\n", 
+             pMb_RefTable->SynchronizeCpusAtBoot);
   /* USER CODE END MBMUXIF_WaitCm0MbmuxIsInitialized */
 }
 

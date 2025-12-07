@@ -37,6 +37,7 @@
 #ifdef ALLOW_KMS_VIA_MBMUX /* currently not supported */
 /* #include "mbmuxif_kms.h" */
 #endif /* ALLOW_KMS_VIA_MBMUX */
+#include "rtos_printf.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -195,7 +196,7 @@ void Process_Sys_Notif(MBMUX_ComParam_t *ComObj)
       /* USER CODE END Process_Sys_Notif_RTC_ALARM */
       break;
     case SYS_OTHER_MSG_ID:
-      APP_LOG(TS_ON, VLEVEL_H, "CM4<(System)\r\n");
+      rtos_printf("CM4<(System)\r\n");
       /* prepare ack buffer*/
       ComObj->ParamCnt = 0;
       ComObj->ReturnVal = 0; /* dummy value  */
@@ -211,7 +212,7 @@ void Process_Sys_Notif(MBMUX_ComParam_t *ComObj)
   }
 
   /* Send ack*/
-  APP_LOG(TS_ON, VLEVEL_H, "CM4>(System)\r\n");
+  rtos_printf("CM4>(System)\r\n");
   MBMUXIF_SystemSendAck(FEAT_INFO_SYSTEM_ID);
   /* USER CODE BEGIN Process_Sys_Notif_2 */
 
@@ -277,7 +278,7 @@ static void MBMUXIF_Init(void)
   FEAT_INFO_List_t *p_cm0plus_supported_features_list;
   int8_t init_status;
 
-  APP_LOG(TS_ON, VLEVEL_H, "\r\nCM4: System Initialization started \r\n");
+  rtos_printf("\r\nCM4: System Initialization started \r\n");
 
   init_status = MBMUXIF_SystemInit();
   if (init_status < 0)
@@ -294,16 +295,16 @@ static void MBMUXIF_Init(void)
   /* once CM0PLUS is also initialized it send a SYS notification */
   MBMUXIF_SetCpusSynchroFlag(CPUS_BOOT_SYNC_ALLOW_CPU2_TO_START);
 
-  APP_LOG(TS_ON, VLEVEL_H, "CM4: System Initialization done: Wait for CM0PLUS \r\n");
+  rtos_printf("CM4: System Initialization done: Wait for CM0PLUS \r\n");
 
   MBMUXIF_WaitCm0MbmuxIsInitialized();
 
-  APP_LOG(TS_ON, VLEVEL_H, "CM0PLUS: System Initialization started \r\n");
+  rtos_printf("CM0PLUS: System Initialization started \r\n");
 
   p_cm0plus_supported_features_list = MBMUXIF_SystemSendCm0plusInfoListReq();
   MBMUX_SetCm0plusFeatureListPtr(p_cm0plus_supported_features_list);
 
-  APP_LOG(TS_ON, VLEVEL_H, "System Initialization CM4-CM0PLUS completed \r\n");
+  rtos_printf("System Initialization CM4-CM0PLUS completed \r\n");
 
   init_status = MBMUXIF_SystemPrio_Add(FEAT_INFO_SYSTEM_NOTIF_PRIO_A_ID);
   if (init_status < 0)
@@ -311,21 +312,21 @@ static void MBMUXIF_Init(void)
     Error_Handler();
   }
   MBMUXIF_SetCpusSynchroFlag(CPUS_BOOT_SYNC_RTC_REGISTERED);
-  APP_LOG(TS_ON, VLEVEL_H, "System_Priority_A Registration for RTC Alarm handling completed \r\n");
+  rtos_printf("System_Priority_A Registration for RTC Alarm handling completed \r\n");
 
   init_status = MBMUXIF_TraceInit();
   if (init_status < 0)
   {
     Error_Handler();
   }
-  APP_LOG(TS_ON, VLEVEL_H, "Trace registration CM4-CM0PLUS completed \r\n");
+  rtos_printf("Trace registration CM4-CM0PLUS completed \r\n");
 
   init_status = MBMUXIF_LoraInit();
   if (init_status < 0)
   {
     Error_Handler();
   }
-  APP_LOG(TS_ON, VLEVEL_H, "Lora registration CM4-CM0PLUS completed \r\n");
+  rtos_printf("Lora registration CM4-CM0PLUS completed \r\n");
 
   /* USER CODE BEGIN MBMUXIF_Init_Last */
 

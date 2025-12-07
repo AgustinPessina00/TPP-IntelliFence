@@ -62,9 +62,41 @@ UTIL_MEM_PLACE_IN_SECTION("MB_MEM1") uint32_t aTraceNotifAckBuff[MAX_PARAM_OF_TR
   */
 static void MBMUXIF_IsrTraceNotifRcvCb(void *ComObj);
 
+/**
+  * @brief  Dummy trace init function for CM4 (trace is handled by CM0PLUS)
+  * @param  cb callback function
+  * @retval UTIL_ADV_TRACE_OK
+  */
+static UTIL_ADV_TRACE_Status_t MBMUXIF_TraceBufferInit(void (*cb)(void *));
+
+/**
+  * @brief  Dummy trace send function for CM4 (trace is handled by CM0PLUS)
+  * @param  buf buffer to send
+  * @param  bufSize size of buffer
+  * @retval UTIL_ADV_TRACE_OK
+  */
+static UTIL_ADV_TRACE_Status_t MBMUXIF_TraceBufferSend(uint8_t *buf, uint16_t bufSize);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
+
+/* Private typedef -----------------------------------------------------------*/
+/**
+  * @brief Trace driver structure for CM4
+  * @note CM4 receives trace from CM0PLUS via MBMUX, it doesn't send directly
+  */
+const UTIL_ADV_TRACE_Driver_s UTIL_TraceDriver =
+{
+  MBMUXIF_TraceBufferInit,
+  NULL,
+  NULL,
+  MBMUXIF_TraceBufferSend,
+};
+
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
 
 /* Exported functions --------------------------------------------------------*/
 int8_t MBMUXIF_TraceInit(void)
@@ -153,3 +185,31 @@ static void MBMUXIF_IsrTraceNotifRcvCb(void *ComObj)
 /* USER CODE BEGIN PrFD */
 
 /* USER CODE END PrFD */
+
+/* Exported services --------------------------------------------------------*/
+static UTIL_ADV_TRACE_Status_t MBMUXIF_TraceBufferInit(void (*cb)(void *))
+{
+  /* USER CODE BEGIN MBMUXIF_TraceBufferInit_1 */
+
+  /* USER CODE END MBMUXIF_TraceBufferInit_1 */
+  /* CM4 doesn't need to initialize trace buffer (handled by CM0PLUS) */
+  (void)cb;
+  return UTIL_ADV_TRACE_OK;
+  /* USER CODE BEGIN MBMUXIF_TraceBufferInit_Last */
+
+  /* USER CODE END MBMUXIF_TraceBufferInit_Last */
+}
+
+static UTIL_ADV_TRACE_Status_t MBMUXIF_TraceBufferSend(uint8_t *buf, uint16_t bufSize)
+{
+  /* USER CODE BEGIN MBMUXIF_TraceBufferSend_1 */
+
+  /* USER CODE END MBMUXIF_TraceBufferSend_1 */
+  /* CM4 doesn't send trace directly (it's handled by CM0PLUS via MBMUX) */
+  (void)buf;
+  (void)bufSize;
+  return UTIL_ADV_TRACE_OK;
+  /* USER CODE BEGIN MBMUXIF_TraceBufferSend_Last */
+
+  /* USER CODE END MBMUXIF_TraceBufferSend_Last */
+}

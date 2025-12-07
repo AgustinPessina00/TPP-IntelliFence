@@ -3,6 +3,7 @@
 
 #include "EmbeddedMessage.h"
 #include "stm32wlxx_hal.h"
+#include <stdbool.h>
 
 
 #ifdef __cplusplus
@@ -32,6 +33,15 @@ HAL_StatusTypeDef sendGpsDataToLora(LoraGpsData_t *gpsData);
 
 // Función para solicitar envío de datos de forma manual
 void loraTriggerSend(void);
+
+// Callback llamada cuando se completa el JOIN a la red LoRaWAN
+void loraTaskOnJoinSuccess(void);
+
+// Obtiene los últimos datos GPS para enviar
+uint8_t loraTaskGetPayload(uint8_t *buffer, uint8_t maxSize);
+
+// Verifica si hay datos nuevos listos para enviar
+bool loraTaskHasNewData(void);
 
 #ifdef __cplusplus
 }

@@ -252,6 +252,12 @@ int main(void)
   osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
 
+  /* Initialize RTOS printf system (must be after osKernelInitialize but before osKernelStart) */
+  if (rtos_printf_init() != 0) {
+    printf("ERROR - Failed to initialize RTOS printf\n");
+    Error_Handler();
+  }
+
   /* Initialize leds */
   BSP_LED_Init(LED_BLUE);
   BSP_LED_Init(LED_GREEN);
@@ -278,7 +284,7 @@ int main(void)
 
   /* We should never get here as control is now taken by the scheduler */
   /* Boot CPU2 */
-  HAL_PWREx_ReleaseCore(PWR_CORE_CPU2);
+  
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
