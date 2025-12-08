@@ -509,12 +509,12 @@ static void SendTxData(void)
     status = LmHandlerSend(&appData, LORAMAC_HANDLER_UNCONFIRMED_MSG, false);
     
     if (status == LORAMAC_HANDLER_SUCCESS) {
-      APP_LOG(TS_OFF, VLEVEL_M, "Sending GPS data: %d bytes\\r\\n", payloadSize);
+      APP_LOG(TS_OFF, VLEVEL_M, "Sending GPS: %d bytes (lat+lon)\\r\\n", payloadSize);
     } else {
       APP_LOG(TS_OFF, VLEVEL_M, "Send failed: %d\\r\\n", status);
     }
   } else {
-    APP_LOG(TS_OFF, VLEVEL_M, "No new data to send\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "No new GPS data to send\r\n");
   }
   /* USER CODE END SendTxData_1 */
 }
@@ -540,6 +540,9 @@ static void OnTxTimerEvent(void *context)
 static void OnTxData(LmHandlerTxParams_t *params)
 {
   /* USER CODE BEGIN OnTxData_1 */
+  // Se ejecuta cuando el CM0+ confirmó que transmitió
+    APP_LOG(TS_OFF, VLEVEL_M, "TX Complete: DR=%d, PWR=%d\r\n", 
+            params->Datarate, params->TxPower);
   /* USER CODE END OnTxData_1 */
 }
 
