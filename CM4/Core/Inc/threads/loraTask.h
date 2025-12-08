@@ -15,15 +15,12 @@ extern "C" {
 #include "cmsis_os.h"
 
 // Estructura para datos GPS a enviar por LoRa
+// SOLO latitud y longitud (16 bytes totales)
+// El dispatcher redirige estos datos desde fsmTask a loraTxQueue
 typedef struct {
-    double latitude;
-    double longitude;
-    uint8_t zone;      // 0=GREEN, 1=YELLOW, 2=ORANGE, 3=RED, 4=BLACK
-    float distance;    // distancia al límite del fence
+    double latitude;   // 8 bytes
+    double longitude;  // 8 bytes
 } LoraGpsData_t;
-
-// Cola externa para comunicación con loraTask (definida en app_freertos.c)
-extern osMessageQueueId_t loraTxQueueHandle;
 
 // Función principal de la tarea LoRa
 void loraTask(void *argument);
