@@ -50,13 +50,22 @@ void fsmTask(void *argument) {
 
     while(1) {
 
-        //test para el stimulus
+        // ============================================================================
+        // TEST PARA EL STIMULUS
+        // ============================================================================
         // for(int i = GREEN_ZONE; i <= BLACK_ZONE; i++) {
         //     zone_t zone = static_cast<zone_t>(i);
         //     RTOS_LOG_INFO("[FSM] Zone enum value: %d\n", zone);
         //     sendZoneToStimulus(zone, MODULE_STIMULUS);
         //     osDelay(1000);
         // }
+
+        // ============================================================================
+        // TEST PARA LORA TX
+        // ============================================================================
+        Position pos = {-34.63547825290525, -58.36449077508839};
+        cow.updatePosition(pos);
+        sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
         
         switch (s_mainFSM) {
             case MainFSM_t::STARTUP_ROUTINE:
