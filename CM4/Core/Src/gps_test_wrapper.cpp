@@ -119,7 +119,7 @@ extern "C" void gps_init_and_test(void) {
                 printf("[GPS] Posible causa: Sin senal satelital o GPS en indoor\n");
             }
         } else {
-            printf("[GPS] ERROR - Error de comunicacion I2C\n");
+            printf("[GPS] ERROR - NO FIX\n");
         }
         
         // Delay entre lecturas

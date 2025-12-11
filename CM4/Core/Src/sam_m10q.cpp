@@ -24,8 +24,8 @@ SamM10q::SamM10q(uint8_t i2cAddr) {
 /* ========== LLAMAR LUEGO DE INICIALIZAR HAL E I2C ========== */
 /* =========================================================== */
 void SamM10q::initSamM10q() {
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    // CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    // DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     
     // Inicializar el bus I2C thread-safe
     i2cBus = &I2CManager::getBus2();
@@ -149,42 +149,42 @@ void SamM10q::configure_gps() {
     
     write_register(m10q_data_45, sizeof(m10q_data_45), RAM); // Habilitación TRAMAS NMEA UART via I2C
 
-    for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
-        const uint8_t* payload = m10q_data_payloads[i];
-        size_t payload_len = sizeof(m10q_data_payloads[i]);
+    // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
+    //     const uint8_t* payload = m10q_data_payloads[i];
+    //     size_t payload_len = sizeof(m10q_data_payloads[i]);
         
-        // Escribir en RAM
-        if (!write_register(payload, payload_len, RAM)) {
-            // Si falla la escritura en RAM, reintentar
-            i--;
-            continue;
-        }
+    //     // Escribir en RAM
+    //     if (!write_register(payload, payload_len, RAM)) {
+    //         // Si falla la escritura en RAM, reintentar
+    //         i--;
+    //         continue;
+    //     }
         
-        // Verificar escritura en RAM leyendo el registro
-        if (payload_len >= UBX_KEYID_SIZE) {
-            if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
-                // Si falla la lectura de verificación, reintentar
-                i--;
-                continue;
-            }
-        }
+    //     // Verificar escritura en RAM leyendo el registro
+    //     if (payload_len >= UBX_KEYID_SIZE) {
+    //         if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
+    //             // Si falla la lectura de verificación, reintentar
+    //             i--;
+    //             continue;
+    //         }
+    //     }
         
-        // Escribir en BBR (persistente)
-        if (!write_register(payload, payload_len, BBR)) {
-            // Si falla la escritura en BBR, reintentar
-            i--;
-            continue;
-        }
+    //     // Escribir en BBR (persistente)
+    //     if (!write_register(payload, payload_len, BBR)) {
+    //         // Si falla la escritura en BBR, reintentar
+    //         i--;
+    //         continue;
+    //     }
         
-        // Verificar escritura en BBR
-        if (payload_len >= UBX_KEYID_SIZE) {
-            if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
-                // Si falla la lectura de verificación, reintentar
-                i--;
-                continue;
-            }
-        }
-    }
+    //     // Verificar escritura en BBR
+    //     if (payload_len >= UBX_KEYID_SIZE) {
+    //         if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
+    //             // Si falla la lectura de verificación, reintentar
+    //             i--;
+    //             continue;
+    //         }
+    //     }
+    // }
 }
 
 /* ============================================================ */
