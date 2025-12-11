@@ -79,6 +79,7 @@ static const uint8_t m10q_data_43[] = {0x03, 0x00, 0x51, 0x10, 0x01}; // CFG-I2C
 static const uint8_t m10q_data_44[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
 static const uint8_t m10q_data_45[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-UART1OUTPROT-NMEA ENABLED
 static const uint8_t m10q_data_46[] = {0x02, 0x00, 0x72, 0x10, 0x00}; // CFG-I2COUTPROT-NMEA DISABLED
+static const uint8_t m10q_data_47[] = {0x06, 0x00, 0x91, 0x20, 0x01}; // CFG-MSGOUT-UBX_NAV_PVT_I2C ENABLED
 
 // Tabla de punteros a payloads
 static const uint8_t* const m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {

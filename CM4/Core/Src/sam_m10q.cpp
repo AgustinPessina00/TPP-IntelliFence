@@ -147,7 +147,12 @@ void SamM10q::configure_gps() {
     write_register_uart(m10q_data_43, sizeof(m10q_data_43), BBR); // Habilito I2C via UART BBR
     //read_register_uart(m10q_data_43, sizeof(m10q_data_43), response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
     
-    write_register(m10q_data_45, sizeof(m10q_data_45), RAM); // Habilitación TRAMAS NMEA UART via I2C
+    //write_register(m10q_data_45, sizeof(m10q_data_45), RAM); // Habilitación TRAMAS NMEA UART via I2C
+
+    write_register_uart(m10q_data_47, sizeof(m10q_data_47), RAM); // Habilita UBX_NAV_PVT_I2C via uart
+    write_register_uart(m10q_data_47, sizeof(m10q_data_47), BBR);
+    
+    //read_register_uart(m10q_data_44, sizeof(m10q_data_44), response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
 
     // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
     //     const uint8_t* payload = m10q_data_payloads[i];
@@ -481,6 +486,8 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
         return false;
     }
 
+    HAL_Delay(1500);
+
     // 2. Esperar y recibir la respuesta
     if (!receivePVT(pvtData, maxWaitMs)) {
         return false;
@@ -554,7 +561,7 @@ bool SamM10q::receivePVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
         
         // Si hay suficientes bytes disponibles, leer el mensaje completo en chunks de 64 Bytes.
         if (available >= PVT_MESSAGE_SIZE) {
-            const uint8_t CHUNK_SIZE = 64;
+            const uint8_t CHUNK_SIZE = 128;
             uint16_t totalRead = 0;
             bool readSuccess = true;
             
