@@ -139,20 +139,26 @@ void SamM10q::configure_gps() {
     uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
     
     write_register_uart(m10q_data_44, sizeof(m10q_data_44), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
-    //read_register_uart(m10q_data_44, sizeof(m10q_data_44), response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+
+    write_register(m10q_data_45, sizeof(m10q_data_45), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
+
+    write_register_uart(m10q_data_44, sizeof(m10q_data_44), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
+    //write_register_uart(m10q_data_49, sizeof(m10q_data_49), RAM); // Habilito TRAMAS UBX UART via UART RAM
     
     write_register_uart(m10q_data_43, sizeof(m10q_data_43), RAM); // Habilito I2C via UART RAM
-    //read_register_uart(m10q_data_43, sizeof(m10q_data_43), response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
-
     write_register_uart(m10q_data_43, sizeof(m10q_data_43), BBR); // Habilito I2C via UART BBR
-    //read_register_uart(m10q_data_43, sizeof(m10q_data_43), response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
-    
-    //write_register(m10q_data_45, sizeof(m10q_data_45), RAM); // Habilitación TRAMAS NMEA UART via I2C
 
-    write_register_uart(m10q_data_47, sizeof(m10q_data_47), RAM); // Habilita UBX_NAV_PVT_I2C via uart
+    write_register_uart(m10q_data_47, sizeof(m10q_data_47), RAM); // Habilita CFG-I2COUTPROT-UBX via uart
     write_register_uart(m10q_data_47, sizeof(m10q_data_47), BBR);
     
-    //read_register_uart(m10q_data_44, sizeof(m10q_data_44), response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    write_register_uart(m10q_data_48, sizeof(m10q_data_48), RAM); // Habilita UBX_NAV_PVT_I2C via uart
+    write_register_uart(m10q_data_48, sizeof(m10q_data_48), BBR);
+
+    write_register_uart(m10q_data_46, sizeof(m10q_data_46), RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
+    write_register_uart(m10q_data_46, sizeof(m10q_data_46), BBR);
+
+    write_register_uart(m10q_data_49, sizeof(m10q_data_49), RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
+    write_register_uart(m10q_data_49, sizeof(m10q_data_49), BBR);
 
     // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
     //     const uint8_t* payload = m10q_data_payloads[i];
@@ -547,7 +553,7 @@ bool SamM10q::receivePVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
     // Polling: intentar leer hasta que lleguen datos o timeout
     while ((HAL_GetTick() - startTime) < maxWaitMs) {
         // Leer 2 bytes para verificar disponibilidad de datos
-        uint8_t bytesAvailable[2];
+        uint8_t bytesAvailable[2] = {10, 10};
         I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, I2C_MEMADD_SIZE_8BIT, bytesAvailable, 2, 100);
         
         if (result != I2C_OK) {

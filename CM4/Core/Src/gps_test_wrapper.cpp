@@ -75,14 +75,14 @@ extern "C" void gps_init_and_test(void) {
     printf("[GPS] ========== CONFIGURACIÓN GPS ==========\n");
     
     // Test de configuración más detallado
-    printf("[GPS] Aplicando configuración MEDIUM rate...\n");
-    bool config_result = gps.set_new_acq_time(gpsRateSpeed::MEDIUM);
+    // printf("[GPS] Aplicando configuración MEDIUM rate...\n");
+    // bool config_result = gps.set_new_acq_time(gpsRateSpeed::MEDIUM);
     
-    if (config_result) {
-        printf("[GPS] OK - Configuracion aplicada exitosamente\n");
-    } else {
-        printf("[GPS] WARN - Configuracion fallo - GPS puede no estar respondiendo\n");
-    }
+    // if (config_result) {
+    //     printf("[GPS] OK - Configuracion aplicada exitosamente\n");
+    // } else {
+    //     printf("[GPS] WARN - Configuracion fallo - GPS puede no estar respondiendo\n");
+    // }
     
     // Esperar tiempo para que GPS configure
     printf("[GPS] Esperando estabilizacion GPS (3 segundos)...\n");
