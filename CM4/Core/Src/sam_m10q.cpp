@@ -355,8 +355,8 @@ bool SamM10q::write_register(const uint8_t* payload_data, size_t payload_len, ui
     return send_message(message, msg_len, 15) == HAL_OK;
 }
 
-/* Lectura de registro usando UBX-CFG-VALGET mediante I2C*/
-bool SamM10q::read_register(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
+/* Lectura de configuración de KeyID usando UBX-CFG-VALGET mediante I2C*/
+bool SamM10q::read_configuration(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
     if (!payload_data || payload_len == 0 || (*response_buffer == 0xFF) || buffer_size == 0) {
         return false;
     }
@@ -384,6 +384,8 @@ bool SamM10q::read_register(const uint8_t* payload_data, size_t payload_len, uin
 
     // Usar bus I2C thread-safe para leer la respuesta
     I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, 1, response_buffer, 1, 100);
+
+    //TODO PESSI: Acá faltaría leer el 0xFE y luego sabiendo la cantidad de bytes para leer, leer el resto de la respuesta desde 0xFF en adelante.
 
     return (result == I2C_OK);
 }
@@ -425,7 +427,7 @@ bool SamM10q::write_register_uart(const uint8_t* payload_data, size_t payload_le
     return send_message_uart(buffer, msg_len, 15) == HAL_OK;
 }
 
-/* Lectura de registro usando UBX-CFG-VALGET via UART */
+/* Lectura de configuración de un KeyID usando UBX-CFG-VALGET via UART */
 bool SamM10q::read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
     if (!payload_data || payload_len == 0 || !response_buffer || buffer_size == 0) {
         return false;
@@ -523,9 +525,9 @@ bool SamM10q::requestPVT() {
     message[4] = 0x00;         // Length LSB (0 bytes de payload)
     message[5] = 0x00;         // Length MSB
     
-    // Calcular checksum
+    // Calcular checksum sobre el mensaje completo (sin checksum final)
     uint8_t ck_a, ck_b;
-    ubx_calculate_checksum(&message[2], 4, &ck_a, &ck_b);
+    ubx_calculate_checksum(message, 6, &ck_a, &ck_b);
     message[6] = ck_a;
     message[7] = ck_b;
     

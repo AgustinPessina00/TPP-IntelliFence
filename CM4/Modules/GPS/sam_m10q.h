@@ -101,11 +101,14 @@ public:
 
 	// Escritura y lectura de registros UBX (usa I2C por defecto)
 	bool write_register(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
-	bool read_register(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer);
+
+	bool read_configuration(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer); //Leo la configuración de un KeyID con VALGET via I2C.
 
 	// Funciones específicas para UART (configuración inicial)
 	bool write_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
-	bool read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer);
+
+	bool read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer); //Leo la configuración de un KeyID con VALGET via UART.
+
 	void configure_gps_uart();  // Configuración inicial via UART
 
 private:
