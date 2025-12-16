@@ -48,13 +48,13 @@ enum class Ina226Mode : uint16_t {
 
 class Ina226 {
 public:
-    // Constructor simplificado - recibe solo la dirección I2C
-    Ina226(uint8_t i2cAddr, float rShunt, float currentLSB, 
-           Ina226Averaging avg, Ina226ConvTime vbusCt, 
-           Ina226ConvTime vshCt, Ina226Mode mode);
+    // Default constructor - does NOT access hardware
+    Ina226();
     
-    // Método para inicializar (usa I2CManager internamente)
-    bool initialize();
+    // Must be called explicitly after HAL_Init() and MX_I2C_Init()
+    bool init(uint8_t i2cAddr, float rShunt, float currentLSB, 
+              Ina226Averaging avg, Ina226ConvTime vbusCt, 
+              Ina226ConvTime vshCt, Ina226Mode mode);
     
     I2CResult readShuntVoltage_mV();
     I2CResult readBusVoltage_mV();
@@ -79,10 +79,16 @@ public:
 
 private:
     uint8_t i2cAddr;
-    I2CBus* i2cBus;        // Referencia al bus del I2CManager
+    I2CBus* i2cBus;
     float rShunt;
     float currentLSB;
-    bool isInitialized;    // Flag de inicialización
+    bool initialized;
+    
+    // Configuration storage
+    Ina226Averaging avgConfig;
+    Ina226ConvTime vbusCtConfig;
+    Ina226ConvTime vshCtConfig;
+    Ina226Mode modeConfig;
 };
 
 #endif // INA226_CLASS_H

@@ -42,10 +42,11 @@ enum class gpsRateSpeed {
 
 class SamM10q {
 public:
-	SamM10q(uint8_t i2cAddr);
+	// Default constructor - does NOT access hardware
+	SamM10q();
 
-	// Llamar explícitamente luego de HAL_Init() y MX_I2C_Init()
-    void initSamM10q();
+	// Must be called explicitly after HAL_Init() and MX_I2C_Init()
+	bool init(uint8_t i2cAddr);
 
 	HAL_StatusTypeDef read_nmea_stream();
 	HAL_StatusTypeDef read_gps_position();
@@ -82,6 +83,7 @@ public:
 
 private:
     uint8_t i2cAddr;
+	bool initialized;
 	TinyGPSPlus trackerGPS;
 
 	//uint16_t length;	Es fijo, lo conocemos del KEYID.

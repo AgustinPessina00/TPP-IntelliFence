@@ -435,19 +435,19 @@ typedef struct {
 
 class Lsm6dso {
 public:
-	// Thread-safe constructor
-	Lsm6dso(uint8_t i2cAddr, Lsm6dsoI3C i3c = Lsm6dsoI3C::DISABLED, 
-	        Lsm6dsoOdrAcc odrAcc = Lsm6dsoOdrAcc::ODR_104, 
-	        Lsm6dsoFsAcc fsAcc = Lsm6dsoFsAcc::FS_2G, 
-	        Lsm6dsoOdrGyr odrGyr = Lsm6dsoOdrGyr::ODR_104, 
-	        Lsm6dsoFsGyr fsGyr = Lsm6dsoFsGyr::FS_250DPS, 
-	        Lsm6dsoWakeThs wakeThs = Lsm6dsoWakeThs::THS_DISABLE, 
-	        Lsm6dsoWakeDur wakeDur = Lsm6dsoWakeDur::ODR_0, 
-	        Lsm6dsoWakeWeight wakeWeight = Lsm6dsoWakeWeight::FS_XL_64, 
-	        Lsm6dsoSleepDur sleepDur = Lsm6dsoSleepDur::DUR_0_512);
+	// Default constructor - does NOT access hardware
+	Lsm6dso();
 
-	// Initialize IMU with thread-safe I2C
-	bool initialize();
+	// Must be called explicitly after HAL_Init() and MX_I2C_Init()
+	bool init(uint8_t i2cAddr, Lsm6dsoI3C i3c = Lsm6dsoI3C::DISABLED, 
+	          Lsm6dsoOdrAcc odrAcc = Lsm6dsoOdrAcc::ODR_104, 
+	          Lsm6dsoFsAcc fsAcc = Lsm6dsoFsAcc::FS_2G, 
+	          Lsm6dsoOdrGyr odrGyr = Lsm6dsoOdrGyr::ODR_104, 
+	          Lsm6dsoFsGyr fsGyr = Lsm6dsoFsGyr::FS_250DPS, 
+	          Lsm6dsoWakeThs wakeThs = Lsm6dsoWakeThs::THS_DISABLE, 
+	          Lsm6dsoWakeDur wakeDur = Lsm6dsoWakeDur::ODR_0, 
+	          Lsm6dsoWakeWeight wakeWeight = Lsm6dsoWakeWeight::FS_XL_64, 
+	          Lsm6dsoSleepDur sleepDur = Lsm6dsoSleepDur::DUR_0_512);
 
 	// Read acceleration data using thread-safe I2C
 	I2CResult readAcceleration();
@@ -521,7 +521,7 @@ private:
 	// Thread-safe I2C members
 	uint8_t i2cAddr;
 	I2CBus* i2cBus;
-	bool isInitialized;
+	bool initialized;
 	
 	// Configuration storage
 	Lsm6dsoI3C i3cConfig;

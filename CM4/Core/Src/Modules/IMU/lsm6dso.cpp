@@ -8,24 +8,42 @@
 
 /* Public methods ----------------------------------------------------------*/
 
-Lsm6dso::Lsm6dso(uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr, Lsm6dsoWakeThs wakeThs, Lsm6dsoWakeDur wakeDur, Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur)
-    : i2cAddr(i2cAddr), i2cBus(nullptr), isInitialized(false)
+// Trivial constructor - does NOT access hardware, allocate memory, or block
+Lsm6dso::Lsm6dso()
+    : i2cAddr(0), i2cBus(nullptr), initialized(false),
+      i3cConfig(Lsm6dsoI3C::DISABLED),
+      odrAccConfig(Lsm6dsoOdrAcc::ODR_104),
+      fsAccConfig(Lsm6dsoFsAcc::FS_2G),
+      odrGyrConfig(Lsm6dsoOdrGyr::ODR_104),
+      fsGyrConfig(Lsm6dsoFsGyr::FS_250DPS),
+      wakeThsConfig(Lsm6dsoWakeThs::THS_DISABLE),
+      wakeDurConfig(Lsm6dsoWakeDur::ODR_0),
+      wakeWeightConfig(Lsm6dsoWakeWeight::FS_XL_64),
+      sleepDurConfig(Lsm6dsoSleepDur::DUR_0_512)
 {
-  // Store configuration parameters for later initialization
-  this->i3cConfig = i3c;
-  this->odrAccConfig = odrAcc;
-  this->fsAccConfig = fsAcc;
-  this->odrGyrConfig = odrGyr;
-  this->fsGyrConfig = fsGyr;
-  this->wakeThsConfig = wakeThs;
-  this->wakeDurConfig = wakeDur;
-  this->wakeWeightConfig = wakeWeight;
-  this->sleepDurConfig = sleepDur;
-
-  initialize();
+  // Constructor does nothing - initialization is explicit via init()
 }
 
-bool Lsm6dso::initialize() {
+bool Lsm6dso::init(uint8_t i2cAddr, Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, 
+                   Lsm6dsoFsAcc fsAcc, Lsm6dsoOdrGyr odrGyr, Lsm6dsoFsGyr fsGyr,
+                   Lsm6dsoWakeThs wakeThs, Lsm6dsoWakeDur wakeDur, 
+                   Lsm6dsoWakeWeight wakeWeight, Lsm6dsoSleepDur sleepDur) {
+    if (initialized) {
+        return true; // Already initialized
+    }
+    
+    // Store parameters
+    this->i2cAddr = i2cAddr;
+    this->i3cConfig = i3c;
+    this->odrAccConfig = odrAcc;
+    this->fsAccConfig = fsAcc;
+    this->odrGyrConfig = odrGyr;
+    this->fsGyrConfig = fsGyr;
+    this->wakeThsConfig = wakeThs;
+    this->wakeDurConfig = wakeDur;
+    this->wakeWeightConfig = wakeWeight;
+    this->sleepDurConfig = sleepDur;
+    
     // Ensure I2CManager is initialized
     if (!I2CManager::isInitialized()) {
         if (!I2CManager::initializeAll()) {
@@ -35,23 +53,23 @@ bool Lsm6dso::initialize() {
     
     // Get reference to I2C2 bus (same as GPS and INA226)
     i2cBus = &I2CManager::getBus2();
-    
-    // SET INITIALIZED FLAG BEFORE CONFIGURE
-    isInitialized = true;
+    if (!i2cBus) {
+        return false;
+    }
     
     // Configure the LSM6DSO
     if (!configure(i3cConfig, odrAccConfig, fsAccConfig, odrGyrConfig, fsGyrConfig,
                    wakeThsConfig, wakeDurConfig, wakeWeightConfig, sleepDurConfig)) {
-        isInitialized = false; // Reset flag if configuration fails
         return false;
     }
     
+    initialized = true;
     return true;
 }
 
 I2CResult Lsm6dso::readAcceleration()
 {
-    if (!isInitialized) {
+    if (!initialized) {
         return I2C_ERROR;
     }
 
@@ -100,7 +118,7 @@ I2CResult Lsm6dso::readAcceleration()
 
 I2CResult Lsm6dso::readGyroscope()
 {
-    if (!isInitialized) {
+    if (!initialized) {
         return I2C_ERROR;
     }
 
@@ -149,7 +167,7 @@ I2CResult Lsm6dso::readGyroscope()
 
 I2CResult Lsm6dso::readTemperature()
 {
-    if (!isInitialized) {
+    if (!initialized) {
         return I2C_ERROR;
     }
 
@@ -172,7 +190,7 @@ I2CResult Lsm6dso::readTemperature()
 
 I2CResult Lsm6dso::getWhoAmI(uint8_t& whoAmI)
 {
-    if (!isInitialized) {
+    if (!initialized) {
         return I2C_ERROR;
     }
 
@@ -258,7 +276,7 @@ uint8_t Lsm6dso::setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU){
 
 
 I2CResult Lsm6dso::writeRegister(uint8_t reg, uint8_t value) {
-    if (!isInitialized || !i2cBus) {
+    if (!initialized || !i2cBus) {
         return I2C_ERROR;
     }
     
@@ -266,7 +284,7 @@ I2CResult Lsm6dso::writeRegister(uint8_t reg, uint8_t value) {
 }
 
 I2CResult Lsm6dso::readRegister(uint8_t reg, uint8_t& value) {
-    if (!isInitialized || !i2cBus) {
+    if (!initialized || !i2cBus) {
         return I2C_ERROR;
     }
     
@@ -274,7 +292,7 @@ I2CResult Lsm6dso::readRegister(uint8_t reg, uint8_t& value) {
 }
 
 I2CResult Lsm6dso::readRegisters(uint8_t reg, uint8_t* data, uint16_t length) {
-    if (!isInitialized || !i2cBus || !data) {
+    if (!initialized || !i2cBus || !data) {
         return I2C_ERROR;
     }
     
