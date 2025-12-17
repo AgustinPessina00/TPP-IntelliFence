@@ -15,8 +15,7 @@ extern osMessageQueueId_t dispatcherQueueHandle;
 
 // Variables globales para la FSM (static para no usar stack)
 static bool receivedMsgLoraRX = false;
-static Cow* s_cow = nullptr;
-static Fence* s_fence = nullptr;
+
 
 // Variables de estado de las FSMs (static para ahorrar stack)
 static MainFSM_t s_mainFSM = MainFSM_t::STARTUP_ROUTINE;
@@ -39,9 +38,6 @@ void fsmTask(void *argument) {
     static Cow cow(deviceUID);
     static Fence fence;
     
-    s_cow = &cow;
-    s_fence = &fence;
-    
     EmbeddedMessage_t *msgReceived = NULL;
     uint8_t tries = 0;
     
@@ -59,12 +55,12 @@ void fsmTask(void *argument) {
         
         switch (s_mainFSM) {
             case MainFSM_t::STARTUP_ROUTINE:
-                runStartupRoutineFSM(s_mainFSM, &s_startupRoutineState, &msgReceived, tries, *s_cow, *s_fence);
+                runStartupRoutineFSM(s_mainFSM, &s_startupRoutineState, &msgReceived, tries, cow, fence);
                 break;
                 
             case MainFSM_t::NORMAL_OPERATION:
                 runNormalOperationFSM(s_normalOpFSM, s_initializeState, s_greenZoneState, 
-                                     s_stimulusZoneState, &msgReceived, tries, *s_cow, *s_fence);
+                                     s_stimulusZoneState, &msgReceived, tries, cow, fence);
                 if (receivedMsgLoraRX) {
                     s_mainFSM = MainFSM_t::FENCE_TRANSITION;
                     receivedMsgLoraRX = false;
@@ -72,7 +68,7 @@ void fsmTask(void *argument) {
                 break;
                 
             case MainFSM_t::FENCE_TRANSITION:
-                runFenceTransitionFSM(s_mainFSM, s_fenceTransitionState, &msgReceived, tries, *s_cow, *s_fence);
+                runFenceTransitionFSM(s_mainFSM, s_fenceTransitionState, &msgReceived, tries, cow, fence);
                 break;
         }
         
