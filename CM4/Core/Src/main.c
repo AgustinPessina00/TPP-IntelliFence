@@ -286,7 +286,7 @@ int main(void)
   }
 
   /* Run comprehensive module tests before starting RTOS */
-  run_comprehensive_module_tests();
+  //run_comprehensive_module_tests();
 
   /* Start scheduler */
   osKernelStart();

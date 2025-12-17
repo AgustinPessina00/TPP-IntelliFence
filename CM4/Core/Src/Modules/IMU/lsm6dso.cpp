@@ -276,7 +276,7 @@ uint8_t Lsm6dso::setConfigurationREG_MD1_CFG(Lsm6dsoIntWU intWU){
 
 
 I2CResult Lsm6dso::writeRegister(uint8_t reg, uint8_t value) {
-    if (!initialized || !i2cBus) {
+    if (!i2cBus) {
         return I2C_ERROR;
     }
     
@@ -284,7 +284,7 @@ I2CResult Lsm6dso::writeRegister(uint8_t reg, uint8_t value) {
 }
 
 I2CResult Lsm6dso::readRegister(uint8_t reg, uint8_t& value) {
-    if (!initialized || !i2cBus) {
+    if (!i2cBus) {
         return I2C_ERROR;
     }
     
@@ -292,7 +292,7 @@ I2CResult Lsm6dso::readRegister(uint8_t reg, uint8_t& value) {
 }
 
 I2CResult Lsm6dso::readRegisters(uint8_t reg, uint8_t* data, uint16_t length) {
-    if (!initialized || !i2cBus || !data) {
+    if (!i2cBus || !data) {
         return I2C_ERROR;
     }
     
