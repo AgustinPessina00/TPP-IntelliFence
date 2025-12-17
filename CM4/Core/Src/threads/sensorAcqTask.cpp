@@ -15,11 +15,45 @@ extern osMessageQueueId_t sensorAcqQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
 
 void sensorAcqTask(void *argument) {
-    SamM10q gps(gpsAddress);  // Dirección I2C 7-bit del GPS SAM-M10Q
-    Lsm6dso imu(imuAddress); // Dirección I2C 7-bit del LSM6DSO
-    Ina226 inaGps(configs[gpsIndex].address, configs[gpsIndex].rShunt, configs[gpsIndex].currentLSB, Ina226Averaging::AVG_128, Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, Ina226Mode::SHUNT_BUS_CONTINUOUS);
-    Ina226 inaImu(configs[imuIndex].address, configs[imuIndex].rShunt, configs[imuIndex].currentLSB, Ina226Averaging::AVG_128, Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, Ina226Mode::SHUNT_BUS_CONTINUOUS);               
-    Ina226 inaMcu(configs[mcuIndex].address, configs[mcuIndex].rShunt, configs[mcuIndex].currentLSB, Ina226Averaging::AVG_128, Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, Ina226Mode::SHUNT_BUS_CONTINUOUS);
+    // CRITICAL: Use static objects to avoid stack overflow
+    // These objects must have static lifetime and be initialized explicitly
+    static SamM10q gps;
+    static Lsm6dso imu;
+    static Ina226 inaGps;
+    static Ina226 inaImu;
+    static Ina226 inaMcu;
+    
+    // Explicit initialization - must be called once at task startup
+    if (!gps.init(gpsAddress)) {
+        RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize GPS\n");
+        // Retry or handle error appropriately
+    }
+    
+    if (!imu.init(imuAddress)) {
+        RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize IMU\n");
+        // Retry or handle error appropriately
+    }
+    
+    if (!inaGps.init(configs[gpsIndex].address, configs[gpsIndex].rShunt, 
+                     configs[gpsIndex].currentLSB, Ina226Averaging::AVG_128, 
+                     Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, 
+                     Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
+        RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize INA226 GPS\n");
+    }
+    
+    if (!inaImu.init(configs[imuIndex].address, configs[imuIndex].rShunt, 
+                     configs[imuIndex].currentLSB, Ina226Averaging::AVG_128, 
+                     Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, 
+                     Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
+        RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize INA226 IMU\n");
+    }
+    
+    if (!inaMcu.init(configs[mcuIndex].address, configs[mcuIndex].rShunt, 
+                     configs[mcuIndex].currentLSB, Ina226Averaging::AVG_128, 
+                     Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, 
+                     Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
+        RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize INA226 MCU\n");
+    }
 
     EmbeddedMessage_t *msgReceived = NULL;
     EmbeddedMessage_t *msgToSend = NULL;

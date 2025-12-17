@@ -85,15 +85,15 @@ extern "C" void lsm6dso_comprehensive_test(void) {
     printf("[LSM6DSO] - Auto-increment: Habilitado\n");
     
     // Crear instancia con configuración estándar
-    Lsm6dso imu(foundAddress,                          // I2C address
-                Lsm6dsoI3C::DISABLED,                 // I3C disabled
-                Lsm6dsoOdrAcc::ODR_104,               // 104Hz accelerometer ODR
-                Lsm6dsoFsAcc::FS_2G,                  // ±2g accelerometer range
-                Lsm6dsoOdrGyr::ODR_104,               // 104Hz gyroscope ODR
-                Lsm6dsoFsGyr::FS_250DPS);             // ±250dps gyroscope range
+    Lsm6dso imu;
     
     printf("[LSM6DSO] Inicializando LSM6DSO...\n");
-    if (!imu.initialize()) {
+    if (!imu.init(foundAddress,                          // I2C address
+                  Lsm6dsoI3C::DISABLED,                 // I3C disabled
+                  Lsm6dsoOdrAcc::ODR_104,               // 104Hz accelerometer ODR
+                  Lsm6dsoFsAcc::FS_2G,                  // ±2g accelerometer range
+                  Lsm6dsoOdrGyr::ODR_104,               // 104Hz gyroscope ODR
+                  Lsm6dsoFsGyr::FS_250DPS)) {           // ±250dps gyroscope range
         printf("[LSM6DSO] ERROR - Fallo inicializacion LSM6DSO\n");
         return;
     }
@@ -235,11 +235,11 @@ extern "C" void lsm6dso_comprehensive_test(void) {
     
     // Test con rango extendido de acelerómetro
     printf("[LSM6DSO] Configurando acelerometro ±8g...\n");
-    Lsm6dso imuExtended(foundAddress, Lsm6dsoI3C::DISABLED, 
-                        Lsm6dsoOdrAcc::ODR_208, Lsm6dsoFsAcc::FS_8G,
-                        Lsm6dsoOdrGyr::ODR_208, Lsm6dsoFsGyr::FS_500DPS);
+    Lsm6dso imuExtended;
     
-    if (imuExtended.initialize()) {
+    if (imuExtended.init(foundAddress, Lsm6dsoI3C::DISABLED, 
+                         Lsm6dsoOdrAcc::ODR_208, Lsm6dsoFsAcc::FS_8G,
+                         Lsm6dsoOdrGyr::ODR_208, Lsm6dsoFsGyr::FS_500DPS)) {
         printf("[LSM6DSO] Config extendida inicializada - probando 3 lecturas...\n");
         for (int i = 1; i <= 3; i++) {
             if (imuExtended.readAcceleration() == I2C_OK && 
@@ -282,11 +282,11 @@ extern "C" void lsm6dso_configuration_test(void) {
     // Configuración 1: Baja potencia, baja frecuencia
     printf("\n[LSM6DSO-CFG] === CONFIG 1: BAJA POTENCIA ===\n");
     {
-        Lsm6dso imuLowPower(0x6A, Lsm6dsoI3C::DISABLED,
-                           Lsm6dsoOdrAcc::ODR_12_5, Lsm6dsoFsAcc::FS_2G,
-                           Lsm6dsoOdrGyr::ODR_12_5, Lsm6dsoFsGyr::FS_250DPS);
+        Lsm6dso imuLowPower;
         
-        if (imuLowPower.initialize()) {
+        if (imuLowPower.init(0x6A, Lsm6dsoI3C::DISABLED,
+                             Lsm6dsoOdrAcc::ODR_12_5, Lsm6dsoFsAcc::FS_2G,
+                             Lsm6dsoOdrGyr::ODR_12_5, Lsm6dsoFsGyr::FS_250DPS)) {
             printf("[LSM6DSO-CFG] Config baja potencia inicializada\n");
             printf("[LSM6DSO-CFG] ODR: 12.5Hz, Consumo: ~0.55mA\n");
             
@@ -305,11 +305,11 @@ extern "C" void lsm6dso_configuration_test(void) {
     // Configuración 2: Alta frecuencia, máximo rendimiento
     printf("\n[LSM6DSO-CFG] === CONFIG 2: ALTO RENDIMIENTO ===\n");
     {
-        Lsm6dso imuHighPerf(0x6A, Lsm6dsoI3C::DISABLED,
-                           Lsm6dsoOdrAcc::ODR_6K66, Lsm6dsoFsAcc::FS_16G,
-                           Lsm6dsoOdrGyr::ODR_6K66, Lsm6dsoFsGyr::FS_2KDPS);
+        Lsm6dso imuHighPerf;
         
-        if (imuHighPerf.initialize()) {
+        if (imuHighPerf.init(0x6A, Lsm6dsoI3C::DISABLED,
+                             Lsm6dsoOdrAcc::ODR_6K66, Lsm6dsoFsAcc::FS_16G,
+                             Lsm6dsoOdrGyr::ODR_6K66, Lsm6dsoFsGyr::FS_2KDPS)) {
             printf("[LSM6DSO-CFG] Config alto rendimiento inicializada\n");
             printf("[LSM6DSO-CFG] ODR: 6.66kHz, Rango: ±16g/±2000dps\n");
             
@@ -341,11 +341,11 @@ extern "C" void lsm6dso_continuous_monitor(void) {
         I2CManager::initializeAll();
     }
     
-    Lsm6dso imu(0x6A, Lsm6dsoI3C::DISABLED,
-                Lsm6dsoOdrAcc::ODR_104, Lsm6dsoFsAcc::FS_4G,
-                Lsm6dsoOdrGyr::ODR_104, Lsm6dsoFsGyr::FS_500DPS);
+    Lsm6dso imu;
     
-    if (!imu.initialize()) {
+    if (!imu.init(0x6A, Lsm6dsoI3C::DISABLED,
+                  Lsm6dsoOdrAcc::ODR_104, Lsm6dsoFsAcc::FS_4G,
+                  Lsm6dsoOdrGyr::ODR_104, Lsm6dsoFsGyr::FS_500DPS)) {
         printf("[LSM6DSO-MONITOR] ERROR - Fallo inicializacion\n");
         return;
     }

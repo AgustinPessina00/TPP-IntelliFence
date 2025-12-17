@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "rtos_printf.h"
 // Forward declarations para threads del sistema FreeRTOS
 extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
@@ -103,7 +104,7 @@ const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
 osThreadId_t dispatcher_TaskHandle;
 const osThreadAttr_t dispatcher_Task_attributes = {
   .name = "dispatcher_Task",
-  .stack_size = 256 * 4,  // 1KB suficiente para ruteo de mensajes
+  .stack_size = 256 * 3,  // 768 bytes dispatcher
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -111,14 +112,14 @@ const osThreadAttr_t dispatcher_Task_attributes = {
 osThreadId_t fsm_TaskHandle;
 const osThreadAttr_t fsm_Task_attributes = {
   .name = "fsm_Task",
-  .stack_size = 256 * 5,  // Más stack para lógica de estados
+  .stack_size = 256 * 4,  // 1024 bytes FSM
   .priority = (osPriority_t) osPriorityNormal,
 };
 
 osThreadId_t stimulus_TaskHandle;
 const osThreadAttr_t stimulus_Task_attributes = {
   .name = "stimulus_Task",
-  .stack_size = 128 * 4,  // Más stack para lógica de estados
+  .stack_size = 128 * 4,  // 512 bytes stimulus
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -126,7 +127,7 @@ const osThreadAttr_t stimulus_Task_attributes = {
 osThreadId_t sensorAcq_TaskHandle;
 const osThreadAttr_t sensorAcq_Task_attributes = {
   .name = "sensorAcq_Task",
-  .stack_size = 384 * 4,  // 1.5KB para manejo de sensores
+  .stack_size = 256 * 4,  // 1024 bytes sensorAcq
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE END Variables */
@@ -239,6 +240,11 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
   MessagePool_Init();  // Inicializar el pool de mensajes antes de cualquier uso
+  
+  // Inicializar sistema de printf thread-safe
+  if (rtos_printf_init() != 0) {
+    Error_Handler();  // Fallo crítico en inicialización de printf
+  }
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */

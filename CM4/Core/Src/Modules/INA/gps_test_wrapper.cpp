@@ -64,12 +64,15 @@ extern "C" void gps_init_and_test(void) {
     printf("[GPS] Creando instancia GPS SAM-M10Q...\n");
     
     // CORRECCIÓN: Usar dirección 7-bit (0x42), no 8-bit (0x84)
-    SamM10q gps(0x42);  // Dirección 7-bit correcta para GPS SAM-M10Q
+    SamM10q gps;  // Default constructor - no hardware access
     
     printf("[GPS] Instancia creada. Inicializando GPS...\n");
     
     // Inicializar GPS
-    gps.initSamM10q();
+    if (!gps.init(0x42)) {  // Dirección 7-bit correcta para GPS SAM-M10Q
+        printf("[GPS] ERROR - Fallo inicializacion GPS\n");
+        return;
+    }
     
     printf("[GPS] GPS inicializado\n");
     printf("[GPS] ========== CONFIGURACIÓN GPS ==========\n");
@@ -160,26 +163,30 @@ extern "C" void gps_init_and_test(void) {
  * hacer lecturas continuas del GPS.
  */
 extern "C" void gps_continuous_test(void) {
-    static SamM10q* gps_instance = nullptr;
+    static SamM10q gps_instance;  // Static object, initialized only once
+    static bool initialized = false;
     
-    if (gps_instance == nullptr) {
+    if (!initialized) {
         // Inicializar I2CManager si no está ya inicializado
         if (!I2CManager::isInitialized()) {
             I2CManager::initializeAll();
         }
         
-        gps_instance = new SamM10q(0x42);  // Direccion 7-bit correcta
-        gps_instance->initSamM10q();
+        if (!gps_instance.init(0x42)) {  // Direccion 7-bit correcta
+            printf("[GPS] ERROR - Fallo inicializacion GPS\n");
+            return;
+        }
+        initialized = true;
         printf("[GPS] Instancia para test continuo creada\n");
     }
     
     // Lectura continua cada 2 segundos
     while (1) {
-        HAL_StatusTypeDef result = gps_instance->read_gps_position();
+        HAL_StatusTypeDef result = gps_instance.read_gps_position();
         
         if (result == HAL_OK) {
             printf("[GPS] Continuo - Lat: %.6f, Lon: %.6f\n", 
-                   gps_instance->latitude, gps_instance->longitude);
+                   gps_instance.latitude, gps_instance.longitude);
         } else {
             printf("[GPS] Continuo - Sin senal GPS\n");
         }

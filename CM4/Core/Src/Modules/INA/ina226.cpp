@@ -7,33 +7,50 @@
 #include <string.h>
 #include <stdio.h>
 
-Ina226::Ina226(uint8_t i2cAddr, float rShunt, float currentLSB, 
-               Ina226Averaging avg, Ina226ConvTime vbusCt, 
-               Ina226ConvTime vshCt, Ina226Mode mode)
-    : i2cAddr(i2cAddr), i2cBus(nullptr), rShunt(rShunt), currentLSB(currentLSB), 
-      isInitialized(false) {
-
-    initialize();
-    // Constructor solo guarda parámetros
+// Trivial constructor - does NOT access hardware, allocate memory, or block
+Ina226::Ina226() 
+    : i2cAddr(0), i2cBus(nullptr), rShunt(0.0f), currentLSB(0.0f), 
+      initialized(false), avgConfig(Ina226Averaging::AVG_1),
+      vbusCtConfig(Ina226ConvTime::CT_1_1MS), vshCtConfig(Ina226ConvTime::CT_1_1MS),
+      modeConfig(Ina226Mode::SHUNT_BUS_CONTINUOUS) {
+    // Constructor does nothing - initialization is explicit via init()
 }
 
-bool Ina226::initialize() {
-    // Asegurar que I2CManager esté inicializado
+bool Ina226::init(uint8_t i2cAddr, float rShunt, float currentLSB, 
+                  Ina226Averaging avg, Ina226ConvTime vbusCt, 
+                  Ina226ConvTime vshCt, Ina226Mode mode) {
+    if (initialized) {
+        return true; // Already initialized
+    }
+    
+    // Store parameters
+    this->i2cAddr = i2cAddr;
+    this->rShunt = rShunt;
+    this->currentLSB = currentLSB;
+    this->avgConfig = avg;
+    this->vbusCtConfig = vbusCt;
+    this->vshCtConfig = vshCt;
+    this->modeConfig = mode;
+    
+    // Ensure I2CManager is initialized
     if (!I2CManager::isInitialized()) {
         if (!I2CManager::initializeAll()) {
             return false;
         }
     }
     
-    // Obtener referencia al bus I2C2 (mismo que GPS)
+    // Get reference to I2C2 bus (same as GPS)
     i2cBus = &I2CManager::getBus2();
-    
-    // Configurar el INA226 con valores por defecto
-    if (configure(Ina226Averaging::AVG_1, Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, Ina226Mode::SHUNT_BUS_CONTINUOUS) != I2C_OK) {
+    if (!i2cBus) {
         return false;
     }
     
-    isInitialized = true;
+    // Configure the INA226 with provided parameters
+    if (configure(avg, vbusCt, vshCt, mode) != I2C_OK) {
+        return false;
+    }
+    
+    initialized = true;
     return true;
 }
 
@@ -63,6 +80,9 @@ uint16_t Ina226::calculateCalibration() {
 }
 
 I2CResult Ina226::readShuntVoltage_mV() {
+    if (!initialized) {
+        return I2C_ERROR;
+    }
     int16_t raw;
     I2CResult result = readRegister(REG_VSHUNT, reinterpret_cast<uint16_t&>(raw));
     if (result != I2C_OK)
@@ -72,6 +92,9 @@ I2CResult Ina226::readShuntVoltage_mV() {
 }
 
 I2CResult Ina226::readBusVoltage_mV() {
+    if (!initialized) {
+        return I2C_ERROR;
+    }
     uint16_t raw;
     I2CResult result = readRegister(REG_VBUS, raw);
     if (result != I2C_OK)
@@ -81,6 +104,9 @@ I2CResult Ina226::readBusVoltage_mV() {
 }
 
 I2CResult Ina226::readCurrent_mA() {
+    if (!initialized) {
+        return I2C_ERROR;
+    }
     int16_t raw;
     I2CResult result = readRegister(REG_CURRENT, reinterpret_cast<uint16_t&>(raw));
     if (result != I2C_OK) 
@@ -90,6 +116,9 @@ I2CResult Ina226::readCurrent_mA() {
 }
 
 I2CResult Ina226::readPower_mW() {
+    if (!initialized) {
+        return I2C_ERROR;
+    }
     uint16_t raw;
     I2CResult result = readRegister(REG_POWER, raw);
     if (result != I2C_OK)

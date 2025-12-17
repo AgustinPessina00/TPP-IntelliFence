@@ -11,39 +11,51 @@ void BusyDelayMs(uint32_t ms);
 
 //static uint8_t buffer[NMEA_BUFFER_SIZE];
 
-SamM10q::SamM10q(uint8_t i2cAddr) {
-	this->i2cAddr = i2cAddr;
-    this->i2cBus = nullptr;   // Se inicializa en initSamM10q()
-    this->uartBus = nullptr;  // Se inicializa en initSamM10q()
-    //this->length 	= Dejo vacio por ahora ya que pensamos hacer lo que dice en el .h.
-
-	this->version	= VALSET_VERSION;
-    this->reserved	= RESERVED;
-
-    //initSamM10q();
-    //configure_gps();  //A partir de ahora lo llamamos en initSamM10q.
+// Trivial constructor - does NOT access hardware, allocate memory, or block
+SamM10q::SamM10q() {
+	this->i2cAddr = 0;
+    this->i2cBus = nullptr;
+    this->uartBus = nullptr;
+	this->version = VALSET_VERSION;
+    this->reserved = RESERVED;
+    this->initialized = false;
 }
 
-/* Llamar luego de inicializar HAL e I2C */
-void SamM10q::initSamM10q() {
+/* Must be called after HAL_Init() and MX_I2C_Init() */
+bool SamM10q::init(uint8_t i2cAddr) {
+    if (initialized) {
+        return true; // Already initialized
+    }
+    
+    this->i2cAddr = i2cAddr;
+    
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     
-    // Inicializar el bus I2C thread-safe
+    // Initialize thread-safe I2C bus
     i2cBus = &I2CManager::getBus2();
+    if (!i2cBus) {
+        return false;
+    }
     
-    // Inicializar el bus UART thread-safe
+    // Initialize thread-safe UART bus
     uartBus = &UARTManager::getUart1();
+    if (!uartBus) {
+        return false;
+    }
     
-    configure_gps();
+    //configure_gps();
+    
+    initialized = true;
+    return true;
 }
 
 HAL_StatusTypeDef SamM10q::read_nmea_stream() {
-    uint8_t buffer[NMEA_BUFFER_SIZE];
-    
-    if (!i2cBus) {
+    if (!initialized || !i2cBus) {
         return HAL_ERROR;
     }
+    
+    uint8_t buffer[NMEA_BUFFER_SIZE];
 
     // Usar bus I2C thread-safe en lugar de HAL directo
     I2CResult result = i2cBus->memRead(i2cAddr, 0xFF, 1, buffer, NMEA_BUFFER_SIZE, 10);
@@ -61,6 +73,9 @@ HAL_StatusTypeDef SamM10q::read_nmea_stream() {
 }
 
 HAL_StatusTypeDef SamM10q::read_gps_position() {
+    if (!initialized) {
+        return HAL_ERROR;
+    }
 	if (this->read_nmea_stream() != HAL_OK) {
 		return HAL_ERROR;
 	}
@@ -119,16 +134,16 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
 /* Configuración completa: recorre las 43 tuplas (payload + checksum) */
 void SamM10q::configure_gps() {
     uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
-    write_register_uart(m10q_data_44, m10q_data_len[0], RAM); // Configuración inicial via UART
+    write_register_uart(m10q_data_payloads[44], m10q_data_len[0], RAM); // Configuración inicial via UART
     HAL_Delay(1000);
     //uartBus->flushRxBuffer();
-    read_register_uart(m10q_data_44, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    read_register_uart(m10q_data_payloads[44], 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
     
-    write_register_uart(m10q_data_43, m10q_data_len[0], RAM); // Configuración inicial via UART
-    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    write_register_uart(m10q_data_payloads[43], m10q_data_len[0], RAM); // Configuración inicial via UART
+    read_register_uart(m10q_data_payloads[43], 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
 
-    write_register_uart(m10q_data_43, m10q_data_len[0], BBR); // Configuración inicial via I2C
-    read_register_uart(m10q_data_43, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
+    write_register_uart(m10q_data_payloads[43], m10q_data_len[0], BBR); // Configuración inicial via I2C
+    read_register_uart(m10q_data_payloads[43], 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
     
     //write_register(m10q_data_45, 5, RAM);
 

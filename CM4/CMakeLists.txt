@@ -82,7 +82,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # FreeRTOS Heap Configuration
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/heap_config.c
     # GPS Module Sources (Original)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q.cpp  
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q_KEYID.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/gps_test_wrapper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/TinyGPS++.cpp
     # GPS Module Sources (Melopero-based)

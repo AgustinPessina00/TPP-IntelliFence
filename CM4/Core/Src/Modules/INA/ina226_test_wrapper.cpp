@@ -117,16 +117,16 @@ extern "C" void ina226_comprehensive_test(void) {
         printf("[INA226] - Modo: Continuo shunt+bus\n");
         
         // Crear instancia con configuración específica para esta dirección
-        Ina226 ina226(config.address,                      // I2C address específica
-                      config.rShunt,                       // Resistencia shunt específica
-                      config.currentLSB,                   // Current LSB específico
-                      Ina226Averaging::AVG_128,           // 128 samples averaging
-                      Ina226ConvTime::CT_1_1MS,           // 1.1ms bus voltage conversion time
-                      Ina226ConvTime::CT_1_1MS,           // 1.1ms shunt voltage conversion time
-                      Ina226Mode::SHUNT_BUS_CONTINUOUS);  // Continuous shunt+bus measurement
+        Ina226 ina226;  // Default constructor - no hardware access
         
         printf("[INA226] Inicializando INA226 en 0x%02X...\n", config.address);
-        if (!ina226.initialize()) {
+        if (!ina226.init(config.address,                      // I2C address específica
+                         config.rShunt,                       // Resistencia shunt específica
+                         config.currentLSB,                   // Current LSB específico
+                         Ina226Averaging::AVG_128,           // 128 samples averaging
+                         Ina226ConvTime::CT_1_1MS,           // 1.1ms bus voltage conversion time
+                         Ina226ConvTime::CT_1_1MS,           // 1.1ms shunt voltage conversion time
+                         Ina226Mode::SHUNT_BUS_CONTINUOUS)) {  // Continuous shunt+bus measurement
             printf("[INA226] ERROR - Fallo inicializacion en 0x%02X\n", config.address);
             continue;
         }
@@ -320,13 +320,13 @@ extern "C" void ina226_configuration_test(void) {
     // Configuración 1: Alta velocidad, baja precisión
     printf("\n[INA226-CFG] === CONFIG 1: ALTA VELOCIDAD ===\n");
     {
-        Ina226 ina226_fast(0x40, 0.75f, 0.00000305f,
-                           Ina226Averaging::AVG_1,         // Sin promediado
-                           Ina226ConvTime::CT_140US,       // Conversión rápida
-                           Ina226ConvTime::CT_140US,       // Conversión rápida
-                           Ina226Mode::SHUNT_BUS_CONTINUOUS);
+        Ina226 ina226_fast;
         
-        if (ina226_fast.initialize()) {
+        if (ina226_fast.init(0x40, 0.75f, 0.00000305f,
+                             Ina226Averaging::AVG_1,         // Sin promediado
+                             Ina226ConvTime::CT_140US,       // Conversión rápida
+                             Ina226ConvTime::CT_140US,       // Conversión rápida
+                             Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
             printf("[INA226-CFG] Config alta velocidad inicializada\n");
             
             // 5 mediciones rápidas
@@ -342,13 +342,13 @@ extern "C" void ina226_configuration_test(void) {
     // Configuración 2: Alta precisión, baja velocidad  
     printf("\n[INA226-CFG] === CONFIG 2: ALTA PRECISION ===\n");
     {
-        Ina226 ina226_precise(0x40, 0.75f, 0.00000305f,
-                              Ina226Averaging::AVG_1024,      // Máximo promediado
-                              Ina226ConvTime::CT_8_244MS,     // Conversión lenta
-                              Ina226ConvTime::CT_8_244MS,     // Conversión lenta  
-                              Ina226Mode::SHUNT_BUS_CONTINUOUS);
+        Ina226 ina226_precise;
         
-        if (ina226_precise.initialize()) {
+        if (ina226_precise.init(0x40, 0.75f, 0.00000305f,
+                                Ina226Averaging::AVG_1024,      // Máximo promediado
+                                Ina226ConvTime::CT_8_244MS,     // Conversión lenta
+                                Ina226ConvTime::CT_8_244MS,     // Conversión lenta  
+                                Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
             printf("[INA226-CFG] Config alta precision inicializada\n");
             printf("[INA226-CFG] NOTA: Cada medicion toma ~17ms (8.244ms*2 + 1024 avg)\n");
             
@@ -379,13 +379,13 @@ extern "C" void ina226_continuous_monitor(void) {
         I2CManager::initializeAll();
     }
     
-    Ina226 ina226(0x40, 0.75f, 0.00000305f,
-                  Ina226Averaging::AVG_64,
-                  Ina226ConvTime::CT_1_1MS,  
-                  Ina226ConvTime::CT_1_1MS,
-                  Ina226Mode::SHUNT_BUS_CONTINUOUS);
+    Ina226 ina226;
     
-    if (!ina226.initialize()) {
+    if (!ina226.init(0x40, 0.75f, 0.00000305f,
+                     Ina226Averaging::AVG_64,
+                     Ina226ConvTime::CT_1_1MS,  
+                     Ina226ConvTime::CT_1_1MS,
+                     Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
         printf("[INA226-MONITOR] ERROR - Fallo inicializacion\n");
         return;
     }
