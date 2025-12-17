@@ -138,11 +138,11 @@ while(1) {
 void SamM10q::configure_gps() {
     uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
     
-    write_register_uart(m10q_data_44, sizeof(m10q_data_44), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
+    //write_register_uart(m10q_data_44, sizeof(m10q_data_44), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
 
-    write_register(m10q_data_45, sizeof(m10q_data_45), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
+    //write_register(m10q_data_45, sizeof(m10q_data_45), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
 
-    write_register_uart(m10q_data_44, sizeof(m10q_data_44), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
+    //write_register_uart(m10q_data_44, sizeof(m10q_data_44), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
     //write_register_uart(m10q_data_49, sizeof(m10q_data_49), RAM); // Habilito TRAMAS UBX UART via UART RAM
     
     write_register_uart(m10q_data_43, sizeof(m10q_data_43), RAM); // Habilito I2C via UART RAM
@@ -494,7 +494,7 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
         return false;
     }
 
-    HAL_Delay(1500);
+    //HAL_Delay(1500);
 
     // 2. Esperar y recibir la respuesta
     if (!receivePVT(pvtData, maxWaitMs)) {
@@ -912,7 +912,7 @@ bool SamM10q::verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen) {
     
     // Calcular checksum sobre Class + ID + Length + Payload
     uint8_t ck_a_calc, ck_b_calc;
-    ubx_calculate_checksum(&buffer[2], msgLen - 4, &ck_a_calc, &ck_b_calc);
+    ubx_calculate_checksum(buffer, msgLen - 2, &ck_a_calc, &ck_b_calc);
     
     // Comparar con el checksum recibido (últimos 2 bytes)
     uint8_t ck_a_recv = buffer[msgLen - 2];
