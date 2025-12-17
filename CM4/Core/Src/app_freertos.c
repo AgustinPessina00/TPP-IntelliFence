@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "rtos_printf.h"
 // Forward declarations para threads del sistema FreeRTOS
 extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
@@ -239,6 +240,11 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
   MessagePool_Init();  // Inicializar el pool de mensajes antes de cualquier uso
+  
+  // Inicializar sistema de printf thread-safe
+  if (rtos_printf_init() != 0) {
+    Error_Handler();  // Fallo crítico en inicialización de printf
+  }
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
