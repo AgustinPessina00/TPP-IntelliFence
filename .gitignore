@@ -6,7 +6,7 @@ BUILD/
 */build/
 */Build/
 */BUILD/
-
+*.clangd
 # STM32CubeIDE/Eclipse build directories
 Debug/
 Release/
