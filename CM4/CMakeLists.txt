@@ -67,6 +67,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Messages
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Buzzer
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Threads
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Types
 )
 
 # Add sources to executable
@@ -74,7 +75,6 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     # Embedded Message System Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/EmbeddedMessage.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/MessageExample.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/MessageTest.c
     # RTOS Printf (Thread-Safe Logging)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtos_printf.c
@@ -83,10 +83,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # GPS Module Sources (Original)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q_KEYID.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/gps_test_wrapper.cpp
-    # GPS Module Sources (Melopero-based)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q_melopero.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/gps_test_melopero_wrapper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/gps_test_wrapper.cpp
+
     # I2C Thread-Safe Sources  
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/I2C/I2CBus.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/I2C/I2CManager.cpp
@@ -105,11 +103,13 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm_example.c
     # Data Model Sources (Cow, Fence, and Zone definitions)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/fence.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/cow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/fence.cpp
     # Test Sources (Validation and Unit Tests)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/cow_fence_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/fence_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/cow_fence_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/fence_test.cpp
+    # Helper Functions
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/getZone.cpp
     # Thread Sources (FreeRTOS Tasks)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/dispatcherTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp

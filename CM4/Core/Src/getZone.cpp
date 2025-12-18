@@ -1,9 +1,5 @@
 #include "getZone.h"
-#include "threads/distanceTask.h"
 #include "math.h"
-
-extern osMessageQueueId_t distanceToLimitQueueHandle;
-extern osMessageQueueId_t dispatcherQueueHandle;
 
 zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistance) {
 

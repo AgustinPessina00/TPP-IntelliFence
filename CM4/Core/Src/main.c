@@ -164,11 +164,7 @@ void run_comprehensive_module_tests(void) {
 
     gps_init_and_test();
     
-    printf("INFO - Testing Melopero GPS implementation...\n");
-    gps_melopero_test();
-    
     printf("SUCCESS - GPS module test completed\n");
-    printf("INFO - Dual GPS implementation validated\n\n");
     
     // ===== TEST 5: COW & FENCE DATA MODEL =====
     printf(">>> TEST 5: COW & FENCE DATA MODEL <<<\n");
