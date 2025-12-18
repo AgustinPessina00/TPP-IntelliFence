@@ -285,12 +285,12 @@ int main(void)
   //run_comprehensive_module_tests();
 
   /* Start scheduler */
-  //osKernelStart();
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Boot CPU2 */
   //HAL_PWREx_ReleaseCore(PWR_CORE_CPU2);
-  gps_init_and_test();
+  //gps_init_and_test();
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
