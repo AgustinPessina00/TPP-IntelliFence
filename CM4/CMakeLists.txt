@@ -60,7 +60,6 @@ set(CMAKE_CXX_EXTENSIONS ON)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/GPS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/GPS/TinyGPSPlus
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/I2C
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/UART
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/INA
@@ -85,7 +84,6 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q_KEYID.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/gps_test_wrapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/TinyGPS++.cpp
     # GPS Module Sources (Melopero-based)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q_melopero.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/gps_test_melopero_wrapper.cpp

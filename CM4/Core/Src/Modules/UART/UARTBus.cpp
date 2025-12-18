@@ -305,10 +305,12 @@ UARTResult UARTBus::writeRead(uint16_t deviceAddr,
     return result;
 }
 
-UARTResult UARTBus::transmit(uint16_t deviceAddr,
-                            const uint8_t* pData,
-                            uint16_t size,
-                            uint32_t timeout) {
+/**
+ * @brief Transmite datos por UART de forma thread-safe
+ */
+
+
+UARTResult UARTBus::transmit(const uint8_t* pData, uint16_t size, uint32_t timeout) {
     
     if (!initialized || huart == nullptr || pData == nullptr) {
         return UART_ERROR;

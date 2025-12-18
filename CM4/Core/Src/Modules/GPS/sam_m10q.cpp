@@ -5,6 +5,7 @@
 #include "I2CManager.h"
 #include "../../Modules/UART/UARTManager.h"
 #include <stdio.h>
+#include <cstring>
 
 /* Private includes ----------------------------------------------------------*/
 void BusyDelayMs(uint32_t ms);
@@ -50,126 +51,198 @@ bool SamM10q::init(uint8_t i2cAddr) {
     return true;
 }
 
-HAL_StatusTypeDef SamM10q::read_nmea_stream() {
-    if (!initialized || !i2cBus) {
-        return HAL_ERROR;
-    }
-    
-    uint8_t buffer[NMEA_BUFFER_SIZE];
-
-    // Usar bus I2C thread-safe en lugar de HAL directo
-    I2CResult result = i2cBus->memRead(i2cAddr, 0xFF, 1, buffer, NMEA_BUFFER_SIZE, 10);
-    
-    if (result != I2C_OK) {
-        // Podés agregar manejo de error acá si querés
-        return HAL_ERROR;
-    }
-
-    for (uint8_t i = 0; i < NMEA_BUFFER_SIZE; ++i) {
-        trackerGPS.encode(buffer[i]); // Podemos hacer también (*gps).encode(buffer[i])
-    }
-
-    return HAL_OK;
-}
-
-HAL_StatusTypeDef SamM10q::read_gps_position() {
-    if (!initialized) {
-        return HAL_ERROR;
-    }
-	if (this->read_nmea_stream() != HAL_OK) {
-		return HAL_ERROR;
-	}
-	this->update_location_and_time();
-	return HAL_OK;
-}
-
-void SamM10q::update_location_and_time() {
-    if (trackerGPS.location.isUpdated() && trackerGPS.location.isValid()) {
-        latitude = trackerGPS.location.lat();
-        longitude = trackerGPS.location.lng();
-    }
-
-
-    if (trackerGPS.date.isUpdated() && trackerGPS.date.isValid()) {
-        uint16_t year = trackerGPS.date.year();   // Ej: 2025
-        uint8_t month = trackerGPS.date.month();  // Ej: 6
-        uint8_t day   = trackerGPS.date.day();    // Ej: 12
-
-        fechaUTC = (year % 100) * 10000 + month * 100 + day; // yymmdd
-    }
-
-    if (trackerGPS.time.isUpdated() && trackerGPS.time.isValid()) {
-        uint8_t hour = trackerGPS.time.hour();
-        uint8_t minute = trackerGPS.time.minute();
-        uint8_t second = trackerGPS.time.second();
-        horaUTC = hour * 10000 + minute * 100 + second; // hhmmss como entero
-    }
-}
-
 bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
+    if (gpsRate > gpsRateSpeed::FAST) {
+        return false;
+    }
+
     const size_t idx = static_cast<size_t>(gpsRate);
 
-    // Tablas definidas en sam_m10q_KEYID.h (punteros + len)
+    // Obtener payload desde la tabla en sam_m10q_KEYID.h
     const uint8_t* payload = m10q_new_acq_time[idx];
-    size_t payloadlen = m10q_new_acq_time_len[idx];
+    const size_t payloadLen = 5; // Todos los payloads de acq_time son de 5 bytes
 
-    // Nota: en el header original m10q_new_adq_time_checksum tenía los mismos 5 bytes.
-    // Respetamos ese "checksum" 1:1 para no romper nada.
-    const uint8_t* checksum = m10q_new_acq_ck[idx];
-    size_t checksumlen = m10q_new_acq_ck_len[idx];
-
-    // Usar arrays estáticos en lugar de std::vector
+    // Usar arrays estáticos para evitar allocación dinámica
     uint8_t sendMsgRAM[UBX_MAX_MESSAGE_SIZE];
     uint8_t sendMsgBBR[UBX_MAX_MESSAGE_SIZE];
     
-    uint16_t lenRAM = build_ubx_message(VALSET_CLASS, VALSET_ID, RAM, payload, payloadlen, checksum, checksumlen, sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
-    uint16_t lenBBR = build_ubx_message(VALSET_CLASS, VALSET_ID, BBR, payload, payloadlen, checksum, checksumlen, sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
+    // Construir mensajes UBX-CFG-VALSET para RAM y BBR
+    uint16_t lenRAM = build_ubx_message(VALSET_CLASS, VALSET_ID, RAM, 
+                                        payload, payloadLen, 
+                                        sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
+    uint16_t lenBBR = build_ubx_message(VALSET_CLASS, VALSET_ID, BBR, 
+                                        payload, payloadLen, 
+                                        sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
 
-	const bool okRAM = (lenRAM > 0) && (send_message(sendMsgRAM, lenRAM, 15) == HAL_OK);
+    // Enviar a RAM (temporal) y BBR (batería respaldada)
+    const bool okRAM = (lenRAM > 0) && (send_message(sendMsgRAM, lenRAM, 15) == HAL_OK);
     const bool okBBR = (lenBBR > 0) && (send_message(sendMsgBBR, lenBBR, 15) == HAL_OK);
 
     return okRAM && okBBR;
 }
 
-/* Configuración completa: recorre las 43 tuplas (payload + checksum) */
+
+void SamM10q::testGPS() {
+    //printf("[TEST GPS] Iniciando test de GPS...\n");
+
+    if (!this->update_location_and_time()) {
+        //printf("[TEST GPS] Fallo al leer NMEA\n");
+        return;
+    } else {
+		//printf("[TEST GPS] Posición válida: %.6f, %.6f\n", this->latitude, this->longitude);
+    }
+}
+
+HAL_StatusTypeDef SamM10q::read_gps_position() {
+    // Intentar obtener datos PVT del GPS
+    if (update_location_and_time()) {
+        return HAL_OK;
+    } else {
+        return HAL_ERROR;
+    }
+}
+
+/**
+ * @brief Actualiza los atributos de ubicación y tiempo de la clase
+ * @details Obtiene datos PVT del GPS y actualiza latitude, longitude, fechaUTC y horaUTC
+ * @return true si se obtuvieron datos válidos, false en caso contrario
+ */
+bool SamM10q::update_location_and_time() {
+    UBX_NAV_PVT_data_t pvtData;
+    
+    // Obtener datos PVT del GPS con timeout de 2 segundos
+    if (getPVT(&pvtData, 2000)) {
+        // Actualizar latitud y longitud (convertir de deg*1e-7 a grados decimales)
+        latitude = pvtData.lat * 1e-7;
+        longitude = pvtData.lon * 1e-7;
+        
+        // Actualizar fecha UTC en formato YYMMDD
+        fechaUTC = (pvtData.year % 100) * 10000 + 
+                   pvtData.month * 100 + 
+                   pvtData.day;
+        
+        // Actualizar hora UTC en formato HHMMSS
+        horaUTC = pvtData.hour * 10000 + 
+                  pvtData.min * 100 + 
+                  pvtData.sec;
+        
+        return true;
+    }
+    
+    // Si falla, mantener valores anteriores (no los sobrescribimos con 0)
+    // Esto evita perder la última posición válida en caso de pérdida temporal de señal
+    return false;
+}
+
+/*EJEMPLO DE USO.
+// En un task FreeRTOS:
+while(1) {
+    gps.update_location_and_time();
+    
+    printf("Lat: %.7f°, Lon: %.7f°\n", gps.latitude, gps.longitude);
+    printf("Fecha: %06lu, Hora: %06lu UTC\n", gps.fechaUTC, gps.horaUTC);
+    
+    osDelay(5000); // Actualizar cada 5 segundos
+}
+*/
+
+/* =========================================================== */
+/* ========== CONFIGURACION INICIAL DEL GPS VIA I2C ========== */
+/* =========================================================== */
 void SamM10q::configure_gps() {
     uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
-    write_register_uart(m10q_data_payloads[44], m10q_data_len[0], RAM); // Configuración inicial via UART
-    HAL_Delay(1000);
-    //uartBus->flushRxBuffer();
-    read_register_uart(m10q_data_payloads[44], 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
-    
-    write_register_uart(m10q_data_payloads[43], m10q_data_len[0], RAM); // Configuración inicial via UART
-    read_register_uart(m10q_data_payloads[43], 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM);
+    //write_register_uart(m10q_data_payloads[44], sizeof(m10q_data_payloads[44]), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
 
-    write_register_uart(m10q_data_payloads[43], m10q_data_len[0], BBR); // Configuración inicial via I2C
-    read_register_uart(m10q_data_payloads[43], 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR);
+    //write_register(m10q_data_payloads[45], sizeof(m10q_data_payloads[45]), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
+
+    //write_register_uart(m10q_data_payloads[44], sizeof(m10q_data_payloads[44]), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
+    //write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), RAM); // Habilito TRAMAS UBX UART via UART RAM
     
+    write_register_uart(m10q_data_payloads[43], sizeof(m10q_data_payloads[43]), RAM); // Habilito I2C via UART RAM
+    write_register_uart(m10q_data_payloads[43], sizeof(m10q_data_payloads[43]), BBR); // Habilito I2C via UART BBR
+    
+
+
     //write_register(m10q_data_45, 5, RAM);
 
+    write_register_uart(m10q_data_payloads[47], sizeof(m10q_data_payloads[47]), RAM); // Habilita CFG-I2COUTPROT-UBX via uart
+    write_register_uart(m10q_data_payloads[47], sizeof(m10q_data_payloads[47]), BBR);
+    
+    write_register_uart(m10q_data_payloads[48], sizeof(m10q_data_payloads[48]), RAM); // Habilita UBX_NAV_PVT_I2C via uart
+    write_register_uart(m10q_data_payloads[48], sizeof(m10q_data_payloads[48]), BBR);
+
+    write_register_uart(m10q_data_payloads[46], sizeof(m10q_data_payloads[46]), RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
+    write_register_uart(m10q_data_payloads[46], sizeof(m10q_data_payloads[46]), BBR);
+
+    write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
+    write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), BBR);
+
+    // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
+    //     const uint8_t* payload = m10q_data_payloads[i];
+    //     size_t payload_len = sizeof(m10q_data_payloads[i]);
+        
+    //     // Escribir en RAM
+    //     if (!write_register(payload, payload_len, RAM)) {
+    //         // Si falla la escritura en RAM, reintentar
+    //         i--;
+    //         continue;
+    //     }
+        
+    //     // Verificar escritura en RAM leyendo el registro
+    //     if (payload_len >= UBX_KEYID_SIZE) {
+    //         if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
+    //             // Si falla la lectura de verificación, reintentar
+    //             i--;
+    //             continue;
+    //         }
+    //     }
+        
+    //     // Escribir en BBR (persistente)
+    //     if (!write_register(payload, payload_len, BBR)) {
+    //         // Si falla la escritura en BBR, reintentar
+    //         i--;
+    //         continue;
+    //     }
+        
+    //     // Verificar escritura en BBR
+    //     if (payload_len >= UBX_KEYID_SIZE) {
+    //         if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
+    //             // Si falla la lectura de verificación, reintentar
+    //             i--;
+    //             continue;
+    //         }
+    //     }
+    // }
+}
+
+/* ============================================================ */
+/* ========== CONFIGURACION INICIAL DEL GPS VIA UART ========== */
+/* ============================================================ */
+void SamM10q::configure_gps_uart() {
+    uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
+    
     for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
         const uint8_t* payload = m10q_data_payloads[i];
-        size_t payloadlen = m10q_data_len[i];
+        size_t payloadlen = sizeof(m10q_data_payloads[i]);
         
-        // Escribir en RAM
-        if (!write_register(payload, payloadlen, RAM)) {
+        // Escribir en RAM via UART
+        if (!write_register_uart(payload, payloadlen, RAM)) {
             // Si falla la escritura en RAM, reintentar
             i--;
             continue;
         }
         
         // Verificar escritura en RAM leyendo el registro
-        // Las primeras 4 bytes del payload son la KEY
         if (payloadlen >= 4) {
-            if (!read_register(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
+            if (!read_register_uart(payload, payloadlen, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
                 // Si falla la lectura de verificación, reintentar
                 i--;
                 continue;
             }
         }
         
-        // Escribir en BBR (persistente)
-        if (!write_register(payload, payloadlen, BBR)) {
+        // Escribir en BBR (persistente) via UART
+        if (!write_register_uart(payload, payloadlen, BBR)) {
             // Si falla la escritura en BBR, reintentar
             i--;
             continue;
@@ -177,7 +250,7 @@ void SamM10q::configure_gps() {
         
         // Verificar escritura en BBR
         if (payloadlen >= 4) {
-            if (!read_register(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
+            if (!read_register_uart(payload, payloadlen, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
                 // Si falla la lectura de verificación, reintentar
                 i--;
                 continue;
@@ -186,9 +259,10 @@ void SamM10q::configure_gps() {
     }
 }
 
-
-/* Arma el frame UBX-VALSET usando array estático (embedded friendly) */
-uint16_t SamM10q::build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* keyId, size_t keyLen, const uint8_t* value, size_t valueLen, uint8_t* buffer, uint16_t buffer_size) {
+/* ================================================================================= */
+/* ========== ARMA EL FRAME UBX-VALSET / UBX-VALGET USANDO ARRAY ESTÁTICO ========== */
+/* ================================================================================= */
+uint16_t SamM10q::build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* payload_data, size_t payload_len, uint8_t* buffer, uint16_t buffer_size) {
     if (!buffer || buffer_size < UBX_MAX_MESSAGE_SIZE) {
         return 0;  // Buffer inválido
     }
@@ -204,7 +278,7 @@ uint16_t SamM10q::build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t lay
     buffer[idx++] = msgID;
 
     // 3. Payload length = 4 (version, layer, reserved) + payload size
-    uint16_t payloadLength = static_cast<uint16_t>(4 + keyLen + valueLen);
+    uint16_t payloadLength = static_cast<uint16_t>(4 + payload_len);
     buffer[idx++] = static_cast<uint8_t>(payloadLength & 0xFF);			// Little endian LSB
     buffer[idx++] = static_cast<uint8_t>((payloadLength >> 8) & 0xFF);	// Little endian MSB
 
@@ -212,51 +286,28 @@ uint16_t SamM10q::build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t lay
     buffer[idx++] = version; // 0x00
     buffer[idx++] = layer;   // RAM o BBR
 
-    // Reserved (2 bytes)
+    // 5. Reserved (2 bytes)
     buffer[idx++] = static_cast<uint8_t>(reserved & 0xFF);			// LSB
     buffer[idx++] = static_cast<uint8_t>((reserved >> 8) & 0xFF);	// MSB
 
-    // 5. Append the actual payload (KEY + VALUEs)
-    if (keyLen > 0 && keyId != nullptr) {
-        for (size_t i = 0; i < keyLen; i++) {
-            if (idx >= buffer_size) return 0;  // Buffer overflow protection
-            buffer[idx++] = keyId[i];
-        }
+    // 6. Append the actual Key Id (first 4 bytes)
+    for (size_t i = 0; i < UBX_KEYID_SIZE; i++) {
+        buffer[idx++] = payload_data[i];
     }
 
-    if (msgID == VALSET_ID && valueLen > 0 && value != nullptr) {
-        for (size_t i = 0; i < valueLen; i++) {
-            if (idx >= buffer_size) return 0;  // Buffer overflow protection
-            buffer[idx++] = value[i];
-        }
+    // 7. Append the actual Value if I use VALSET (remaining bytes)
+    if(msgID == VALSET_ID) {
+        for(size_t i = UBX_KEYID_SIZE; i < payload_len; i++)
+        buffer[idx++] = payload_data[i];
     }
 
-    //calcular el checksum UBX
+    // 8. Calcular el checksum UBX
     uint8_t ck_a = 0, ck_b = 0;
     ubx_calculate_checksum(buffer, idx, &ck_a, &ck_b);
     buffer[idx++] = ck_a;
     buffer[idx++] = ck_b;
 
 	return idx;  // Retorna la longitud total del mensaje
-}
-
-HAL_StatusTypeDef SamM10q::send_message(const uint8_t* message, uint16_t message_length, uint32_t delay_ms) {
-    if (!i2cBus || !message || message_length == 0) {
-        return HAL_ERROR;
-    }
-
-    // Usar método transmit thread-safe del I2CBus para envío directo sin registros
-    I2CResult result = i2cBus->memWrite(i2cAddr, 0xFF, 1, message, message_length, 100);
-    
-    // Delay para que el módulo procese
-    BusyDelayMs(delay_ms);
-
-    return (result == I2C_OK) ? HAL_OK : HAL_ERROR;
-}
-
-void BusyDelayMs(uint32_t ms) {
-    // Usar HAL_Delay que ahora funciona correctamente con TIM2 timebase
-    HAL_Delay(ms);
 }
 
 void SamM10q::ubx_calculate_checksum(const uint8_t* msg, uint16_t length, uint8_t* ck_a, uint8_t* ck_b) {
@@ -293,69 +344,49 @@ void SamM10q::ubx_calculate_checksum(const uint8_t* msg, uint16_t length, uint8_
     }
 }
 
-void SamM10q::testGPS() {
-    //printf("[TEST GPS] Iniciando test de GPS...\n");
-
-    if (this->read_gps_position() != HAL_OK) {
-        //printf("[TEST GPS] Fallo al leer NMEA\n");
-        return;
-    } else {
-		//printf("[TEST GPS] Posición válida: %.6f, %.6f\n", this->latitude, this->longitude);
-    }
+void BusyDelayMs(uint32_t ms) {
+    // Usar HAL_Delay que ahora funciona correctamente con TIM2 timebase
+    HAL_Delay(ms);
 }
 
-/* Escritura de registro usando UBX-CFG-VALSET */
-bool SamM10q::write_register(const uint8_t* key_value_data, size_t data_len, uint8_t layer) {
-    if (!key_value_data || data_len < 4) {
+/* =================================================================================== */
+/* ========== FUNCIONES I2C PARA CONFIGURACIÓN INICIAL LUEGO DE HABILITARLO ========== */
+/* =================================================================================== */
+
+/* Escritura de registro usando UBX-CFG-VALSET mediante I2C */
+bool SamM10q::write_register(const uint8_t* payload_data, size_t payload_len, uint8_t layer) {
+    if (!payload_data || payload_len < UBX_KEYID_SIZE) {
         return false;
     }
+
+    uint8_t message[UBX_MAX_MESSAGE_SIZE];
+
+    // Construir mensaje VALSET con Checksum incluido..
+    uint16_t msg_len = build_ubx_message(VALSET_CLASS, VALSET_ID, layer, payload_data, payload_len, message, UBX_MAX_MESSAGE_SIZE);
     
-    uint8_t keyId[4];
-    for (size_t i = 0; i < 4; i++) {
-        keyId[i] = key_value_data[i];
-    }
-
-    uint8_t value[UBX_MAX_MESSAGE_SIZE];
-    for (size_t i = 0; i < data_len - 4; i++) {
-        value[i] = key_value_data[i + 4];
-    }
-    size_t value_len = data_len - 4;
-
-    uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
-
-    // Construir mensaje VALSET sin checksum
-    uint16_t msg_len = build_ubx_message(VALSET_CLASS, VALSET_ID, layer, keyId, 4, value, value_len, buffer, UBX_MAX_MESSAGE_SIZE);
-    
-    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
         return false;
     }
 
     // Enviar mensaje
-    return send_message(buffer, msg_len, 15) == HAL_OK;
+    return send_message(message, msg_len, 15) == HAL_OK;
 }
 
-/* Lectura de registro usando UBX-CFG-VALGET */
-bool SamM10q::read_register(const uint8_t* key_data, size_t len_key_data, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
-    if (!key_data || len_key_data == 0 || !response_buffer || buffer_size == 0) {
+/* Lectura de configuración de KeyID usando UBX-CFG-VALGET mediante I2C*/
+bool SamM10q::read_configuration(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
+    if (!payload_data || payload_len == 0 || (*response_buffer == 0xFF) || buffer_size == 0) {
         return false;
     }
-
-    uint8_t keyId[4];
-    for (size_t i = 0; i < 4; i++) {
-        keyId[i] = key_data[i];
-    }
-
 
     uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
 
-    // Construir mensaje VALGET sin checksum (las keys son el payload)
-    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, keyId, 4, nullptr, 0, buffer, UBX_MAX_MESSAGE_SIZE);
+    // Construir mensaje VALGET incluido checksum
+    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, payload_data, payload_len, buffer, UBX_MAX_MESSAGE_SIZE);
     
-    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
         return false;
     }
-    uint8_t response_buffer_1[UBX_MAX_MESSAGE_SIZE];
-    uint8_t response_buffer_2[UBX_MAX_MESSAGE_SIZE];
+
     // Enviar mensaje de petición
     if (send_message(buffer, msg_len, 15) != HAL_OK) {
         return false;
@@ -369,52 +400,43 @@ bool SamM10q::read_register(const uint8_t* key_data, size_t len_key_data, uint8_
     }
 
     // Usar bus I2C thread-safe para leer la respuesta
-    I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, 1, response_buffer_1, 1, 100);
-    I2CResult result1 = i2cBus->memRead(i2cAddr, 0xFE, 1, response_buffer_2, 1, 100);
-    I2CResult result2 = i2cBus->memRead(i2cAddr, 0xFF, 1, response_buffer, (response_buffer_1[0] << 8) | response_buffer_2[0], 100);
-    return (result == I2C_OK) && (result1 == I2C_OK) && (result2 == I2C_OK);
+    I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, 1, response_buffer, 1, 100);
+
+    //TODO PESSI: Acá faltaría leer el 0xFE y luego sabiendo la cantidad de bytes para leer, leer el resto de la respuesta desde 0xFF en adelante.
+
+    return (result == I2C_OK);
 }
 
-/* ========== FUNCIONES UART PARA CONFIGURACIÓN INICIAL ========== */
-
-HAL_StatusTypeDef SamM10q::send_message_uart(const uint8_t* message, uint16_t message_length, uint32_t delay_ms) {
-    if (!uartBus || !message || message_length == 0) {
+HAL_StatusTypeDef SamM10q::send_message(const uint8_t* message, uint16_t message_length, uint32_t delay_ms) {
+    if (!i2cBus || !message || message_length == 0) {
         return HAL_ERROR;
     }
 
-    // Usar método transmit thread-safe del UARTBus
-    // deviceAddr = 0 para UART puro (sin addressing)
-    UARTResult result = uartBus->transmit(0, message, message_length, 100);
+    // Usar método transmit thread-safe del I2CBus para envío directo sin registros
+    I2CResult result = i2cBus->memWrite(i2cAddr, 0xFF, 1, message, message_length, 100);
     
     // Delay para que el módulo procese
     BusyDelayMs(delay_ms);
 
-    return (result == UART_OK) ? HAL_OK : HAL_ERROR;
+    return (result == I2C_OK) ? HAL_OK : HAL_ERROR;
 }
 
+/* =============================================================== */
+/* ========== FUNCIONES UART PARA CONFIGURACIÓN INICIAL ========== */
+/* =============================================================== */
+
 /* Escritura de registro usando UBX-CFG-VALSET via UART */
-bool SamM10q::write_register_uart(const uint8_t* key_value_data, size_t data_len, uint8_t layer) {
-    if (!key_value_data || data_len == 0) {
+bool SamM10q::write_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer) {
+    if (!payload_data || payload_len == 0) {
         return false;
     }
 
-    uint8_t keyId[4];
-    for (size_t i = 0; i < 4; i++) {
-        keyId[i] = key_value_data[i];
-    }
-
-    uint8_t value[UBX_MAX_MESSAGE_SIZE];
-    for (size_t i = 0; i < data_len - 4; i++) {
-        value[i] = key_value_data[i + 4];
-    }
-    size_t value_len = data_len - 4;
-
     uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
 
-    // Construir mensaje VALSET sin checksum
-    uint16_t msg_len = build_ubx_message(VALSET_CLASS, VALSET_ID, layer, keyId, 4, value, value_len, buffer, UBX_MAX_MESSAGE_SIZE);
+    // Construir mensaje VALSET con checksum incluido.
+    uint16_t msg_len = build_ubx_message(VALSET_CLASS, VALSET_ID, layer, payload_data, payload_len, buffer, UBX_MAX_MESSAGE_SIZE);
     
-    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
         return false;
     }
     
@@ -422,23 +444,17 @@ bool SamM10q::write_register_uart(const uint8_t* key_value_data, size_t data_len
     return send_message_uart(buffer, msg_len, 15) == HAL_OK;
 }
 
-/* Lectura de registro usando UBX-CFG-VALGET via UART */
-bool SamM10q::read_register_uart(const uint8_t* key_data, size_t len_key_data, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
-    if (!key_data || len_key_data == 0 || !response_buffer || buffer_size == 0) {
+/* Lectura de configuración de un KeyID usando UBX-CFG-VALGET via UART */
+bool SamM10q::read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
+    if (!payload_data || payload_len == 0 || !response_buffer || buffer_size == 0) {
         return false;
     }
-
-    uint8_t keyId[4];
-    for (size_t i = 0; i < 4; i++) {
-        keyId[i] = key_data[i];
-    }
-
     uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
 
     // Construir mensaje VALGET sin checksum (las keys son el payload)
-    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, keyId, 4, nullptr, 0, buffer, UBX_MAX_MESSAGE_SIZE);
+    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, payload_data, payload_len, buffer, UBX_MAX_MESSAGE_SIZE);
     
-    if (msg_len == 0 || msg_len + 2 > UBX_MAX_MESSAGE_SIZE) {
+    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
         return false;
     }
 
@@ -463,45 +479,466 @@ bool SamM10q::read_register_uart(const uint8_t* key_data, size_t len_key_data, u
     return (result == UART_OK && bytesReceived > 0);
 }
 
-/* Configuración inicial del GPS via UART */
-void SamM10q::configure_gps_uart() {
-    uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
+HAL_StatusTypeDef SamM10q::send_message_uart(const uint8_t* message, uint16_t message_length, uint32_t delay_ms) {
+    if (!uartBus || !message || message_length == 0) {
+        return HAL_ERROR;
+    }
+
+    // Usar método transmit thread-safe del UARTBus
+    UARTResult result = uartBus->transmit(message, message_length, 100);
     
-    for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
-        const uint8_t* payload = m10q_data_payloads[i];
-        size_t payloadlen = m10q_data_len[i];
+    // Delay para que el módulo procese
+    BusyDelayMs(delay_ms);
+
+    return (result == UART_OK) ? HAL_OK : HAL_ERROR;
+}
+
+/* =========================================================== */
+/* ============== FUNCIONES PARA OBTENER PVT ================= */
+/* =========================================================== */
+
+/**
+ * @brief Función principal para obtener datos PVT (Position, Velocity, Time)
+ * @param pvtData Puntero a estructura donde se almacenarán los datos
+ * @param maxWaitMs Tiempo máximo de espera en milisegundos (default: 1000ms)
+ * @return true si se obtuvieron datos válidos, false en caso contrario
+ */
+bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
+    if (pvtData == nullptr) {
+        return false;
+    }
+
+    // Limpiar la estructura antes de usarla
+    memset(pvtData, 0, sizeof(UBX_NAV_PVT_data_t));
+
+    // 1. Solicitar mensaje PVT al GPS
+    if (!requestPVT()) {
+        return false;
+    }
+
+    //HAL_Delay(1500);
+
+    // 2. Esperar y recibir la respuesta
+    if (!receivePVT(pvtData, maxWaitMs)) {
+        return false;
+    }
+
+    // 3. Verificar que tenemos un fix válido
+    // fixType: 0=no fix, 2=2D fix, 3=3D fix
+    if (pvtData->fixType < 2) {
+        return false; // No hay fix válido
+    }
+
+    return true;
+}
+
+/**
+ * @brief Solicita datos PVT al módulo GPS (polling message)
+ * @return true si el mensaje se envió correctamente
+ */
+bool SamM10q::requestPVT() {
+    uint8_t message[8]; // Header(2) + Class(1) + ID(1) + Length(2) + Checksum(2)
+    
+    // Construir mensaje UBX-NAV-PVT (sin payload, es un polling message)
+    message[0] = UBX_HEADER1;  // 0xB5
+    message[1] = UBX_HEADER2;  // 0x62
+    message[2] = NAV_CLASS;    // 0x01
+    message[3] = PVT_ID;       // 0x07
+    message[4] = 0x00;         // Length LSB (0 bytes de payload)
+    message[5] = 0x00;         // Length MSB
+    
+    // Calcular checksum sobre el mensaje completo (sin checksum final)
+    uint8_t ck_a, ck_b;
+    ubx_calculate_checksum(message, 6, &ck_a, &ck_b);
+    message[6] = ck_a;
+    message[7] = ck_b;
+    
+    // Enviar mensaje por I2C
+    HAL_StatusTypeDef status = send_message(message, 8, 10);
+    
+    return (status == HAL_OK);
+}
+
+/**
+ * @brief Recibe y parsea la respuesta PVT del GPS
+ * @param pvtData Puntero a estructura donde se almacenarán los datos
+ * @param maxWaitMs Tiempo máximo de espera en milisegundos
+ * @return true si se recibió y parseó correctamente
+ */
+bool SamM10q::receivePVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
+    // El mensaje UBX-NAV-PVT completo tiene:
+    // Header(2) + Class(1) + ID(1) + Length(2) + Payload(92) + Checksum(2) = 100 bytes
+    const uint16_t PVT_MESSAGE_SIZE = 100;
+    uint8_t buffer[PVT_MESSAGE_SIZE];
+    
+    uint32_t startTime = HAL_GetTick();
+    uint16_t bytesRead = 0;
+    
+    // Polling: intentar leer hasta que lleguen datos o timeout
+    while ((HAL_GetTick() - startTime) < maxWaitMs) {
+        // Leer 2 bytes para verificar disponibilidad de datos
+        uint8_t bytesAvailable[2] = {10, 10};
+        I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, I2C_MEMADD_SIZE_8BIT, bytesAvailable, 2, 100);
         
-        // Escribir en RAM via UART
-        if (!write_register_uart(payload, payloadlen, RAM)) {
-            // Si falla la escritura en RAM, reintentar
-            i--;
+        if (result != I2C_OK) {
+            BusyDelayMs(10);
             continue;
         }
         
-        // Verificar escritura en RAM leyendo el registro
-        // Las primeras 4 bytes del payload son la KEY
-        if (payloadlen >= 4) {
-            if (!read_register_uart(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
-                // Si falla la lectura de verificación, reintentar
-                i--;
-                continue;
+        // Los bytes disponibles están en formato little-endian
+        uint16_t available = (bytesAvailable[1] << 8) | bytesAvailable[0];
+        available &= 0x7FFF; // Limpiar bit 15 (bug conocido del firmware GPS)
+        
+        // Si hay suficientes bytes disponibles, leer el mensaje completo en chunks de 64 Bytes.
+        if (available >= PVT_MESSAGE_SIZE) {
+            const uint8_t CHUNK_SIZE = 128;
+            uint16_t totalRead = 0;
+            bool readSuccess = true;
+            
+            while (totalRead < PVT_MESSAGE_SIZE) {
+                uint8_t toRead = (PVT_MESSAGE_SIZE - totalRead) > CHUNK_SIZE ? CHUNK_SIZE : (PVT_MESSAGE_SIZE - totalRead);
+                result = i2cBus->memRead(i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, &buffer[totalRead], toRead, 100);
+                
+                if (result != I2C_OK) {
+                    readSuccess = false;
+                    break;
+                }
+                totalRead += toRead;
+            }
+            
+            if (readSuccess) {
+                bytesRead = PVT_MESSAGE_SIZE;
+                break;
             }
         }
         
-        // Escribir en BBR (persistente) via UART
-        if (!write_register_uart(payload, payloadlen, BBR)) {
-            // Si falla la escritura en BBR, reintentar
-            i--;
+        BusyDelayMs(1); // Esperar 1ms antes de reintentar (optimizado)
+    }
+    
+    if (bytesRead == 0) {
+        return false; // Timeout sin recibir datos
+    }
+    
+    // Parsear el mensaje recibido
+    return parseUBXMessage(buffer, bytesRead, pvtData);
+}
+
+/**
+ * @brief Recibe y parsea la respuesta PVT del GPS usando máquina de estados
+ * @param pvtData Puntero a estructura donde se almacenarán los datos
+ * @param maxWaitMs Tiempo máximo de espera en milisegundos
+ * @return true si se recibió y parseó correctamente
+ */
+bool SamM10q::receivePVTValidateOption(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
+    // Estados de la máquina de estados para parseo UBX
+    enum ParseState {
+        WAITING_SYNC1,      // Esperando 0xB5
+        WAITING_SYNC2,      // Esperando 0x62
+        READING_CLASS,      // Leyendo Class
+        READING_ID,         // Leyendo ID
+        READING_LENGTH_LSB, // Leyendo Length LSB
+        READING_LENGTH_MSB, // Leyendo Length MSB
+        READING_PAYLOAD,    // Leyendo Payload
+        READING_CHECKSUM_A, // Leyendo CK_A
+        READING_CHECKSUM_B  // Leyendo CK_B
+    };
+    
+    const uint16_t PVT_MESSAGE_SIZE = 100;
+    uint8_t buffer[PVT_MESSAGE_SIZE];
+    
+    ParseState state = WAITING_SYNC1;
+    uint16_t bufferIndex = 0;
+    uint16_t payloadLength = 0;
+    uint16_t payloadBytesRead = 0;
+    
+    uint32_t startTime = HAL_GetTick();
+    uint32_t lastCheck = HAL_GetTick();
+    const uint32_t pollingWait = 100; // 100ms entre checks (apropiado para GPS @ 1Hz)
+    
+    // Polling con máquina de estados: procesar byte por byte
+    while ((HAL_GetTick() - startTime) < maxWaitMs) {
+        // Limitar frecuencia de polling según configuración GPS
+        if ((HAL_GetTick() - lastCheck) < pollingWait) {
+            BusyDelayMs(10); // Pequeño delay para no saturar el bus
+            continue;
+        }
+        lastCheck = HAL_GetTick();
+        
+        // Verificar disponibilidad de datos
+        uint8_t bytesAvailable[2];
+        I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, I2C_MEMADD_SIZE_8BIT, bytesAvailable, 2, 100);
+        
+        if (result != I2C_OK) {
             continue;
         }
         
-        // Verificar escritura en BBR
-        if (payloadlen >= 4) {
-            if (!read_register_uart(payload, 4, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
-                // Si falla la lectura de verificación, reintentar
-                i--;
-                continue;
+        uint16_t available = (bytesAvailable[1] << 8) | bytesAvailable[0];
+        available &= 0x7FFF; // Limpiar bit 15 (bug conocido del firmware GPS)
+        
+        if (available == 0) {
+            continue;
+        }
+        
+        // Leer bytes disponibles (máximo 64 por iteración según límite del buffer I2C)
+        uint8_t readSize = (available > 64) ? 64 : available;
+        uint8_t tempBuffer[64];
+        result = i2cBus->memRead(i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, tempBuffer, readSize, 100);
+        
+        if (result != I2C_OK) {
+            continue;
+        }
+        
+        // Procesar cada byte con la máquina de estados
+        for (uint16_t i = 0; i < readSize; i++) {
+            uint8_t byte = tempBuffer[i];
+            
+            switch (state) {
+                case WAITING_SYNC1:
+                    if (byte == UBX_HEADER1) {
+                        buffer[0] = byte;
+                        bufferIndex = 1;
+                        state = WAITING_SYNC2;
+                    }
+                    break;
+                    
+                case WAITING_SYNC2:
+                    if (byte == UBX_HEADER2) {
+                        buffer[bufferIndex++] = byte;
+                        state = READING_CLASS;
+                    } else {
+                        state = WAITING_SYNC1; // Reset si no es 0x62
+                    }
+                    break;
+                    
+                case READING_CLASS:
+                    buffer[bufferIndex++] = byte;
+                    state = READING_ID;
+                    break;
+                    
+                case READING_ID:
+                    buffer[bufferIndex++] = byte;
+                    state = READING_LENGTH_LSB;
+                    break;
+                    
+                case READING_LENGTH_LSB:
+                    buffer[bufferIndex++] = byte;
+                    payloadLength = byte;
+                    state = READING_LENGTH_MSB;
+                    break;
+                    
+                case READING_LENGTH_MSB:
+                    buffer[bufferIndex++] = byte;
+                    payloadLength |= (byte << 8);
+                    
+                    // Verificar que el payload es del tamaño esperado (92 bytes para PVT)
+                    if (payloadLength == 92 && bufferIndex + payloadLength + 2 <= PVT_MESSAGE_SIZE) {
+                        payloadBytesRead = 0;
+                        state = READING_PAYLOAD;
+                    } else {
+                        // Payload inválido, reiniciar
+                        state = WAITING_SYNC1;
+                        bufferIndex = 0;
+                    }
+                    break;
+                    
+                case READING_PAYLOAD:
+                    buffer[bufferIndex++] = byte;
+                    payloadBytesRead++;
+                    
+                    if (payloadBytesRead >= payloadLength) {
+                        state = READING_CHECKSUM_A;
+                    }
+                    break;
+                    
+                case READING_CHECKSUM_A:
+                    buffer[bufferIndex++] = byte;
+                    state = READING_CHECKSUM_B;
+                    break;
+                    
+                case READING_CHECKSUM_B:
+                    buffer[bufferIndex++] = byte;
+                    
+                    // Mensaje completo recibido, validar y parsear
+                    if (buffer[2] == NAV_CLASS && buffer[3] == PVT_ID) {
+                        return parseUBXMessage(buffer, bufferIndex, pvtData);
+                    } else {
+                        // No es PVT, reiniciar y buscar siguiente mensaje
+                        state = WAITING_SYNC1;
+                        bufferIndex = 0;
+                    }
+                    break;
+            }
+            
+            // Protección contra overflow del buffer
+            if (bufferIndex >= PVT_MESSAGE_SIZE) {
+                state = WAITING_SYNC1;
+                bufferIndex = 0;
             }
         }
     }
+    
+    return false; // Timeout sin recibir mensaje válido
+}
+
+/**
+ * @brief Parsea un mensaje UBX y extrae los datos PVT
+ * @param buffer Buffer con el mensaje UBX completo
+ * @param bufferLen Longitud del buffer
+ * @param pvtData Puntero a estructura donde se almacenarán los datos
+ * @return true si el mensaje es válido y se parseó correctamente
+ */
+bool SamM10q::parseUBXMessage(const uint8_t* buffer, uint16_t bufferLen, UBX_NAV_PVT_data_t* pvtData) {
+    // Verificar que el buffer tiene el tamaño mínimo
+    if (bufferLen < 100) {
+        return false;
+    }
+    
+    // Verificar header UBX
+    if (buffer[0] != UBX_HEADER1 || buffer[1] != UBX_HEADER2) {
+        return false;
+    }
+    
+    // Verificar que es un mensaje NAV-PVT
+    if (buffer[2] != NAV_CLASS || buffer[3] != PVT_ID) {
+        return false;
+    }
+    
+    // Verificar longitud del payload (debe ser 92 bytes)
+    uint16_t payloadLen = buffer[4] | (buffer[5] << 8);
+    if (payloadLen != 92) {
+        return false;
+    }
+    
+    // Verificar checksum
+    if (!verifyUBXChecksum(buffer, bufferLen)) {
+        return false;
+    }
+    
+    // Parsear payload (comienza en buffer[6])
+    const uint8_t* payload = &buffer[6];
+    uint16_t offset = 0;
+    
+    // Extraer datos según la especificación UBX-NAV-PVT
+    // Nota: Los datos están en formato little-endian
+    
+    pvtData->iTOW = payload[offset] | (payload[offset+1] << 8) | 
+                    (payload[offset+2] << 16) | (payload[offset+3] << 24);
+    offset += 4;
+    
+    pvtData->year = payload[offset] | (payload[offset+1] << 8);
+    offset += 2;
+    
+    pvtData->month = payload[offset++];
+    pvtData->day = payload[offset++];
+    pvtData->hour = payload[offset++];
+    pvtData->min = payload[offset++];
+    pvtData->sec = payload[offset++];
+    pvtData->valid = payload[offset++];
+    
+    pvtData->tAcc = payload[offset] | (payload[offset+1] << 8) | 
+                    (payload[offset+2] << 16) | (payload[offset+3] << 24);
+    offset += 4;
+    
+    pvtData->nano = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                              (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->fixType = payload[offset++];
+    pvtData->flags = payload[offset++];
+    pvtData->flags2 = payload[offset++];
+    pvtData->numSV = payload[offset++];
+    
+    pvtData->lon = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                             (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->lat = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                             (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->height = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                                (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->hMSL = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                              (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->hAcc = payload[offset] | (payload[offset+1] << 8) | 
+                    (payload[offset+2] << 16) | (payload[offset+3] << 24);
+    offset += 4;
+    
+    pvtData->vAcc = payload[offset] | (payload[offset+1] << 8) | 
+                    (payload[offset+2] << 16) | (payload[offset+3] << 24);
+    offset += 4;
+    
+    pvtData->velN = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                              (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->velE = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                              (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->velD = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                              (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->gSpeed = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                                (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->headMot = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                                 (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->sAcc = payload[offset] | (payload[offset+1] << 8) | 
+                    (payload[offset+2] << 16) | (payload[offset+3] << 24);
+    offset += 4;
+    
+    pvtData->headAcc = payload[offset] | (payload[offset+1] << 8) | 
+                       (payload[offset+2] << 16) | (payload[offset+3] << 24);
+    offset += 4;
+    
+    pvtData->pDOP = payload[offset] | (payload[offset+1] << 8);
+    offset += 2;
+    
+    pvtData->flags3 = payload[offset] | (payload[offset+1] << 8);
+    offset += 2;
+    
+    // Saltar reserved[4]
+    offset += 4;
+    
+    pvtData->headVeh = (int32_t)(payload[offset] | (payload[offset+1] << 8) | 
+                                 (payload[offset+2] << 16) | (payload[offset+3] << 24));
+    offset += 4;
+    
+    pvtData->magDec = (int16_t)(payload[offset] | (payload[offset+1] << 8));
+    offset += 2;
+    
+    pvtData->magAcc = payload[offset] | (payload[offset+1] << 8);
+    
+    return true;
+}
+
+/**
+ * @brief Verifica el checksum de un mensaje UBX
+ * @param buffer Buffer con el mensaje UBX completo
+ * @param msgLen Longitud del mensaje
+ * @return true si el checksum es correcto
+ */
+bool SamM10q::verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen) {
+    if (msgLen < 8) {
+        return false; // Mensaje muy corto
+    }
+    
+    // Calcular checksum sobre Class + ID + Length + Payload
+    uint8_t ck_a_calc, ck_b_calc;
+    ubx_calculate_checksum(buffer, msgLen - 2, &ck_a_calc, &ck_b_calc);
+    
+    // Comparar con el checksum recibido (últimos 2 bytes)
+    uint8_t ck_a_recv = buffer[msgLen - 2];
+    uint8_t ck_b_recv = buffer[msgLen - 1];
+    
+    return (ck_a_calc == ck_a_recv) && (ck_b_calc == ck_b_recv);
 }

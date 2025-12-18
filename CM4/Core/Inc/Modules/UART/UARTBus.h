@@ -138,16 +138,12 @@ public:
     
     /**
      * @brief Transmite datos por UART (para dispositivos de comunicación serial como GPS)
-     * @param deviceAddr Dirección del dispositivo (puede no ser usado en UART puro)
      * @param pData Buffer con los datos a transmitir
      * @param size Cantidad de bytes a transmitir
      * @param timeout Timeout en milisegundos
      * @return UARTResult código de resultado
      */
-    UARTResult transmit(uint16_t deviceAddr,
-                      const uint8_t* pData,
-                      uint16_t size,
-                      uint32_t timeout);
+    UARTResult transmit(const uint8_t* pData, uint16_t size, uint32_t timeout);
     
     /**
      * @brief Recibe datos por UART

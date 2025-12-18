@@ -78,14 +78,14 @@ extern "C" void gps_init_and_test(void) {
     printf("[GPS] ========== CONFIGURACIÓN GPS ==========\n");
     
     // Test de configuración más detallado
-    printf("[GPS] Aplicando configuración MEDIUM rate...\n");
-    bool config_result = gps.set_new_acq_time(gpsRateSpeed::MEDIUM);
+    // printf("[GPS] Aplicando configuración MEDIUM rate...\n");
+    // bool config_result = gps.set_new_acq_time(gpsRateSpeed::MEDIUM);
     
-    if (config_result) {
-        printf("[GPS] OK - Configuracion aplicada exitosamente\n");
-    } else {
-        printf("[GPS] WARN - Configuracion fallo - GPS puede no estar respondiendo\n");
-    }
+    // if (config_result) {
+    //     printf("[GPS] OK - Configuracion aplicada exitosamente\n");
+    // } else {
+    //     printf("[GPS] WARN - Configuracion fallo - GPS puede no estar respondiendo\n");
+    // }
     
     // Esperar tiempo para que GPS configure
     printf("[GPS] Esperando estabilizacion GPS (3 segundos)...\n");
@@ -122,7 +122,7 @@ extern "C" void gps_init_and_test(void) {
                 printf("[GPS] Posible causa: Sin senal satelital o GPS en indoor\n");
             }
         } else {
-            printf("[GPS] ERROR - Error de comunicacion I2C\n");
+            printf("[GPS] ERROR - NO FIX\n");
         }
         
         // Delay entre lecturas
@@ -132,14 +132,15 @@ extern "C" void gps_init_and_test(void) {
     printf("[GPS] ========== DIAGNOSTICO FINAL ==========\n");
     
     // Test directo de stream NMEA
-    printf("[GPS] Test directo de stream NMEA...\n");
-    HAL_StatusTypeDef streamResult = gps.read_nmea_stream();
+    //PESSI: REALIZO CAMBIOS YA QUE NO USAMOS NMEA STREAM AHORA, USAMOS GETPVT.
+    printf("[GPS] Test directo de getPVT...\n");
+    HAL_StatusTypeDef streamResult = gps.read_gps_position();
     
     if (streamResult == HAL_OK) {
-        printf("[GPS] OK - Stream NMEA leido correctamente\n");
-        printf("[GPS] Datos procesados por TinyGPS++\n");
+        printf("[GPS] OK - getPVT leido correctamente\n");
+        printf("[GPS] Datos procesados en la estructura de datos PVT\n");
     } else {
-        printf("[GPS] ERROR - Error leyendo stream NMEA\n");
+        printf("[GPS] ERROR - Error utilizando la función getPVT\n");
     }
     
     printf("[GPS] ========== CONCLUSION ==========\n");
