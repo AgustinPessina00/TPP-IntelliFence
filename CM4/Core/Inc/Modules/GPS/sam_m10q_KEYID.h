@@ -11,6 +11,14 @@ constexpr size_t M10Q_NUM_RATE_OPTIONS   = 4;   // STOP, SLOW, MEDIUM, FAST
 constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 50;  // Cantidad de elementos en m10q_data
 
 // ======================================================
+// Estructura para empaqueta puntero + tamaño (ahorro de memoria vs arrays paralelos)
+// ======================================================
+struct M10QPayload {
+    const uint8_t* data;
+    uint8_t size;  // uint8_t es suficiente (max payload ~100 bytes)
+};
+
+// ======================================================
 // EXTERN DECLARATIONS - All definitions in sam_m10q_KEYID.cpp
 // This prevents multiple definition errors and saves ROM/RAM
 // ======================================================
@@ -21,7 +29,7 @@ extern const uint8_t* const m10q_new_acq_time[M10Q_NUM_RATE_OPTIONS];
 // RATES: m10q_new_acq_ck (checksums)
 extern const uint8_t* const m10q_new_acq_ck[M10Q_NUM_RATE_OPTIONS];
 
-// DATA: m10q_data_payloads (configuration payloads)
-extern const uint8_t* const m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS];
+// DATA: m10q_data_payloads (configuration payloads con tamaño incluido)
+extern const M10QPayload m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS];
 
 #endif /* MODULES_GPS_SAM_M10Q_KEYID_H_ */

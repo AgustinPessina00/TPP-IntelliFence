@@ -62,7 +62,6 @@ EmbeddedMessage_t* MessagePool_Allocate(void) {
             // Limpiar el mensaje
             memset(allocated_msg, 0, sizeof(EmbeddedMessage_t));
             allocated_msg->in_use = 1; // Restaurar flag después del memset
-            allocated_msg->timestamp = osKernelGetTickCount();
             
             // Actualizar estadísticas
             g_message_pool.allocated_count++;
@@ -122,7 +121,6 @@ MessageResult_t EmbeddedMessage_Create(EmbeddedMessage_t* msg,
     msg->sender = sender;
     msg->receiver = receiver;
     msg->length = 0;
-    msg->timestamp = osKernelGetTickCount();
     
     return MSG_RESULT_OK;
 }
@@ -145,7 +143,6 @@ MessageResult_t EmbeddedMessage_CreateWithPayload(EmbeddedMessage_t* msg,
     msg->sender = sender;
     msg->receiver = receiver;
     msg->length = length;
-    msg->timestamp = osKernelGetTickCount();
     
     if (data != NULL && length > 0) {
         memcpy(msg->payload, data, length);

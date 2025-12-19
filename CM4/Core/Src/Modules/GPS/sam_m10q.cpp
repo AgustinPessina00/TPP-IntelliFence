@@ -45,7 +45,7 @@ bool SamM10q::init(uint8_t i2cAddr) {
         return false;
     }
     
-    //configure_gps();
+    configure_gps();
     
     initialized = true;
     return true;
@@ -155,31 +155,27 @@ void SamM10q::configure_gps() {
 
     //write_register(m10q_data_payloads[45], sizeof(m10q_data_payloads[45]), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
 
-    //write_register_uart(m10q_data_payloads[44], sizeof(m10q_data_payloads[44]), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
-    //write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), RAM); // Habilito TRAMAS UBX UART via UART RAM
+    //write_register_uart(m10q_data_payloads[44].data, m10q_data_payloads[44].size, RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
+    //write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM); // Habilito TRAMAS UBX UART via UART RAM
     
-    write_register_uart(m10q_data_payloads[43], sizeof(m10q_data_payloads[43]), RAM); // Habilito I2C via UART RAM
-    write_register_uart(m10q_data_payloads[43], sizeof(m10q_data_payloads[43]), BBR); // Habilito I2C via UART BBR
+    write_register_uart(m10q_data_payloads[43].data, m10q_data_payloads[43].size, RAM); // Habilito I2C via UART RAM
+    write_register_uart(m10q_data_payloads[43].data, m10q_data_payloads[43].size, BBR); // Habilito I2C via UART BBR
+
+    write_register_uart(m10q_data_payloads[47].data, m10q_data_payloads[47].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
+    write_register_uart(m10q_data_payloads[47].data, m10q_data_payloads[47].size, BBR);
     
+    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Habilita UBX_NAV_PVT_I2C via uart
+    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
 
+    write_register_uart(m10q_data_payloads[46].data, m10q_data_payloads[46].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
+    write_register_uart(m10q_data_payloads[46].data, m10q_data_payloads[46].size, BBR);
 
-    //write_register(m10q_data_45, 5, RAM);
-
-    write_register_uart(m10q_data_payloads[47], sizeof(m10q_data_payloads[47]), RAM); // Habilita CFG-I2COUTPROT-UBX via uart
-    write_register_uart(m10q_data_payloads[47], sizeof(m10q_data_payloads[47]), BBR);
-    
-    write_register_uart(m10q_data_payloads[48], sizeof(m10q_data_payloads[48]), RAM); // Habilita UBX_NAV_PVT_I2C via uart
-    write_register_uart(m10q_data_payloads[48], sizeof(m10q_data_payloads[48]), BBR);
-
-    write_register_uart(m10q_data_payloads[46], sizeof(m10q_data_payloads[46]), RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
-    write_register_uart(m10q_data_payloads[46], sizeof(m10q_data_payloads[46]), BBR);
-
-    write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
-    write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), BBR);
+    write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
+    write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, BBR);
 
     // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
-    //     const uint8_t* payload = m10q_data_payloads[i];
-    //     size_t payload_len = sizeof(m10q_data_payloads[i]);
+    //     const uint8_t* payload = m10q_data_payloads[i].data;
+    //     size_t payload_len = m10q_data_payloads[i].size;
         
     //     // Escribir en RAM
     //     if (!write_register(payload, payload_len, RAM)) {
@@ -222,8 +218,8 @@ void SamM10q::configure_gps_uart() {
     uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
     
     for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
-        const uint8_t* payload = m10q_data_payloads[i];
-        size_t payloadlen = sizeof(m10q_data_payloads[i]);
+        const uint8_t* payload = m10q_data_payloads[i].data;
+        size_t payloadlen = m10q_data_payloads[i].size;
         
         // Escribir en RAM via UART
         if (!write_register_uart(payload, payloadlen, RAM)) {

@@ -26,12 +26,13 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "rtos_printf.h"
+#include "EmbeddedMessage.h"
 // Forward declarations para threads del sistema FreeRTOS
 extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
 extern void sensorAcqTask(void *argument);
 extern void stimulusTask(void *argument);
-extern void MessagePool_Init(void);
+//extern void MessagePool_Init(void);
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,30 +76,30 @@ const osMessageQueueAttr_t stimulusQueue_attributes = {
   .name = "stimulusQueue"
 };
 
-osMessageQueueId_t gpsQueueHandle;
-const osMessageQueueAttr_t gpsQueue_attributes = {
-  .name = "gpsQueue"
-};
+// osMessageQueueId_t gpsQueueHandle;
+// const osMessageQueueAttr_t gpsQueue_attributes = {
+//   .name = "gpsQueue"
+// };
 
 osMessageQueueId_t loraTxQueueHandle;
 const osMessageQueueAttr_t loraTxQueue_attributes = {
   .name = "loraTxQueue"
 };
 
-osMessageQueueId_t loraRxQueueHandle;
-const osMessageQueueAttr_t loraRxQueue_attributes = {
-  .name = "loraRxQueue"
-};
+// osMessageQueueId_t loraRxQueueHandle;
+// const osMessageQueueAttr_t loraRxQueue_attributes = {
+//   .name = "loraRxQueue"
+// };
 
-osMessageQueueId_t distanceToLimitQueueHandle;
-const osMessageQueueAttr_t distanceToLimitQueue_attributes = {
-  .name = "distanceToLimitQueue"
-};
+// osMessageQueueId_t distanceToLimitQueueHandle;
+// const osMessageQueueAttr_t distanceToLimitQueue_attributes = {
+//   .name = "distanceToLimitQueue"
+// };
 
-osMessageQueueId_t fenceUpdateQueueHandle;
-const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
-  .name = "fenceUpdateQueue"
-};
+// osMessageQueueId_t fenceUpdateQueueHandle;
+// const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
+//   .name = "fenceUpdateQueue"
+// };
 
 // Thread dispatcher - rutea mensajes entre módulos
 osThreadId_t dispatcher_TaskHandle;
@@ -149,32 +150,32 @@ void initialize_message_queues(void) {
     printf("[QUEUES] Inicializando colas de mensajes FreeRTOS...\n");
     
     // Cola principal del dispatcher (más grande, recibe todos los mensajes)
-    dispatcherQueueHandle = osMessageQueueNew(32, sizeof(void*), &dispatcherQueue_attributes);
+    dispatcherQueueHandle = osMessageQueueNew(32, sizeof(EmbeddedMessage_t), &dispatcherQueue_attributes);
     if (dispatcherQueueHandle == NULL) {
         printf("[QUEUES] ERROR - Fallo creación dispatcherQueue\n");
         Error_Handler();
     }
     
     // Cola para adquisición de sensores
-    // sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
-    // if (sensorAcqQueueHandle == NULL) {
-    //     printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
-    //     Error_Handler();
-    // }
+    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(EmbeddedMessage_t), &sensorAcqQueue_attributes);
+    if (sensorAcqQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
+        Error_Handler();
+    }
 
     // Cola para estímulos
-    stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
+    stimulusQueueHandle = osMessageQueueNew(16, sizeof(EmbeddedMessage_t), &stimulusQueue_attributes);
     if (stimulusQueueHandle == NULL) {
         printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
         Error_Handler();
     }
     
     // Colas adicionales (tamaños más pequeños para funciones futuras)
-    gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
-    loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
-    loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
-    distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
-    fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
+    //gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
+    loraTxQueueHandle = osMessageQueueNew(12, sizeof(EmbeddedMessage_t), &loraTxQueue_attributes);
+    //loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
+    //distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
+    //fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
     
     printf("[QUEUES] OK - Todas las colas creadas exitosamente\n");
     printf("[QUEUES] - DispatcherQueue: 32 slots\n");

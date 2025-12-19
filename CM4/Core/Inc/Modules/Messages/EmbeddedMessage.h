@@ -7,8 +7,8 @@
 #include "cmsis_os2.h"
 
 // Configuración del sistema de mensajes
-#define MAX_MESSAGE_PAYLOAD_SIZE    64      // Tamaño máximo de payload
-#define MESSAGE_POOL_SIZE          32      // Pool de mensajes estáticos
+#define MAX_MESSAGE_PAYLOAD_SIZE   32      // Tamaño máximo de payload
+#define MESSAGE_POOL_SIZE          16      // Pool de mensajes estáticos
 #define MAX_MESSAGE_QUEUES         10      // Máximo número de colas
 
 // Enum para módulos (mantenemos compatibilidad)
@@ -31,7 +31,6 @@ typedef struct {
     ModuleId_t receiver;                          // Receiver module
     uint8_t length;                               // Payload length
     uint8_t payload[MAX_MESSAGE_PAYLOAD_SIZE];    // Static payload buffer
-    uint32_t timestamp;                           // Message timestamp
     uint8_t in_use;                              // Pool management flag
 } EmbeddedMessage_t;
 

@@ -77,16 +77,23 @@ static const uint8_t m10q_data_47[] = {0x06, 0x00, 0x91, 0x20, 0x01}; // CFG-MSG
 static const uint8_t m10q_data_48[] = {0x02, 0x00, 0x72, 0x10, 0x01}; // CFG-I2COUTPROT-UBX ENABLED
 static const uint8_t m10q_data_49[] = {0x07, 0x00, 0x91, 0x20, 0x01}; // CFG-MSGOUT-UBX_NAV_PVT_UART ENABLED
 
-// Tabla de punteros a payloads
-const uint8_t* const m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
-    m10q_data_00, m10q_data_01, m10q_data_02, m10q_data_03, m10q_data_04,
-    m10q_data_05, m10q_data_06, m10q_data_07, m10q_data_08, m10q_data_09,
-    m10q_data_10, m10q_data_11, m10q_data_12, m10q_data_13, m10q_data_14,
-    m10q_data_15, m10q_data_16, m10q_data_17, m10q_data_18, m10q_data_19,
-    m10q_data_20, m10q_data_21, m10q_data_22, m10q_data_23, m10q_data_24,
-    m10q_data_25, m10q_data_26, m10q_data_27, m10q_data_28, m10q_data_29,
-    m10q_data_30, m10q_data_31, m10q_data_32, m10q_data_33, m10q_data_34,
-    m10q_data_35, m10q_data_36, m10q_data_37, m10q_data_38, m10q_data_39,
-    m10q_data_40, m10q_data_41, m10q_data_42, m10q_data_43, m10q_data_44, m10q_data_45,
-    m10q_data_46, m10q_data_47, m10q_data_48, m10q_data_49
+// Tabla de payloads con tamaño incluido (ahorro de memoria vs arrays paralelos)
+const M10QPayload m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
+    {m10q_data_00, sizeof(m10q_data_00)}, {m10q_data_01, sizeof(m10q_data_01)}, {m10q_data_02, sizeof(m10q_data_02)}, 
+    {m10q_data_03, sizeof(m10q_data_03)}, {m10q_data_04, sizeof(m10q_data_04)}, {m10q_data_05, sizeof(m10q_data_05)}, 
+    {m10q_data_06, sizeof(m10q_data_06)}, {m10q_data_07, sizeof(m10q_data_07)}, {m10q_data_08, sizeof(m10q_data_08)}, 
+    {m10q_data_09, sizeof(m10q_data_09)}, {m10q_data_10, sizeof(m10q_data_10)}, {m10q_data_11, sizeof(m10q_data_11)}, 
+    {m10q_data_12, sizeof(m10q_data_12)}, {m10q_data_13, sizeof(m10q_data_13)}, {m10q_data_14, sizeof(m10q_data_14)}, 
+    {m10q_data_15, sizeof(m10q_data_15)}, {m10q_data_16, sizeof(m10q_data_16)}, {m10q_data_17, sizeof(m10q_data_17)}, 
+    {m10q_data_18, sizeof(m10q_data_18)}, {m10q_data_19, sizeof(m10q_data_19)}, {m10q_data_20, sizeof(m10q_data_20)}, 
+    {m10q_data_21, sizeof(m10q_data_21)}, {m10q_data_22, sizeof(m10q_data_22)}, {m10q_data_23, sizeof(m10q_data_23)}, 
+    {m10q_data_24, sizeof(m10q_data_24)}, {m10q_data_25, sizeof(m10q_data_25)}, {m10q_data_26, sizeof(m10q_data_26)}, 
+    {m10q_data_27, sizeof(m10q_data_27)}, {m10q_data_28, sizeof(m10q_data_28)}, {m10q_data_29, sizeof(m10q_data_29)}, 
+    {m10q_data_30, sizeof(m10q_data_30)}, {m10q_data_31, sizeof(m10q_data_31)}, {m10q_data_32, sizeof(m10q_data_32)}, 
+    {m10q_data_33, sizeof(m10q_data_33)}, {m10q_data_34, sizeof(m10q_data_34)}, {m10q_data_35, sizeof(m10q_data_35)}, 
+    {m10q_data_36, sizeof(m10q_data_36)}, {m10q_data_37, sizeof(m10q_data_37)}, {m10q_data_38, sizeof(m10q_data_38)}, 
+    {m10q_data_39, sizeof(m10q_data_39)}, {m10q_data_40, sizeof(m10q_data_40)}, {m10q_data_41, sizeof(m10q_data_41)}, 
+    {m10q_data_42, sizeof(m10q_data_42)}, {m10q_data_43, sizeof(m10q_data_43)}, {m10q_data_44, sizeof(m10q_data_44)}, 
+    {m10q_data_45, sizeof(m10q_data_45)}, {m10q_data_46, sizeof(m10q_data_46)}, {m10q_data_47, sizeof(m10q_data_47)}, 
+    {m10q_data_48, sizeof(m10q_data_48)}, {m10q_data_49, sizeof(m10q_data_49)}
 };
