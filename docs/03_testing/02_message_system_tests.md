@@ -38,11 +38,19 @@
 
 ### 4. Flujo de Mensajes Implementado
 
-```
-FSM Task ──────► DISPATCHER ──────► SENSOR_ACQ Task
-   ↑               (routing)              │
-   │                                      │
-   └──────────────── GPS_DATA ←───────────┘
+```mermaid
+sequenceDiagram
+    participant FSM as FSM Task
+    participant Disp as Dispatcher<br/>(routing)
+    participant SAQ as SENSOR_ACQ Task
+    
+    Note over FSM: Cada 5 segundos
+    FSM->>Disp: REQUEST_GPS
+    Disp->>SAQ: Forward message
+    SAQ->>SAQ: Simular lectura GPS<br/>Buenos Aires coords
+    SAQ->>Disp: SEND_GPS<br/>{-34.6118, -58.3960}
+    Disp->>FSM: GPS_DATA
+    FSM->>FSM: Process coordinates
 ```
 
 **Secuencia de Prueba Automática:**

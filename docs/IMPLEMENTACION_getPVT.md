@@ -91,13 +91,15 @@ Tipo: Mensaje de polling o periódico
 
 #### Estructura del mensaje:
 
-```
-┌─────────────┬────────┬──────┬───────┬──────────┬──────────┬─────────┐
-│   Header    │ Class  │  ID  │ Len   │ Payload  │  CK_A    │  CK_B   │
-├─────────────┼────────┼──────┼───────┼──────────┼──────────┼─────────┤
-│  0xB5 0x62  │  0x01  │ 0x07 │ 92 0  │ 92 bytes │ 1 byte   │ 1 byte  │
-└─────────────┴────────┴──────┴───────┴──────────┴──────────┴─────────┘
-```
+| Sección | Valor | Descripción |
+|----------|-------|-------------|
+| **Header** | 0xB5 0x62 | Sincronización UBX |
+| **Class** | 0x01 | Navigation |
+| **ID** | 0x07 | PVT (Position/Velocity/Time) |
+| **Len** | 92 0 | Longitud del payload (92 bytes) |
+| **Payload** | 92 bytes | Datos del mensaje |
+| **CK_A** | 1 byte | Checksum A |
+| **CK_B** | 1 byte | Checksum B |
 
 #### Contenido del Payload (92 bytes):
 
@@ -143,38 +145,36 @@ Tipo: Mensaje de polling o periódico
 
 ### Diagrama de Flujo
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                      getPVT()                                 │
-│  (Función pública principal)                                  │
-└───────────────────────┬──────────────────────────────────────┘
-                        │
-                        ├─► 1. Limpiar estructura pvtData
-                        │
-                        ├─► 2. requestPVT()
-                        │      └─► Envía UBX-NAV-PVT polling message
-                        │           ├─► Construye mensaje UBX
-                        │           ├─► Calcula checksum
-                        │           └─► Envía por I2C
-                        │
-                        ├─► 3. receivePVT()
-                        │      └─► Recibe respuesta del GPS
-                        │           ├─► Polling con timeout
-                        │           ├─► Verifica bytes disponibles (0xFD)
-                        │           ├─► Lee mensaje completo (0xFF)
-                        │           └─► Llama a parseUBXMessage()
-                        │
-                        ├─► 4. parseUBXMessage()
-                        │      └─► Parsea el mensaje UBX
-                        │           ├─► Verifica header
-                        │           ├─► Verifica clase/ID
-                        │           ├─► Verifica longitud
-                        │           ├─► Llama a verifyUBXChecksum()
-                        │           └─► Extrae datos (little-endian)
-                        │
-                        ├─► 5. Verifica fixType >= 2
-                        │
-                        └─► 6. Retorna true/false
+```mermaid
+flowchart TD
+    Start(["getPVT()<br/>Función pública principal"]) --> Clean["1. Limpiar estructura pvtData"]
+    Clean --> Request["2. requestPVT()<br/>Envía UBX-NAV-PVT polling"]
+    
+    Request --> BuildMsg["Construye mensaje UBX"]
+    BuildMsg --> CalcChecksum["Calcula checksum"]
+    CalcChecksum --> SendI2C["Envía por I2C"]
+    
+    SendI2C --> Receive["3. receivePVT()<br/>Recibe respuesta del GPS"]
+    
+    Receive --> Poll["Polling con timeout"]
+    Poll --> CheckBytes["Verifica bytes disponibles (0xFD)"]
+    CheckBytes --> Read["Lee mensaje completo (0xFF)"]
+    Read --> Parse["Llama a parseUBXMessage()"]
+    
+    Parse --> ParseMsg["4. parseUBXMessage()<br/>Parsea el mensaje UBX"]
+    
+    ParseMsg --> VerifyHeader["Verifica header"]
+    VerifyHeader --> VerifyClass["Verifica clase/ID"]
+    VerifyClass --> VerifyLen["Verifica longitud"]
+    VerifyLen --> VerifyCheck["verifyUBXChecksum()"]
+    VerifyCheck --> Extract["Extrae datos (little-endian)"]
+    
+    Extract --> CheckFix["5. Verifica fixType >= 2"]
+    CheckFix --> End(["6. Retorna true/false"])
+    
+    style Start fill:#e1f5ff
+    style End fill:#d4edda
+    style ParseMsg fill:#fff3cd
 ```
 
 ### Componentes Principales

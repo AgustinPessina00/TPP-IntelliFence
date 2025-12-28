@@ -8,37 +8,143 @@ La **Finite State Machine (FSM)** es el núcleo del sistema TPP-IntelliFence. Im
 
 ## 🏗️ Arquitectura de la FSM
 
-### Jerarquía de Estados
+### Jerarquía de Estados - Vista General
 
+**Diagrama principal mostrando los 3 estados principales del sistema:**
+
+```mermaid
+stateDiagram-v2
+    [*] --> STARTUP_ROUTINE}
+    
+    STARTUP_ROUTINE --> NORMAL_OPERATION: isInFence() == OK
+    STARTUP_ROUTINE --> FENCE_TRANSITION: isInFence() == ERROR
+    
+    note right of STARTUP_ROUTINE
+        Inicialización del sistema
+        - Request GPS
+        - Send Position via LoRa
+        - Wait & Save Fence
+        - Calculate initial Zone
+    end note
+    
+    note right of NORMAL_OPERATION
+        Operación continua
+        - INITIALIZE
+        - GREEN_ZONE
+        - STIMULUS_ZONE
+    end note
+    
+    note right of FENCE_TRANSITION
+        Actualización de cerco
+        - Disable Stimulus
+        - Update Fence vertices
+        - Fast GPS rate
+        - Recalculate Zone
+    end note
+    
+    NORMAL_OPERATION --> FENCE_TRANSITION: New fence received
+    FENCE_TRANSITION --> NORMAL_OPERATION: Transition complete
+    
+    NORMAL_OPERATION --> NORMAL_OPERATION: Continuous loop
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        MAIN FSM                                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────────┐      ┌────────────────────────────────┐  │
-│  │ STARTUP_ROUTINE  │─────→│     NORMAL_OPERATION           │  │
-│  │                  │      │  ┌──────────────────────────┐  │  │
-│  │  - Request GPS   │      │  │    INITIALIZE            │  │  │
-│  │  - Send Position │      │  │  - Get GPS               │  │  │
-│  │  - Wait Fence    │      │  │  - Calculate Zone        │  │  │
-│  │  - Save Fence    │      │  └──────────────────────────┘  │  │
-│  │  - Get Zone      │      │  ┌──────────────────────────┐  │  │
-│  └──────────────────┘      │  │    GREEN_ZONE            │  │  │
-│           │                │  │  - Request IMU           │  │  │
-│           │                │  │  - Classify State        │  │  │
-│           │                │  │  - Adaptive GPS Rate     │  │  │
-│           ▼                │  └──────────────────────────┘  │  │
-│  ┌──────────────────┐      │  ┌──────────────────────────┐  │  │
-│  │FENCE_TRANSITION  │◄─────│  │   STIMULUS_ZONE          │  │  │
-│  │                  │      │  │  - Send Zone to Stim     │  │  │
-│  │  - Disable Stim  │      │  │  - Wait Response         │  │  │
-│  │  - Update Fence  │      │  └──────────────────────────┘  │  │
-│  │  - GPS Fast Rate │      └────────────────────────────────┘  │
-│  │  - Get Zone      │                                          │
-│  └──────────────────┘                                          │
-│           │                                                     │
-│           └──────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+
+### Desglose Detallado de Sub-Estados
+
+#### Sub-estados de STARTUP_ROUTINE
+
+```mermaid
+stateDiagram-v2
+    [*] --> BEGIN
+    BEGIN --> REQUEST_POSITION
+    REQUEST_POSITION --> WAIT_POSITION
+    WAIT_POSITION --> SEND_POSITION_LORA
+    SEND_POSITION_LORA --> WAIT_SEND_POSITION_RESPONSE
+    WAIT_SEND_POSITION_RESPONSE --> WAIT_FENCE
+    WAIT_FENCE --> SAVE_FENCE
+    SAVE_FENCE --> REQUEST_NEW_POSITION
+    REQUEST_NEW_POSITION --> WAIT_NEW_POSITION
+    WAIT_NEW_POSITION --> REQUEST_ZONE
+    REQUEST_ZONE --> EVALUATE_ZONE
+    EVALUATE_ZONE --> END
+    END --> [*]
+    
+    WAIT_POSITION --> REQUEST_POSITION: Timeout/Retry
+    WAIT_FENCE --> WAIT_FENCE: Waiting for LoRa
+```
+
+#### Sub-estados de NORMAL_OPERATION
+
+```mermaid
+stateDiagram-v2
+    [*] --> INITIALIZE
+    
+    state INITIALIZE {
+        [*] --> INITIALIZE_BEGIN
+        INITIALIZE_BEGIN --> REQUEST_POSITION
+        REQUEST_POSITION --> WAIT_POSITION
+        WAIT_POSITION --> REQUEST_ZONE
+        REQUEST_ZONE --> EVALUATE_ZONE
+        EVALUATE_ZONE --> [*]
+    }
+    
+    INITIALIZE --> GREEN_ZONE: Inside fence (isInFence == OK)
+    INITIALIZE --> STIMULUS_ZONE: Near/Outside fence
+    
+    state GREEN_ZONE {
+        [*] --> BEGIN
+        BEGIN --> REQUEST_ACCELERATION
+        REQUEST_ACCELERATION --> WAIT_ACCELERATION
+        WAIT_ACCELERATION --> EVALUATE_COWSTATE
+        
+        EVALUATE_COWSTATE --> GRAZING: Low vertical accel
+        EVALUATE_COWSTATE --> SLEEP: No movement
+        EVALUATE_COWSTATE --> MOVEMENT: Active motion
+        
+        GRAZING --> WAIT_GPS_ADQ_TIME: GPS SLOW (60s)
+        SLEEP --> WAIT_GPS_ADQ_TIME: GPS STOP
+        MOVEMENT --> NEAR_LIMIT: distToLimit <= 10m
+        MOVEMENT --> FAR_LIMIT: distToLimit > 10m
+        
+        NEAR_LIMIT --> WAIT_GPS_ADQ_TIME: GPS FAST (10s)
+        FAR_LIMIT --> WAIT_GPS_ADQ_TIME: GPS MEDIUM (30s)
+        
+        WAIT_GPS_ADQ_TIME --> END
+        END --> [*]
+    }
+    
+    state STIMULUS_ZONE {
+        [*] --> BEGIN
+        BEGIN --> SEND_ZONE
+        SEND_ZONE --> WAIT_RESPONSE
+        WAIT_RESPONSE --> END
+        END --> [*]
+    }
+    
+    GREEN_ZONE --> INITIALIZE: Cycle complete
+    STIMULUS_ZONE --> INITIALIZE: Cycle complete
+```
+
+#### Sub-estados de FENCE_TRANSITION
+
+```mermaid
+stateDiagram-v2
+    [*] --> BEGIN
+    BEGIN --> DISABLE_STIMULUS
+    DISABLE_STIMULUS --> WAIT_STIMULUS_RESPONSE
+    WAIT_STIMULUS_RESPONSE --> UPDATE_FENCE
+    UPDATE_FENCE --> GPSRATE_FAST
+    GPSRATE_FAST --> WAIT_GPS_ADQ_TIME
+    WAIT_GPS_ADQ_TIME --> REQUEST_POSITION
+    REQUEST_POSITION --> WAIT_POSITION
+    WAIT_POSITION --> REQUEST_ZONE
+    REQUEST_ZONE --> EVALUATE_ZONE
+    EVALUATE_ZONE --> END
+    END --> [*]
+    
+    note right of UPDATE_FENCE
+        Save new fence vertices
+        Reset cow position state
+    end note
 ```
 
 ---
@@ -237,66 +343,160 @@ typedef enum {
 ### Message IDs Principales
 
 ```cpp
-// GPS Messages
-#define MSG_ID_REQUEST_GPS                    0x10
-#define MSG_ID_SEND_GPS                       0x11
-#define MSG_ID_GPS_REQUEST_CONFIG             0x12
-#define MSG_ID_GPS_CONFIG_RESPONSE            0x13
+// Control General
+#define MSG_ID_START                          0x01
+#define MSG_ID_STOP                           0x02
+#define MSG_ID_RESET                          0x03
+#define MSG_ID_ACK                            0x04
 
-// IMU Messages
-#define MSG_ID_REQUEST_IMU                    0x20
+// Estado y Sincronización
+#define MSG_ID_STATE_UPDATE                   0x10
+#define MSG_ID_STATUS_REQUEST                 0x11
+#define MSG_ID_STATUS_RESPONSE                0x12
+#define MSG_ID_TIME_SYNC                      0x13
+
+// Sensor Acquisition - Responses
+#define MSG_ID_SEND_GPS                       0x20
 #define MSG_ID_SEND_IMU                       0x21
+#define MSG_ID_SEND_INA_MCU                   0x22
+#define MSG_ID_SEND_INA_GPS                   0x23
+#define MSG_ID_SEND_INA_IMU                   0x24
 
-// Distance/Zone Messages
-#define MSG_ID_REQUEST_ZONE_TO_FENCE          0x30
-#define MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE 0x31
+// Sensor Acquisition - Requests
+#define MSG_ID_REQUEST_GPS                    0x25
+#define MSG_ID_REQUEST_IMU                    0x26
+#define MSG_ID_REQUEST_INA_MCU                0x27
+#define MSG_ID_REQUEST_INA_GPS                0x28
+#define MSG_ID_REQUEST_INA_IMU                0x29
 
-// LoRa Messages
-#define MSG_ID_LORA_SEND_POSITION             0x40
-#define MSG_ID_LORA_SEND_POSITION_FEEDBACK    0x41
-#define MSG_ID_LORA_VERTEXES_RECEIVED         0x42
+// Fence & Zone Messages
+#define MSG_ID_FENCE_UPDATE                   0x30
+#define MSG_ID_FENCE_STATUS                   0x31
+#define MSG_ID_FENCE_BREACH                   0x32
+#define MSG_ID_REQUEST_DISTANCE_TO_FENCE      0x33
+#define MSG_ID_REQUEST_ZONE_TO_FENCE          0x34
+#define MSG_ID_REQUEST_ZONE_AND_DISTANCE_TO_FENCE 0x35
+#define MSG_ID_SEND_DISTANCE_TO_FENCE         0x36
+#define MSG_ID_SEND_ZONE_TO_FENCE             0x37
+#define MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE 0x38
 
 // Stimulus Messages
-#define MSG_ID_ZONE_CHANGE                    0x50
-#define MSG_ID_STIMULUS_FEEDBACK              0x51
+#define MSG_ID_ZONE_CHANGE                    0x40
+#define MSG_ID_STIMULUS_FEEDBACK              0x41
+#define MSG_ID_STIMULUS_VIBRATION_REQUEST     0x42
+#define MSG_ID_STIMULUS_VIBRATION_FEEDBACK    0x43
+#define MSG_ID_STIMULUS_SOUND_REQUEST         0x44
+#define MSG_ID_STIMULUS_SOUND_FEEDBACK        0x45
+#define MSG_ID_STIMULUS_ELECTRIC_REQUEST      0x46
+#define MSG_ID_STIMULUS_ELECTRIC_FEEDBACK     0x47
+
+// Sensor Data
+#define MSG_ID_SENSOR_DATA                    0x50
+
+// LoRa Messages
+#define MSG_ID_LORA_TX                        0x60
+#define MSG_ID_LORA_RX                        0x61
+#define MSG_ID_LORA_JOINED                    0x62
+#define MSG_ID_LORA_SEND_POSITION             0x63
+#define MSG_ID_LORA_SEND_POSITION_FEEDBACK    0x64
+#define MSG_ID_LORA_VERTEXES_RECEIVED         0x65
+
+// GPS Configuration
+#define MSG_ID_GPS_REQUEST_CONFIG             0x70
+#define MSG_ID_GPS_CONFIG_RESPONSE            0x71
+
+// System Messages
+#define MSG_ID_ERROR                          0xF0
+#define MSG_ID_DIAGNOSTIC                     0xF1
+#define MSG_ID_LOG                            0xF2
+#define MSG_ID_WARNING                        0xF3
+#define MSG_ID_INFO                           0xF4
 ```
 
-### Ejemplo de Flujo de Mensaje
+### Ejemplo de Flujo de Mensaje GPS
 
+**Implementación actual: Sensor Acquisition lee sensores continuamente en loop y responde a solicitudes con datos cacheados.**
+
+```mermaid
+sequenceDiagram
+    participant FSM as FSM Task
+    participant DQ as Dispatcher Queue
+    participant Disp as Dispatcher Task
+    participant SAQQ as SensorAcq Queue
+    participant SAQ as Sensor Acq Task
+    participant GPS as GPS Module (I2C)
+    participant IMU as IMU Module (I2C)
+    participant INA as INA226 Sensors (I2C)
+    participant FSMQ as FSM Queue
+    participant Cow as Cow Object
+    
+    Note over SAQ,INA: Background: Lectura continua cada 100ms
+    loop Every 100ms
+        SAQ->>GPS: read_gps_position()
+        GPS-->>SAQ: latitude, longitude
+        SAQ->>IMU: readAcceleration()
+        IMU-->>SAQ: ax, ay, az
+        SAQ->>INA: readCurrent_mA() × 3
+        INA-->>SAQ: GPS, IMU, MCU currents
+        Note over SAQ: Datos en memoria (gpsData, imuData)
+    end
+    
+    Note over FSM,Cow: Request-Response cuando FSM necesita datos
+    FSM->>DQ: (1) sendMessage(REQUEST_GPS, SENSOR_ACQ)
+    DQ->>Disp: (2) Forward message
+    Disp->>SAQQ: (3) Route by destination
+    SAQQ->>SAQ: Message in queue
+    SAQ->>SAQ: (4) Get from queue<br/>Check msgID == REQUEST_GPS
+    SAQ->>SAQ: (5) Allocate message<br/>Copy gpsData[lat, lon] to payload
+    SAQ->>DQ: (6) sendMessage(SEND_GPS, FSM)<br/>{2×double: latitude, longitude}
+    DQ->>FSMQ: (7) Route to FSM Queue
+    FSMQ->>FSM: Message available
+    FSM->>FSMQ: (8) dequeuedMessage()
+    FSMQ-->>FSM: EmbeddedMessage* with GPS data
+    FSM->>Cow: (9) updatePosition(cow, msgReceived)
+    Note over Cow: Position updated ✓
+    FSM->>FSM: (10) Free message pool
 ```
-FSM Task ──┐
-           │ (1) sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ)
-           └──→ Dispatcher Queue
-                     │
-                     ▼
-               Dispatcher Task
-                     │ (2) Route to Sensor Acquisition Task
-                     ▼
-          Sensor Acquisition Task
-                     │ (3) Read GPS
-                     │
-                     ▼
-               GPS Module (UART)
-                     │ (4) Parse NMEA
-                     │
-                     └──→ (5) sendMessage(MSG_ID_SEND_GPS, MODULE_FSM)
-                            with payload: {latitude, longitude}
-                                  │
-                                  ▼
-                           Dispatcher Queue
-                                  │
-                                  ▼
-                             FSM Queue
-                                  │
-                                  ▼
-                            FSM Task
-                                  │ (6) dequeuedMessage()
-                                  │
-                                  ▼
-                                  │ (7) updatePosition(cow, msgReceived)
-                                  │
-                                  ▼
-                            Cow Object Updated
+
+### Flujo Alternativo: Configuración de GPS Rate
+
+```mermaid
+sequenceDiagram
+    participant FSM as FSM Task
+    participant DQ as Dispatcher Queue
+    participant Disp as Dispatcher Task
+    participant SAQQ as SensorAcq Queue
+    participant SAQ as Sensor Acq Task
+    participant GPS as GPS Module
+    
+    FSM->>FSM: Decide nuevo GPS rate<br/>(FAST/MEDIUM/SLOW/STOP)
+    FSM->>DQ: sendMessage(GPS_REQUEST_CONFIG, SENSOR_ACQ)<br/>payload[0] = gpsRateSpeed
+    DQ->>Disp: Forward
+    Disp->>SAQQ: Route to SensorAcq
+    SAQQ->>SAQ: Message available
+    SAQ->>SAQ: Parse gpsRateSpeed from payload
+    SAQ->>GPS: set_new_acq_time(rateGPS)
+    GPS-->>SAQ: Config updated
+    Note over SAQ: No feedback message sent<br/>(fire-and-forget)
+```
+
+### Flujo IMU Request
+
+```mermaid
+sequenceDiagram
+    participant FSM as FSM Task
+    participant SAQ as Sensor Acq Task
+    participant IMU as IMU Module
+    
+    Note over SAQ: Background loop lee IMU cada 100ms
+    SAQ->>IMU: readAcceleration()
+    IMU-->>SAQ: imuData[ax, ay, az]
+    
+    FSM->>SAQ: REQUEST_IMU via Dispatcher
+    SAQ->>SAQ: Allocate message<br/>Copy imuData to payload
+    SAQ->>FSM: SEND_IMU via Dispatcher<br/>{3×double: ax, ay, az}
+    FSM->>FSM: Update Cow acceleration
+    FSM->>FSM: Classify CowState
 ```
 
 ---
@@ -392,27 +592,50 @@ case STARTUP_ROUTINE_WAIT_POSITION:
 
 ## 📊 Diagrama de Secuencia - Ciclo Típico GREEN_ZONE
 
-```
-Time →
-FSM ─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────
-         │     │     │     │     │     │     │     │     │
-         │Req  │Wait │Eval │Move │GPS  │Wait │Init │...  │
-         │IMU  │IMU  │State│ment │Cfg  │GPS  │     │     │
-         │     │     │     │     │     │     │     │     │
-IMU ─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────
-         │     │     │     │     │     │     │     │
-         │     │Send │     │     │     │     │     │
-         │     │Data │     │     │     │     │     │
-         │     │     │     │     │     │     │     │
-GPS ─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────
-                     │     │     │     │Send │
-                     │     │     │     │GPS  │
-                     │     │     │     │Data │
-                     │     │     │     │     │
-Cow ─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────
-         │     │Update    │     │Update    │
-         │     │Accel     │     │Position  │
-         │     │State     │     │Zone      │
+```mermaid
+sequenceDiagram
+    participant FSM as FSM Task
+    participant IMU as IMU Module
+    participant GPS as GPS Module
+    participant Cow as Cow Object
+    
+    Note over FSM: GREEN_ZONE_BEGIN
+    
+    FSM->>IMU: Request IMU data
+    activate IMU
+    Note over FSM: GREEN_ZONE_WAIT_ACCELERATION
+    IMU-->>FSM: Send acceleration data
+    deactivate IMU
+    
+    FSM->>FSM: Evaluate CowState
+    Note over FSM: GREEN_ZONE_EVALUATE_COWSTATE
+    
+    FSM->>Cow: Update acceleration
+    FSM->>Cow: Update state (GRAZING/SLEEP/MOVEMENT)
+    Note over Cow: State classified
+    
+    alt CowState == MOVEMENT
+        FSM->>GPS: Configure GPS rate (FAST/MEDIUM)
+        Note over FSM: GREEN_ZONE_MOVEMENT
+    else CowState == GRAZING
+        FSM->>GPS: Configure GPS rate (SLOW)
+        Note over FSM: GREEN_ZONE_GRAZING
+    else CowState == SLEEP
+        FSM->>GPS: Disable GPS
+        Note over FSM: GREEN_ZONE_SLEEP<br/>Enter low power mode
+    end
+    
+    Note over FSM: GREEN_ZONE_WAIT_GPS_ADQ_TIME
+    FSM->>GPS: Request position
+    activate GPS
+    GPS-->>FSM: Send GPS data
+    deactivate GPS
+    
+    FSM->>Cow: Update position
+    FSM->>Cow: Update zone
+    Note over Cow: Position & Zone updated
+    
+    Note over FSM: Return to INITIALIZE
 ```
 
 ---

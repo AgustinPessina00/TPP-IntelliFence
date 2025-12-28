@@ -40,55 +40,113 @@ TPP-IntelliFence es un sistema de cerco virtual inteligente para ganado bovino b
 
 ## 🔄 Flujo de Datos del Sistema
 
+### Vista de Alto Nivel: Arquitectura Dual-Core
+
+```mermaid
+graph TB
+    subgraph STM32WL55JC["STM32WL55JC Dual-Core MCU"]
+        subgraph CM4["CORTEX-M4 @ 48MHz (Main)"]
+            SensorAcq["Sensor Acquisition Task"]
+            Dispatcher["Message Dispatcher<br/>(EmbeddedMessage Pool)"]
+            FSM["FSM Task<br/>+ Cow Object<br/>+ Fence Object"]
+            Stimulus["Stimulus Module<br/>(Buzzer/Vib/Shock)"]
+        end
+        
+        subgraph CM0["CORTEX-M0+ @ 48MHz (Auxiliary)"]
+            LoRa["LoRa Communication Task<br/>TX: Position<br/>RX: Fence Updates"]
+        end
+        
+        CM4 <-->|IPCC| CM0
+    end
+    
+    GPS["GPS SAM-M10Q<br/>(I2C)"] --> SensorAcq
+    IMU["IMU LSM6DSO<br/>(I2C)"] --> SensorAcq
+    INA["INA226 × 3<br/>(I2C)"] --> SensorAcq
+    
+    SensorAcq --> Dispatcher
+    Dispatcher --> FSM
+    FSM --> Stimulus
+    FSM --> Dispatcher
+    
+    style CM4 fill:#e1f5ff
+    style CM0 fill:#fff4e1
+    style STM32WL55JC fill:#f0f0f0
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         STM32WL55JC                              │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    CORTEX-M4 (Main)                       │  │
-│  │                                                            │  │
-│  │  ┌──────────────┐      ┌─────────────────────────────┐  │  │
-│  │  │  GPS Module  │─────→│    Sensor Acquisition       │  │  │
-│  │  │  (SAM-M10Q)  │      │         Task                │  │  │
-│  │  └──────────────┘      └───────────┬─────────────────┘  │  │
-│  │                                     │                     │  │
-│  │  ┌──────────────┐      ┌───────────▼─────────────────┐  │  │
-│  │  │  IMU Module  │─────→│    Message Dispatcher       │  │  │
-│  │  │  (LSM6DSO)   │      │  (EmbeddedMessage Pool)     │  │  │
-│  │  └──────────────┘      └───────────┬─────────────────┘  │  │
-│  │                                     │                     │  │
-│  │  ┌──────────────┐      ┌───────────▼─────────────────┐  │  │
-│  │  │ INA226 Power │      │      FSM Task               │  │  │
-│  │  │   Monitor    │      │  ┌────────────────────────┐ │  │  │
-│  │  └──────────────┘      │  │  Cow Object            │ │  │  │
-│  │                         │  │  - Position            │ │  │  │
-│  │                         │  │  - Acceleration        │ │  │  │
-│  │  ┌──────────────┐      │  │  - State (movement)    │ │  │  │
-│  │  │  Distance    │      │  │  - Zone (fence)        │ │  │  │
-│  │  │    Module    │      │  └────────────────────────┘ │  │  │
-│  │  └──────────────┘      │  ┌────────────────────────┐ │  │  │
-│  │                         │  │  Fence Object          │ │  │  │
-│  │                         │  │  - Vertices (static)   │ │  │  │
-│  │                         │  │  - Limits (lines)      │ │  │  │
-│  │                         │  └────────────────────────┘ │  │  │
-│  │                         └───────────┬─────────────────┘  │  │
-│  │                                     │                     │  │
-│  │                         ┌───────────▼─────────────────┐  │  │
-│  │                         │   Stimulus Module           │  │  │
-│  │                         │  (Buzzer/Vibration/Shock)   │  │  │
-│  │                         └─────────────────────────────┘  │  │
-│  └────────────────────────────────┬───────────────────────┘  │
-│                                    │ IPCC                     │
-│  ┌────────────────────────────────▼───────────────────────┐  │
-│  │                  CORTEX-M0+ (Auxiliary)                 │  │
-│  │                                                          │  │
-│  │  ┌─────────────────────────────────────────────────┐   │  │
-│  │  │          LoRa Communication Task                │   │  │
-│  │  │  - TX: Envío de posición al servidor           │   │  │
-│  │  │  - RX: Recepción de nuevo cerco virtual        │   │  │
-│  │  └─────────────────────────────────────────────────┘   │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+
+### Flujo Detallado de Datos en CM4
+
+```mermaid
+sequenceDiagram
+    participant GPS as GPS Module<br/>(SAM-M10Q)
+    participant IMU as IMU Module<br/>(LSM6DSO)
+    participant INA as INA226<br/>Sensors
+    participant SA as Sensor Acq<br/>Task
+    participant Disp as Message<br/>Dispatcher
+    participant FSM as FSM Task
+    participant Cow as Cow Object
+    participant Fence as Fence Object
+    participant Stim as Stimulus<br/>Module
+    
+    Note over SA: Lectura continua cada 100ms
+    loop Background Reading
+        SA->>GPS: read_gps_position()
+        GPS-->>SA: lat, lon
+        SA->>IMU: readAcceleration()
+        IMU-->>SA: ax, ay, az
+        SA->>INA: readCurrent_mA()
+        INA-->>SA: current values
+    end
+    
+    FSM->>Disp: REQUEST_GPS
+    Disp->>SA: Route message
+    SA->>Disp: SEND_GPS {lat, lon}
+    Disp->>FSM: GPS data
+    FSM->>Cow: updatePosition()
+    
+    FSM->>Disp: REQUEST_IMU
+    Disp->>SA: Route message
+    SA->>Disp: SEND_IMU {ax, ay, az}
+    Disp->>FSM: IMU data
+    FSM->>Cow: updateAcceleration()
+    FSM->>Cow: classifyState()
+    
+    FSM->>Fence: calculateDistance()
+    Fence-->>FSM: distance, zone
+    FSM->>Cow: updateZone()
+    
+    alt Zone requires stimulus
+        FSM->>Stim: Apply stimulus
+        Stim-->>FSM: Feedback
+    end
+```
+
+### Comunicación Inter-Core (IPCC)
+
+```mermaid
+graph LR
+    subgraph CM4_Core["Cortex-M4 Core"]
+        FSM_M4["FSM Task"]
+    end
+    
+    subgraph IPCC_HW["IPCC Hardware"]
+        CH1["Channel 1<br/>CM4→CM0"]
+        CH2["Channel 2<br/>CM0→CM4"]
+    end
+    
+    subgraph CM0_Core["Cortex-M0+ Core"]
+        LoRa_M0["LoRa Task"]
+    end
+    
+    FSM_M4 -->|"Send Position<br/>Request Fence"| CH1
+    CH1 --> LoRa_M0
+    LoRa_M0 -->|"TX Status<br/>New Fence"| CH2
+    CH2 --> FSM_M4
+    
+    LoRa_M0 <--> Server["LoRa Server"]
+    
+    style IPCC_HW fill:#ffe6e6
+    style CM4_Core fill:#e1f5ff
+    style CM0_Core fill:#fff4e1
 ```
 
 ---

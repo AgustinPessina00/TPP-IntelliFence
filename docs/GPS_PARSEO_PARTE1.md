@@ -10,30 +10,22 @@ El módulo GPS utilizado es el **SAM-M10Q** de u-blox, que se comunica mediante 
 
 ## Arquitectura General
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    FLUJO COMPLETO DE getPVT()                   │
-└─────────────────────────────────────────────────────────────────┘
-
-  1. getPVT()
-        ↓
-  2. sendCommand()
-        ↓
-  3. sendI2cCommand() ──→ GPS SAM-M10Q
-        ↓                      │
-  4. waitForNoACKResponse()    │
-        ↓                      │
-  5. checkUbloxI2C() ←─────────┘ (GPS envía 100 bytes)
-        ↓
-  6. process() (detecta inicio UBX)
-        ↓
-  7. processUBX() (construye payload)
-        ↓
-  8. processUBXpacket() (PARSEA datos)
-        ↓
-  9. extractLong(), extractByte(), etc.
-        ↓
-  10. packetUBXNAVPVT->data (DATOS LISTOS)
+```mermaid
+flowchart TD
+    Start(["1. getPVT()"]) --> SendCmd["2. sendCommand()"]
+    SendCmd --> SendI2C["3. sendI2cCommand()"]
+    SendI2C --> GPS["GPS SAM-M10Q<br/>(I2C)"]
+    GPS --> WaitResp["4. waitForNoACKResponse()"]
+    WaitResp --> CheckI2C["5. checkUbloxI2C()<br/>(GPS envía 100 bytes)"]
+    CheckI2C --> Process["6. process()<br/>(detecta inicio UBX)"]
+    Process --> ProcessUBX["7. processUBX()<br/>(construye payload)"]
+    ProcessUBX --> ProcessPkt["8. processUBXpacket()<br/>(PARSEA datos)"]
+    ProcessPkt --> Extract["9. extractLong()<br/>extractByte()<br/>etc."]
+    Extract --> End(["10. packetUBXNAVPVT->data<br/>DATOS LISTOS"])
+    
+    style Start fill:#e1f5ff
+    style End fill:#d4edda
+    style GPS fill:#fff3cd
 ```
 
 ---

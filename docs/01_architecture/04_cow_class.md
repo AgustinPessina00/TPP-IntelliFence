@@ -453,25 +453,35 @@ void fsmTask(void *argument) {
 
 ## 📊 Diagrama de Flujo de Datos
 
-```
-GPS Module ──→ updatePosition() ──→ Cow.position
-                                      │
-IMU Module ──→ updateAcceleration() ─→ Cow.acceleration
-                     │                  │
-                     └──→ classifyMotion()
-                            │
-                            └──→ updateState() ──→ Cow.state
-                                                     │
-Distance ────→ updateDistAndZone() ──→ Cow.currentZone
-Module                                 Cow.distanceToLimit
-                                        │
-                                        ▼
-                                  FSM Decision Logic
-                                        │
-                         ┌──────────────┼──────────────┐
-                         │              │              │
-                    GPS Rate       Stimulus        Sleep Mode
-                   Adjustment       Control         Control
+```mermaid
+flowchart TD
+    GPS["GPS Module"] --> UpdatePos["updatePosition()"]
+    UpdatePos --> CowPos["Cow.position"]
+    
+    IMU["IMU Module"] --> UpdateAccel["updateAcceleration()"]
+    UpdateAccel --> CowAccel["Cow.acceleration"]
+    CowAccel --> Classify["classifyMotion()"]
+    Classify --> UpdateState["updateState()"]
+    UpdateState --> CowState["Cow.state"]
+    
+    Distance["Distance Module"] --> UpdateDist["updateDistAndZone()"]
+    UpdateDist --> CowZone["Cow.currentZone"]
+    UpdateDist --> CowDistance["Cow.distanceToLimit"]
+    
+    CowState --> FSM["FSM Decision Logic"]
+    CowZone --> FSM
+    CowDistance --> FSM
+    
+    FSM --> GPS_Rate["GPS Rate<br/>Adjustment"]
+    FSM --> Stimulus["Stimulus<br/>Control"]
+    FSM --> Sleep["Sleep Mode<br/>Control"]
+    
+    style GPS fill:#e1f5ff
+    style IMU fill:#e1f5ff
+    style Distance fill:#e1f5ff
+    style FSM fill:#fff3cd
+    style CowState fill:#d4edda
+    style CowZone fill:#d4edda
 ```
 
 ---
