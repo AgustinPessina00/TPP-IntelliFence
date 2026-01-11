@@ -4,6 +4,7 @@
 #include "cmsis_os.h"
 #include "EmbeddedMessage.h"
 #include "zone.h"
+#include "getZone.h"
 #define RTOS_PRINTF_AUTO
 #include "rtos_printf.h"
 #include <string.h>
@@ -72,7 +73,7 @@ void fsmTask(void *argument) {
                 break;
         }
         
-        osDelay(100);
+        osDelay(500);
     }
 }
 
@@ -175,24 +176,22 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_REQUEST_ZONE:
-            sendMessage(MSG_ID_REQUEST_ZONE_TO_FENCE, MODULE_DISTANCE);
-            Timeout_Start(&timeout, DISTANCE_TIMEOUT_MS);
-            RTOS_LOG_DEBUG("[FSM] Requesting zone calculation\n");
-            *state = STARTUP_ROUTINE_EVALUATE_ZONE;
+            // Calcular zona localmente
+            {
+                float minDistance = 0.0f;
+                zone_t calculatedZone = getZoneFromDistance(&cow, &fence, minDistance);
+                
+                cow.updateCurrentZone(calculatedZone);
+                cow.updateDistanceToLimit(minDistance);
+                
+                RTOS_LOG_DEBUG("[FSM] Zone calculated: %d, Distance: %.2fm\n", calculatedZone, minDistance);
+                *state = STARTUP_ROUTINE_END;
+            }
             break;
             
         case STARTUP_ROUTINE_EVALUATE_ZONE:
-            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
-                if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
-                    RTOS_LOG_DEBUG("[FSM] Zone calculated after %lums\n", Timeout_GetElapsed(&timeout));
-                    *state = STARTUP_ROUTINE_END;
-                }
-            } else {
-                if (Timeout_IsExpired(&timeout)) {
-                    RTOS_LOG_WARN("[FSM] Zone calculation timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
-                    *state = STARTUP_ROUTINE_REQUEST_ZONE;
-                }
-            }
+            // Ya no se usa - eliminado
+            *state = STARTUP_ROUTINE_END;
             break;
             
         case STARTUP_ROUTINE_END:
@@ -263,22 +262,22 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
             break;
             
         case INITIALIZE_REQUEST_ZONE:
-            sendMessage(MSG_ID_REQUEST_ZONE_TO_FENCE, MODULE_DISTANCE);
-            Timeout_Start(&timeout, DISTANCE_TIMEOUT_MS);
-            initializeState = INITIALIZE_EVALUATE_ZONE;
+            // Calcular zona localmente
+            {
+                float minDistance = 0.0f;
+                zone_t calculatedZone = getZoneFromDistance(&cow, &fence, minDistance);
+                
+                cow.updateCurrentZone(calculatedZone);
+                cow.updateDistanceToLimit(minDistance);
+                
+                RTOS_LOG_DEBUG("[FSM] INIT: Zone calculated: %d, Distance: %.2fm\n", calculatedZone, minDistance);
+                initializeState = INITIALIZE_END;
+            }
             break;
             
         case INITIALIZE_EVALUATE_ZONE:
-            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
-                if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
-                    initializeState = INITIALIZE_END;
-                }
-            } else {
-                if (Timeout_IsExpired(&timeout)) {
-                    RTOS_LOG_WARN("[FSM] INIT: Zone timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
-                    initializeState = INITIALIZE_REQUEST_ZONE;
-                }
-            }
+            // Ya no se usa - eliminado
+            initializeState = INITIALIZE_END;
             break;
             
         case INITIALIZE_END:
@@ -304,7 +303,7 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
     
     switch (greenZoneState) {
         case GREEN_ZONE_BEGIN:
-            sendZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
+            //sendZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
             greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
             break;
             
@@ -509,22 +508,22 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             break;
             
         case FENCE_TRANSITION_REQUEST_ZONE:
-            sendMessage(MSG_ID_REQUEST_ZONE_TO_FENCE, MODULE_DISTANCE);
-            Timeout_Start(&timeout, DISTANCE_TIMEOUT_MS);
-            fenceTransitionState = FENCE_TRANSITION_EVALUATE_ZONE;
+            // Calcular zona localmente
+            {
+                float minDistance = 0.0f;
+                zone_t calculatedZone = getZoneFromDistance(&cow, &fence, minDistance);
+                
+                cow.updateCurrentZone(calculatedZone);
+                cow.updateDistanceToLimit(minDistance);
+                
+                RTOS_LOG_DEBUG("[FSM] FENCE_TRANS: Zone calculated: %d, Distance: %.2fm\n", calculatedZone, minDistance);
+                fenceTransitionState = FENCE_TRANSITION_END;
+            }
             break;
             
         case FENCE_TRANSITION_EVALUATE_ZONE:
-            if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
-                if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
-                    fenceTransitionState = FENCE_TRANSITION_END;
-                }
-            } else {
-                if (Timeout_IsExpired(&timeout)) {
-                    RTOS_LOG_WARN("[FSM] FENCE_TRANS: Zone timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
-                    fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
-                }
-            }
+            // Ya no se usa - eliminado
+            fenceTransitionState = FENCE_TRANSITION_END;
             break;
             
         case FENCE_TRANSITION_END:
@@ -618,15 +617,63 @@ HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence) {
         return HAL_ERROR;
     }
     
-    uint8_t vertexCount = msgReceived->length / sizeof(Vertex);
-    if (vertexCount > 0 && vertexCount <= MAX_VERTICES) {
-        Vertex* vertices = (Vertex*)msgReceived->payload;
-        fence.saveVertices(vertices, vertexCount);
-        RTOS_LOG_INFO("[FSM] Received %d fence vertices\n", vertexCount);
+    // Variables estáticas para reconstruir fence fragmentado
+    static Vertex receivedVertices[MAX_VERTICES];
+    static uint8_t totalExpectedFragments = 0;
+    static uint8_t receivedFragments = 0;
+    static uint8_t totalVerticesReceived = 0;
+    
+    // Leer header del fragmento
+    uint8_t fragmentNum = msgReceived->payload[0];
+    uint8_t totalFragments = msgReceived->payload[1];
+    uint8_t verticesInFragment = msgReceived->payload[2];
+    
+    RTOS_LOG_DEBUG("[FSM] Received fence fragment %d/%d (%d vertices)\n",
+                  fragmentNum + 1, totalFragments, verticesInFragment);
+    
+    // Primer fragmento: inicializar
+    if (fragmentNum == 0) {
+        totalExpectedFragments = totalFragments;
+        receivedFragments = 0;
+        totalVerticesReceived = 0;
     }
     
-    MessagePool_Free(msgReceived);
-    return HAL_OK;
+    // Copiar vértices de este fragmento
+    uint8_t payloadOffset = 3;  // Después del header
+    const uint8_t VERTEX_SIZE = 2 * sizeof(double);
+    
+    for (uint8_t i = 0; i < verticesInFragment; i++) {
+        if (totalVerticesReceived < MAX_VERTICES) {
+            memcpy(&receivedVertices[totalVerticesReceived],
+                   &msgReceived->payload[payloadOffset],
+                   VERTEX_SIZE);
+            totalVerticesReceived++;
+            payloadOffset += VERTEX_SIZE;
+        }
+    }
+    
+    receivedFragments++;
+    
+    // ¿Recibimos todos los fragmentos?
+    if (receivedFragments == totalExpectedFragments) {
+        RTOS_LOG_INFO("[FSM] All fence fragments received (%d vertices total)\n",
+                     totalVerticesReceived);
+        
+        // Actualizar fence con todos los vértices
+        fence.saveVertices(receivedVertices, totalVerticesReceived);
+        
+        // Reset para próxima recepción
+        receivedFragments = 0;
+        totalVerticesReceived = 0;
+        
+        MessagePool_Free(msgReceived);
+        return HAL_OK;
+    } else {
+        RTOS_LOG_DEBUG("[FSM] Waiting for more fragments (%d/%d)\n",
+                      receivedFragments, totalExpectedFragments);
+        MessagePool_Free(msgReceived);
+        return HAL_BUSY;  // Aún esperando más fragmentos
+    }
 }
 
 void updateFence(Fence& fence) {
@@ -709,7 +756,7 @@ void updateGpsAdqTime(GpsRate gpsRate) {
     EmbeddedMessage_t *msg = MessagePool_Allocate();
     if (msg != NULL) {
         EmbeddedMessage_CreateWithPayload(msg, MSG_ID_GPS_REQUEST_CONFIG, MODULE_FSM, 
-                                         MODULE_GPS, (uint8_t*)&gpsRate, sizeof(GpsRate));
+                                         MODULE_SENSOR_ACQ, (uint8_t*)&gpsRate, sizeof(GpsRate));
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
         RTOS_LOG_DEBUG("[FSM] GPS rate updated: %d\n", (int)gpsRate);
     }

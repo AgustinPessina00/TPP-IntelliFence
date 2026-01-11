@@ -1,0 +1,997 @@
+[IENCE] Thresholds set: LIGHT_BLUE=70.0m, BLset: L[INFO] [DISPATCHER] Task initialized successfully
+[TEST_SENSOR_ACQ] Iniciado en modo TEST
+[TEST_SENSOR_ACQ] GPS samples: 30, IMU samples: 30
+[INFO] [FSM] Task initialized successfully
+[INFO] [FSM] Starting STARTUP_ROUTINE
+[IENCE] Thresholds set: LIGHT_BLUE=70.0m, BLset: L[INFO] [DISPATCHER] Task initialized successfully
+[TEST_SENSOR_ACQ] Iniciado en modo TEST
+[TEST_SENSOR_ACQ] GPS samples: 30, IMU samples: 30
+[INFO] [FSM] Task initialized successfully
+[INFO] [FSM] Starting STARTUP_ROUTINE
+[IENCE] Thresholds set: LIGHT_BLUE=70.0m, BLset: L[INFO] [DISPATCHER] Task initialized successfully
+[TEST_SENSOR_ACQ] Iniciado en modo TEST
+[TEST_SENSOR_ACQ] GPS samples: 30, IMU samples: 30
+[INFO] [FSM] Task initialized successfully
+[INFO] [FSM] Starting STARTUP_ROUTINE
+[DEBUG] [FSM] Requesting initial GPS position (timeout: 30000ms)
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 00] Lat: -34.920400, Lon: -57.953600 | STARTUP: Centro del cerco -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920400, lon=-57.953600
+[DEBUG] [FSM] GPS position received after 226ms
+[DEBUG] [FSM] Sending position via LoRa (timeout: 10000ms)
+[DEBUG] [DISPATCHER] Routing msg ID:99 from:6 to:4
+[DEBUG] [LORA] Received message ID:99 from module:6
+[INFO] [LORA] Sending position: lat=-34.920400, lon=-57.953600
+[DEBUG] [LORA] Feedback sent to FSM
+[INFO] [LORA] Sending fence in 2 fragments (4 vertices, 2 per msg)
+[DEBUG] [LORA] Fragment 1/2 sent (2 vertices)
+[DEBUG] [DISPATCHER] Routing msg ID:100 from:4 to:6
+[DEBUG] [LORA] Fragment 2/2 sent (2 vertices)
+[DEBUG] [FSM] LoRa TX confirmed position send
+[DEBUG] [FSM] LoRa TX confirmed after 219ms
+[DEBUG] [DISPATCHER] Routing msg ID:101 from:4 to:6
+[DEBUG] [FSM] Received fence fragment 1/2 (2 vertices)
+[DEBUG] [FSM] Waiting for more fragments (1/2)
+[DEBUG] [DISPATCHER] Routing msg ID:101 from:4 to:6
+[DEBUG] [FSM] Received fence fragment 2/2 (2 vertices)
+[INFO] [FSM] All fence fragments received (4 vertices total)
+[FENCE] Saved 4 vertices successfully
+[INFO] [FSM] Fence vertices received after 251ms
+[FENCE] Center updated: (-34.920500, -57.953600)
+[FENCE] Created 4 limits from 4 vertices
+[DEBUG] [FSM] Fence limits updated
+[DEBUG] [FSM] Requesting GPS position after fence update
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 01] Lat: -34.920350, Lon: -57.953580 | GREEN: Pastando tranquila -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920350, lon=-57.953580
+[DEBUG] [FSM] GPS position received after 225ms
+[DEBUG] [ZONE] Cow pos: (-34.920350, -57.953580)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 89.35 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=89.35 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] Zone calculated: 0, Distance: 89.35m
+[INFO] [FSM] Startup complete - entering NORMAL_OPERATION
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 02] Lat: -34.920320, Lon: -57.953550 | GREEN: Durmiendo -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920320, lon=-57.953550
+[DEBUG] [ZONE] Cow pos: (-34.920320, -57.953550)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 86.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=86.62 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 86.62m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 00] ax: 0.02, ay: -0.01, az: 9.81 | STARTUP: Vaca en reposo -> SLEEP
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.02, ay=-0.01, az=9.81 g
+[DEBUG] [FSM] GPS rate updated: 1
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 1 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 03] Lat: -34.920380, Lon: -57.953620 | GREEN: Movimiento lento -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920380, lon=-57.953620
+[DEBUG] [ZONE] Cow pos: (-34.920380, -57.953620)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 89.35 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=89.35 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 89.35m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 01] ax: 0.15, ay: 0.12, az: 9.85 | GRAZING: Pastando tranquila -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.15, ay=0.12, az=9.85 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 04] Lat: -34.920420, Lon: -57.953650 | GREEN: Cerca del centro -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920420, lon=-57.953650
+[DEBUG] [ZONE] Cow pos: (-34.920420, -57.953650)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 86.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=86.62 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 86.62m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 02] ax: 0.18, ay: -0.10, az: 9.78 | GRAZING: Comiendo pasto -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.18, ay=-0.10, az=9.78 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[IENCE] Thresholds set: LIGHT_BLUE=70.0m, BLset: LiniSPATCHER] Task initialized successfully
+[TEST_SENSOR_ACQ] Iniciado en modo TEST
+[TEST_SENSOR_ACQ] GPS samples: 30, IMU samples: 30
+[INFO] [FSM] Task initialized successfully
+[INFO] [FSM] Starting STARTUP_ROUTINE
+[DEBUG] [FSM] Requesting initial GPS position (timeout: 30000ms)
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 00] Lat: -34.920400, Lon: -57.953600 | STARTUP: Centro del cerco -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920400, lon=-57.953600
+[DEBUG] [FSM] GPS position received after 226ms
+[DEBUG] [FSM] Sending position via LoRa (timeout: 10000ms)
+[DEBUG] [DISPATCHER] Routing msg ID:99 from:6 to:4
+[DEBUG] [LORA] Received message ID:99 from module:6
+[INFO] [LORA] Sending position: lat=-34.920400, lon=-57.953600
+[DEBUG] [LORA] Feedback sent to FSM
+[INFO] [LORA] Sending fence in 2 fragments (4 vertices, 2 per msg)
+[DEBUG] [LORA] Fragment 1/2 sent (2 vertices)
+[DEBUG] [DISPATCHER] Routing msg ID:100 from:4 to:6
+[DEBUG] [LORA] Fragment 2/2 sent (2 vertices)
+[DEBUG] [FSM] LoRa TX confirmed position send
+[DEBUG] [FSM] LoRa TX confirmed after 220ms
+[DEBUG] [DISPATCHER] Routing msg ID:101 from:4 to:6
+[DEBUG] [FSM] Received fence fragment 1/2 (2 vertices)
+[DEBUG] [FSM] Waiting for more fragments (1/2)
+[DEBUG] [DISPATCHER] Routing msg ID:101 from:4 to:6
+[DEBUG] [FSM] Received fence fragment 2/2 (2 vertices)
+[INFO] [FSM] All fence fragments received (4 vertices total)
+[FENCE] Saved 4 vertices successfully
+[INFO] [FSM] Fence vertices received after 251ms
+[FENCE] Center updated: (-34.920500, -57.953600)
+[FENCE] Created 4 limits from 4 vertices
+[DEBUG] [FSM] Fence limits updated
+[DEBUG] [FSM] Requesting GPS position after fence update
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 01] Lat: -34.920350, Lon: -57.953580 | GREEN: Pastando tranquila -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920350, lon=-57.953580
+[DEBUG] [FSM] GPS position received after 225ms
+[DEBUG] [ZONE] Cow pos: (-34.920350, -57.953580)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 89.35 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=89.35 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] Zone calculated: 0, Distance: 89.35m
+[INFO] [FSM] Startup complete - entering NORMAL_OPERATION
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 02] Lat: -34.920320, Lon: -57.953550 | GREEN: Durmiendo -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920320, lon=-57.953550
+[DEBUG] [ZONE] Cow pos: (-34.920320, -57.953550)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 86.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=86.62 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 86.62m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 00] ax: 0.02, ay: -0.01, az: 9.81 | STARTUP: Vaca en reposo -> SLEEP
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.02, ay=-0.01, az=9.81 g
+[DEBUG] [FSM] GPS rate updated: 1
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 1 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 03] Lat: -34.920380, Lon: -57.953620 | GREEN: Movimiento lento -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920380, lon=-57.953620
+[DEBUG] [ZONE] Cow pos: (-34.920380, -57.953620)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 89.35 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=89.35 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 89.35m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 01] ax: 0.15, ay: 0.12, az: 9.85 | GRAZING: Pastando tranquila -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.15, ay=0.12, az=9.85 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 04] Lat: -34.920420, Lon: -57.953650 | GREEN: Cerca del centro -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920420, lon=-57.953650
+[DEBUG] [ZONE] Cow pos: (-34.920420, -57.953650)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 86.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=86.62 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 86.62m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 02] ax: 0.18, ay: -0.10, az: 9.78 | GRAZING: Comiendo pasto -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.18, ay=-0.10, az=9.78 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 05] Lat: -34.920450, Lon: -57.953700 | GREEN: Explorando -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920450, lon=-57.953700
+[DEBUG] [ZONE] Cow pos: (-34.920450, -57.953700)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 82.06 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=82.06 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 82.06m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 03] ax: 0.12, ay: 0.08, az: 9.82 | GRAZING: Movimientos lentos -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.12, ay=0.08, az=9.82 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 06] Lat: -34.920480, Lon: -57.953750 | GREEN: Alej��ndose -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920480, lon=-57.953750
+[DEBUG] [ZONE] Cow pos: (-34.920480, -57.953750)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 77.50 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=77.50 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 77.50m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 04] ax: 0.20, ay: 0.15, az: 9.80 | GRAZING: Masticando -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.20, ay=0.15, az=9.80 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 07] Lat: -34.920500, Lon: -57.953800 | GREEN: M��s lejos -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920500, lon=-57.953800
+[DEBUG] [ZONE] Cow pos: (-34.920500, -57.953800)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 72.94 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=72.94 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 72.94m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 05] ax: 0.01, ay: 0.02, az: 9.81 | SLEEP: Durmiendo profundo -> SLEEP
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.01, ay=0.02, az=9.81 g
+[DEBUG] [FSM] GPS rate updated: 1
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 1 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 08] Lat: -34.920520, Lon: -57.953850 | LIGHT_BLUE: Buzzer leve -> LIGHT_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920520, lon=-57.953850
+[DEBUG] [ZONE] Cow pos: (-34.920520, -57.953850)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 68.38 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=68.38 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 68.38m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 09] Lat: -34.920530, Lon: -57.953880 | LIGHT_BLUE: Acerc��ndose -> LIGHT_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920530, lon=-57.953880
+[DEBUG] [ZONE] Cow pos: (-34.920530, -57.953880)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 65.65 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=65.65 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 65.65m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 10] Lat: -34.920540, Lon: -57.953900 | LIGHT_BLUE: Sigue avanzando -> LIGHT_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920540, lon=-57.953900
+[DEBUG] [ZONE] Cow pos: (-34.920540, -57.953900)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 63.82 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=63.82 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 63.82m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 11] Lat: -34.920550, Lon: -57.953930 | BLUE: Buzzer medio -> BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920550, lon=-57.953930
+[DEBUG] [ZONE] Cow pos: (-34.920550, -57.953930)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 61.09 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=61.09 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 61.09m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 12] Lat: -34.920560, Lon: -57.953950 | BLUE: Advertencia aumenta -> BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920560, lon=-57.953950
+[DEBUG] [ZONE] Cow pos: (-34.920560, -57.953950)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 59.26 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=59.26 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 59.26m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 13] Lat: -34.920570, Lon: -57.953970 | BLUE: Cerca del l��mite azul -> BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920570, lon=-57.953970
+[DEBUG] [ZONE] Cow pos: (-34.920570, -57.953970)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 57.44 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=57.44 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 57.44m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 14] Lat: -34.920580, Lon: -57.953990 | DARK_BLUE: Buzzer intenso -> DARK_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920580, lon=-57.953990
+[DEBUG] [ZONE] Cow pos: (-34.920580, -57.953990)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 55.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=55.62 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 55.62m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 15] Lat: -34.920590, Lon: -57.954010 | DARK_BLUE: Muy cerca del l��mite -> DARK_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920590, lon=-57.954010
+[DEBUG] [ZONE] Cow pos: (-34.920590, -57.954010)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 53.79 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=53.79 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 53.79m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 16] Lat: -34.920595, Lon: -57.954020 | DARK_BLUE: Peligro inminente -> DARK_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920595, lon=-57.954020
+[DEBUG] [ZONE] Cow pos: (-34.920595, -57.954020)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 52.88 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=52.88 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 52.88m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 17] Lat: -34.920600, Lon: -57.954030 | YELLOW: Buzzer + Vibraci��n -> YELLOW
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920600, lon=-57.954030
+[DEBUG] [ZONE] Cow pos: (-34.920600, -57.954030)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 51.97 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=51.97 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 51.97m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 18] Lat: -34.920605, Lon: -57.954040 | YELLOW: Estímulo fuerte -> YELLOW
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920605, lon=-57.954040
+[DEBUG] [ZONE] Cow pos: (-34.920605, -57.954040)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 51.06 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=51.06 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 51.06m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 19] Lat: -34.920610, Lon: -57.954050 | YELLOW: Debe retroceder -> YELLOW
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920610, lon=-57.954050
+[DEBUG] [ZONE] Cow pos: (-34.920610, -57.954050)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 50.15 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=50.15 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 50.15m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 20] Lat: -34.920615, Lon: -57.954060 | RED: Vibración intensa -> RED
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920615, lon=-57.954060
+[DEBUG] [ZONE] Cow pos: (-34.920615, -57.954060)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 49.23 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=49.23 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 49.23m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 21] Lat: -34.920620, Lon: -57.954070 | RED: ��ltima advertencia -> RED
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920620, lon=-57.954070
+[DEBUG] [ZONE] Cow pos: (-34.920620, -57.954070)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 48.32 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=48.32 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 48.32m
+[IENCE] Thresholds set: LIGHT_BLUE[IENCE] Thresholds set: LIGHT_BLUE=70.0m, BLset: L[INFO] [DISPATCHER] Task initialized successfully
+[TEST_SENSOR_ACQ] Iniciado en modo TEST
+[TEST_SENSOR_ACQ] GPS samples: 30, IMU samples: 30
+[INFO] [FSM] Task initialized successfully
+[INFO] [FSM] Starting STARTUP_ROUTINE
+[DEBUG] [FSM] Requesting initial GPS position (timeout: 30000ms)
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 00] Lat: -34.920400, Lon: -57.953600 | STARTUP: Centro del cerco -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920400, lon=-57.953600
+[DEBUG] [FSM] GPS position received after 226ms
+[DEBUG] [FSM] Sending position via LoRa (timeout: 10000ms)
+[DEBUG] [DISPATCHER] Routing msg ID:99 from:6 to:4
+[DEBUG] [LORA] Received message ID:99 from module:6
+[INFO] [LORA] Sending position: lat=-34.920400, lon=-57.953600
+[DEBUG] [LORA] Feedback sent to FSM
+[INFO] [LORA] Sending fence in 2 fragments (4 vertices, 2 per msg)
+[DEBUG] [LORA] Fragment 1/2 sent (2 vertices)
+[DEBUG] [DISPATCHER] Routing msg ID:100 from:4 to:6
+[DEBUG] [LORA] Fragment 2/2 sent (2 vertices)
+[DEBUG] [FSM] LoRa TX confirmed position send
+[DEBUG] [FSM] LoRa TX confirmed after 219ms
+[DEBUG] [DISPATCHER] Routing msg ID:101 from:4 to:6
+[DEBUG] [FSM] Received fence fragment 1/2 (2 vertices)
+[DEBUG] [FSM] Waiting for more fragments (1/2)
+[DEBUG] [DISPATCHER] Routing msg ID:101 from:4 to:6
+[DEBUG] [FSM] Received fence fragment 2/2 (2 vertices)
+[INFO] [FSM] All fence fragments received (4 vertices total)
+[FENCE] Saved 4 vertices successfully
+[INFO] [FSM] Fence vertices received after 251ms
+[FENCE] Center updated: (-34.920500, -57.953600)
+[FENCE] Created 4 limits from 4 vertices
+[DEBUG] [FSM] Fence limits updated
+[DEBUG] [FSM] Requesting GPS position after fence update
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 01] Lat: -34.920350, Lon: -57.953580 | GREEN: Pastando tranquila -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920350, lon=-57.953580
+[DEBUG] [FSM] GPS position received after 224ms
+[DEBUG] [ZONE] Cow pos: (-34.920350, -57.953580)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 89.35 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=89.35 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] Zone calculated: 0, Distance: 89.35m
+[INFO] [FSM] Startup complete - entering NORMAL_OPERATION
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 02] Lat: -34.920320, Lon: -57.953550 | GREEN: Durmiendo -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920320, lon=-57.953550
+[DEBUG] [ZONE] Cow pos: (-34.920320, -57.953550)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 86.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=86.62 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 86.62m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 00] ax: 0.02, ay: -0.01, az: 9.81 | STARTUP: Vaca en reposo -> SLEEP
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.02, ay=-0.01, az=9.81 g
+[DEBUG] [FSM] GPS rate updated: 1
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 1 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 03] Lat: -34.920380, Lon: -57.953620 | GREEN: Movimiento lento -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920380, lon=-57.953620
+[DEBUG] [ZONE] Cow pos: (-34.920380, -57.953620)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 89.35 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=89.35 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 89.35m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 01] ax: 0.15, ay: 0.12, az: 9.85 | GRAZING: Pastando tranquila -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.15, ay=0.12, az=9.85 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 04] Lat: -34.920420, Lon: -57.953650 | GREEN: Cerca del centro -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920420, lon=-57.953650
+[DEBUG] [ZONE] Cow pos: (-34.920420, -57.953650)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 86.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=86.62 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 86.62m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 02] ax: 0.18, ay: -0.10, az: 9.78 | GRAZING: Comiendo pasto -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.18, ay=-0.10, az=9.78 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 05] Lat: -34.920450, Lon: -57.953700 | GREEN: Explorando -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920450, lon=-57.953700
+[DEBUG] [ZONE] Cow pos: (-34.920450, -57.953700)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 82.06 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=82.06 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 82.06m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 03] ax: 0.12, ay: 0.08, az: 9.82 | GRAZING: Movimientos lentos -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.12, ay=0.08, az=9.82 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 06] Lat: -34.920480, Lon: -57.953750 | GREEN: Alej��ndose -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920480, lon=-57.953750
+[DEBUG] [ZONE] Cow pos: (-34.920480, -57.953750)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 77.50 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=77.50 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 77.50m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 04] ax: 0.20, ay: 0.15, az: 9.80 | GRAZING: Masticando -> GRAZING
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.20, ay=0.15, az=9.80 g
+[DEBUG] [FSM] GPS rate updated: 2
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 2 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 07] Lat: -34.920500, Lon: -57.953800 | GREEN: M��s lejos -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920500, lon=-57.953800
+[DEBUG] [ZONE] Cow pos: (-34.920500, -57.953800)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 72.94 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=72.94 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 72.94m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 05] ax: 0.01, ay: 0.02, az: 9.81 | SLEEP: Durmiendo profundo -> SLEEP
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.01, ay=0.02, az=9.81 g
+[DEBUG] [FSM] GPS rate updated: 1
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 1 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 08] Lat: -34.920520, Lon: -57.953850 | LIGHT_BLUE: Buzzer leve -> LIGHT_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920520, lon=-57.953850
+[DEBUG] [ZONE] Cow pos: (-34.920520, -57.953850)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 68.38 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=68.38 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 68.38m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 09] Lat: -34.920530, Lon: -57.953880 | LIGHT_BLUE: Acercándose -> LIGHT_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920530, lon=-57.953880
+[DEBUG] [ZONE] Cow pos: (-34.920530, -57.953880)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 65.65 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=65.65 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 65.65m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 10] Lat: -34.920540, Lon: -57.953900 | LIGHT_BLUE: Sigue avanzando -> LIGHT_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920540, lon=-57.953900
+[DEBUG] [ZONE] Cow pos: (-34.920540, -57.953900)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 63.82 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=63.82 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 63.82m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 11] Lat: -34.920550, Lon: -57.953930 | BLUE: Buzzer medio -> BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920550, lon=-57.953930
+[DEBUG] [ZONE] Cow pos: (-34.920550, -57.953930)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 61.09 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=61.09 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 61.09m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 12] Lat: -34.920560, Lon: -57.953950 | BLUE: Advertencia aumenta -> BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920560, lon=-57.953950
+[DEBUG] [ZONE] Cow pos: (-34.920560, -57.953950)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 59.26 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=59.26 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 59.26m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 13] Lat: -34.920570, Lon: -57.953970 | BLUE: Cerca del l��mite azul -> BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920570, lon=-57.953970
+[DEBUG] [ZONE] Cow pos: (-34.920570, -57.953970)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 57.44 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=57.44 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 57.44m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 14] Lat: -34.920580, Lon: -57.953990 | DARK_BLUE: Buzzer intenso -> DARK_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920580, lon=-57.953990
+[DEBUG] [ZONE] Cow pos: (-34.920580, -57.953990)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 55.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=55.62 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 55.62m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 15] Lat: -34.920590, Lon: -57.954010 | DARK_BLUE: Muy cerca del l��mite -> DARK_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920590, lon=-57.954010
+[DEBUG] [ZONE] Cow pos: (-34.920590, -57.954010)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 53.79 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=53.79 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 53.79m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 16] Lat: -34.920595, Lon: -57.954020 | DARK_BLUE: Peligro inminente -> DARK_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920595, lon=-57.954020
+[DEBUG] [ZONE] Cow pos: (-34.920595, -57.954020)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 52.88 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=52.88 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 52.88m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 17] Lat: -34.920600, Lon: -57.954030 | YELLOW: Buzzer + Vibraci��n -> YELLOW
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920600, lon=-57.954030
+[DEBUG] [ZONE] Cow pos: (-34.920600, -57.954030)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 51.97 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=51.97 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 51.97m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 18] Lat: -34.920605, Lon: -57.954040 | YELLOW: Est��mulo fuerte -> YELLOW
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920605, lon=-57.954040
+[DEBUG] [ZONE] Cow pos: (-34.920605, -57.954040)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 51.06 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=51.06 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 51.06m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 19] Lat: -34.920610, Lon: -57.954050 | YELLOW: Debe retroceder -> YELLOW
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920610, lon=-57.954050
+[DEBUG] [ZONE] Cow pos: (-34.920610, -57.954050)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 50.15 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=50.15 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 50.15m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 20] Lat: -34.920615, Lon: -57.954060 | RED: Vibraci��n intensa -> RED
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920615, lon=-57.954060
+[DEBUG] [ZONE] Cow pos: (-34.920615, -57.954060)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 49.23 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=49.23 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 49.23m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 21] Lat: -34.920620, Lon: -57.954070 | RED: ��ltima advertencia -> RED
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920620, lon=-57.954070
+[DEBUG] [ZONE] Cow pos: (-34.920620, -57.954070)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 48.32 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=48.32 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 48.32m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 22] Lat: -34.920623, Lon: -57.954075 | RED: Al borde del escape -> RED
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920623, lon=-57.954075
+[DEBUG] [ZONE] Cow pos: (-34.920623, -57.954075)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 47.87 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=47.87 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 47.87m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 23] Lat: -34.920628, Lon: -57.954085 | BLACK: ESCAPE - Alerta cr��tica -> BLACK
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920628, lon=-57.954085
+[DEBUG] [ZONE] Cow pos: (-34.920628, -57.954085)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 46.95 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=46.95 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 46.95m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 24] Lat: -34.920632, Lon: -57.954090 | BLACK: Fuera del cerco -> BLACK
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920632, lon=-57.954090
+[DEBUG] [ZONE] Cow pos: (-34.920632, -57.954090)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 46.50 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=46.50 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 46.50m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 25] Lat: -34.920625, Lon: -57.954078 | RED: Regresando -> RED
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920625, lon=-57.954078
+[DEBUG] [ZONE] Cow pos: (-34.920625, -57.954078)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 47.59 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=47.59 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 47.59m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 26] Lat: -34.920610, Lon: -57.954050 | YELLOW: Volviendo -> YELLOW
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920610, lon=-57.954050
+[DEBUG] [ZONE] Cow pos: (-34.920610, -57.954050)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 50.15 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 2 (minDist=50.15 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 2, Distance: 50.15m
+[DEBUG] [FSM] Sent zone 2 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 27] Lat: -34.920580, Lon: -57.953990 | DARK_BLUE: Retorno exitoso -> DARK_BLUE
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920580, lon=-57.953990
+[DEBUG] [ZONE] Cow pos: (-34.920580, -57.953990)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 55.62 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 1 (minDist=55.62 > thresh[0]=70.0: NO)
+[DEBUG] [FSM] INIT: Zone calculated: 1, Distance: 55.62m
+[DEBUG] [FSM] Sent zone 1 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [FSM] Stimulus feedback received
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 28] Lat: -34.920500, Lon: -57.953800 | GREEN: De vuelta en zona segura -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920500, lon=-57.953800
+[DEBUG] [ZONE] Cow pos: (-34.920500, -57.953800)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 72.94 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=72.94 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 72.94m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 06] ax: -0.01, ay: 0.01, az: 9.80 | SLEEP: Respiraci��n lenta -> SLEEP
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=-0.01, ay=0.01, az=9.80 g
+[DEBUG] [FSM] GPS rate updated: 1
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 1 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS 29] Lat: -34.920400, Lon: -57.953600 | GREEN: Centro - Test completo -> GREEN
+[DEBUG] [DISPATCHER] Routing msg ID:32 from:1 to:6
+[DEBUG] [FSM] GPS position: lat=-34.920400, lon=-57.953600
+[DEBUG] [ZONE] Cow pos: (-34.920400, -57.953600)
+[DEBUG] [ZONE] Fence center: (-34.920500, -57.953600)
+[DEBUG] [ZONE] Min distance: 91.17 m, Inside: 1
+[DEBUG] [ZONE] Thresholds: [70.0, 55.0, 40.0, 25.0, 10.0]
+[DEBUG] [ZONE] Result: 0 (minDist=91.17 > thresh[0]=70.0: YES)
+[DEBUG] [FSM] INIT: Zone calculated: 0, Distance: 91.17m
+[DEBUG] [FSM] Sent zone 0 to STIMULUS
+[DEBUG] [DISPATCHER] Routing msg ID:64 from:6 to:2
+[DEBUG] [DISPATCHER] Routing msg ID:65 from:2 to:6
+[DEBUG] [DISPATCHER] Routing msg ID:38 from:6 to:1
+[TEST_IMU 07] ax: 0.02, ay: -0.01, az: 9.82 | SLEEP: En reposo -> SLEEP
+[DEBUG] [DISPATCHER] Routing msg ID:33 from:1 to:6
+[DEBUG] [FSM] IMU: ax=0.02, ay=-0.01, az=9.82 g
+[DEBUG] [FSM] GPS rate updated: 1
+[DEBUG] [DISPATCHER] Routing msg ID:112 from:6 to:1
+[TEST_GPS_RATE] Nueva tasa: 1 Hz (ignorado en test)
+[DEBUG] [DISPATCHER] Routing msg ID:113 from:1 to:6
+[DEBUG] [FSM] GPS config confirmed
+[DEBUG] [DISPATCHER] Routing msg ID:37 from:6 to:1
+[TEST_GPS] WARNING: No hay mas datos de prueba
+[DEBUG] [DISPATCHER] Routing msg ID:240 from:1 to:6

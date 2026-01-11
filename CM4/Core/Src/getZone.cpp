@@ -1,10 +1,15 @@
 #include "getZone.h"
 #include "math.h"
+#define RTOS_PRINTF_AUTO
+#include "rtos_printf.h"
 
 zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistance) {
 
     Position pos = cow->getPosition();
     Vertex center = fence->getCenterFence();
+
+    RTOS_LOG_DEBUG("[ZONE] Cow pos: (%.6f, %.6f)\n", pos.latitude, pos.longitude);
+    RTOS_LOG_DEBUG("[ZONE] Fence center: (%.6f, %.6f)\n", center.latitude, center.longitude);
 
     XY cowXY = latLonToXY(pos.latitude, pos.longitude, center.latitude, center.longitude);
 
@@ -12,18 +17,32 @@ zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistanc
     uint8_t limitCount = fence->getLimitCount();
 
     minDistance = calculateMinDistanceToFence(cowXY, center, limites, limitCount);
+    
+    bool isInside = isPointInsideFence(cowXY, limites, limitCount, center);
+    
+    RTOS_LOG_DEBUG("[ZONE] Min distance: %.2f m, Inside: %d\n", minDistance, isInside);
+    RTOS_LOG_DEBUG("[ZONE] Thresholds: [%.1f, %.1f, %.1f, %.1f, %.1f]\n",
+                   fence->thresholds[0], fence->thresholds[1], fence->thresholds[2],
+                   fence->thresholds[3], fence->thresholds[4]);
 
-    if(isPointInsideFence(cowXY, limites, limitCount, center)) {
+    if(isInside) {
         // thresholds array: [0]=LIGHT_BLUE, [1]=BLUE, [2]=DARK_BLUE, [3]=YELLOW, [4]=RED
-        if (minDistance > fence->thresholds[0]) return GREEN_ZONE;
-        else if (minDistance > fence->thresholds[1]) return LIGHT_BLUE_ZONE;
-        else if (minDistance > fence->thresholds[2]) return BLUE_ZONE;
-        else if (minDistance > fence->thresholds[3]) return DARK_BLUE_ZONE;
-        else if (minDistance > fence->thresholds[4]) return YELLOW_ZONE;
-        else return RED_ZONE;
+        zone_t resultZone;
+        if (minDistance > fence->thresholds[0]) resultZone = GREEN_ZONE;
+        else if (minDistance > fence->thresholds[1]) resultZone = LIGHT_BLUE_ZONE;
+        else if (minDistance > fence->thresholds[2]) resultZone = BLUE_ZONE;
+        else if (minDistance > fence->thresholds[3]) resultZone = DARK_BLUE_ZONE;
+        else if (minDistance > fence->thresholds[4]) resultZone = YELLOW_ZONE;
+        else resultZone = RED_ZONE;
+        
+        RTOS_LOG_DEBUG("[ZONE] Result: %d (minDist=%.2f > thresh[0]=%.1f: %s)\n", 
+                      resultZone, minDistance, fence->thresholds[0],
+                      (minDistance > fence->thresholds[0]) ? "YES" : "NO");
+        return resultZone;
     }
     else {
         minDistance = -minDistance;
+        RTOS_LOG_DEBUG("[ZONE] Result: BLACK_ZONE (outside)\n");
         return BLACK_ZONE;
     }
 }

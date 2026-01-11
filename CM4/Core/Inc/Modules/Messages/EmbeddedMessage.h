@@ -7,7 +7,7 @@
 #include "cmsis_os2.h"
 
 // Configuración del sistema de mensajes
-#define MAX_MESSAGE_PAYLOAD_SIZE   32      // Tamaño máximo de payload
+#define MAX_MESSAGE_PAYLOAD_SIZE   35      // Tamaño máximo de payload (aumentado para fragmentación)
 #define MESSAGE_POOL_SIZE          16      // Pool de mensajes estáticos
 #define MAX_MESSAGE_QUEUES         10      // Máximo número de colas
 

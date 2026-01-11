@@ -80,7 +80,7 @@ extern const Vertex TEST_FENCE_VERTICES[TEST_FENCE_VERTEX_COUNT];
 // DATOS DE GPS DE PRUEBA
 // ============================================================================
 
-#define TEST_GPS_DATA_COUNT 30
+#define TEST_GPS_DATA_COUNT 26
 extern const TestGPSData_t TEST_GPS_DATA[TEST_GPS_DATA_COUNT];
 
 // ============================================================================
@@ -93,6 +93,10 @@ extern const TestIMUData_t TEST_IMU_DATA[TEST_IMU_DATA_COUNT];
 // ============================================================================
 // TEST CONTROLLER
 // ============================================================================
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * @brief Inicializar el sistema de test
@@ -138,5 +142,9 @@ uint32_t TestData_GetIMUIndex(void);
  * @brief Verificar si quedan datos de prueba
  */
 bool TestData_HasMoreData(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // TEST_DATA_H

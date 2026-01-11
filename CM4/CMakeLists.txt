@@ -48,6 +48,19 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
 )
 
+# =============================================================================
+# TEST MODE CONFIGURATION
+# =============================================================================
+# Option to enable test mode with mock sensors
+option(ENABLE_TEST_MODE "Enable test mode with mock sensor data" OFF)
+
+if(ENABLE_TEST_MODE)
+    message(STATUS "TEST MODE ENABLED - Using mock sensor data")
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE ENABLE_TEST_MODE)
+else()
+    message(STATUS "PRODUCTION MODE - Using real sensors")
+endif()
+
 # Enable CMake support for ASM, C and C++ languages
 enable_language(C CXX ASM)
 
@@ -68,6 +81,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Buzzer
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Threads
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Types
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Test
 )
 
 # Add sources to executable
@@ -115,9 +129,13 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/stimulusTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/loraTask.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/system_init.cpp
 
+    # Test Sources (Mock Sensors for FSM Testing)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Test/test_data.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Test/test_sensor_mock.cpp
 )
 
 # Link directories setup

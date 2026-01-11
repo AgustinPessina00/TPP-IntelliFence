@@ -15,6 +15,7 @@
 
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t sensorAcqQueueHandle;
+extern osMessageQueueId_t dispatcherQueueHandle;
 
 // Variable para habilitar/deshabilitar el modo test
 static bool testModeEnabled = true;
@@ -23,9 +24,9 @@ static bool testModeEnabled = true;
 // SENSOR ACQ TASK - VERSION TEST
 // ============================================================================
 
-void sensorAcqTask_Test(void *argument) {
-    EmbeddedMessage_t msgReceived;
-    EmbeddedMessage_t msgResponse;
+extern "C" void sensorAcqTask_Test(void *argument) {
+    EmbeddedMessage_t *msgReceived = NULL;
+    EmbeddedMessage_t *msgResponse = NULL;
     
     rtos_printf("[TEST_SENSOR_ACQ] Iniciado en modo TEST\n");
     rtos_printf("[TEST_SENSOR_ACQ] GPS samples: %d, IMU samples: %d\n", 
@@ -35,28 +36,35 @@ void sensorAcqTask_Test(void *argument) {
     TestData_Init();
     
     for(;;) {
-        // Esperar mensajes de la FSM
+        // Esperar mensajes de la FSM (recibir PUNTERO al mensaje)
         if (osMessageQueueGet(sensorAcqQueueHandle, &msgReceived, NULL, osWaitForever) == osOK) {
             
-            // Limpiar estructura de respuesta
-            memset(&msgResponse, 0, sizeof(EmbeddedMessage_t));
-            msgResponse.dest = MODULE_FSM;
-            msgResponse.src = MODULE_SENSOR_ACQ;
+            // Allocar mensaje de respuesta
+            msgResponse = MessagePool_Allocate();
+            if (msgResponse == NULL) {
+                rtos_printf("[TEST_SENSOR_ACQ] ERROR: No se pudo allocar mensaje de respuesta\n");
+                MessagePool_Free(msgReceived);
+                continue;
+            }
             
-            switch(msgReceived.msgId) {
+            // Configurar respuesta
+            msgResponse->sender = MODULE_SENSOR_ACQ;
+            msgResponse->receiver = MODULE_FSM;
+            
+            switch(msgReceived->id) {
                 // ============================================================
-                // REQUEST POSITION (GPS)
+                // REQUEST GPS
                 // ============================================================
-                case MSG_REQUEST_POSITION: {
+                case MSG_ID_REQUEST_GPS: {
                     const TestGPSData_t* gpsData = TestData_GetNextGPS();
                     
                     if (gpsData != nullptr) {
-                        msgResponse.msgId = MSG_RESPONSE_POSITION;
+                        msgResponse->id = MSG_ID_SEND_GPS;
                         
                         // Copiar latitud y longitud en el payload
-                        memcpy(&msgResponse.payload[0], &gpsData->position.latitude, sizeof(double));
-                        memcpy(&msgResponse.payload[8], &gpsData->position.longitude, sizeof(double));
-                        msgResponse.payloadSize = 16;
+                        memcpy(&msgResponse->payload[0], &gpsData->position.latitude, sizeof(double));
+                        memcpy(&msgResponse->payload[8], &gpsData->position.longitude, sizeof(double));
+                        msgResponse->length = 16;
                         
                         rtos_printf("[TEST_GPS %02d] Lat: %.6f, Lon: %.6f | %s -> %s\n",
                                     TestData_GetGPSIndex() - 1,
@@ -71,29 +79,29 @@ void sensorAcqTask_Test(void *argument) {
                                     (gpsData->expectedZone == RED_ZONE) ? "RED" : "BLACK");
                     } else {
                         // No hay más datos
-                        msgResponse.msgId = MSG_ERROR_TIMEOUT;
+                        msgResponse->id = MSG_ID_ERROR;
                         rtos_printf("[TEST_GPS] WARNING: No hay mas datos de prueba\n");
                     }
                     
-                    // Enviar respuesta a FSM
-                    osMessageQueuePut(fsmQueueHandle, &msgResponse, 0, 0);
+                    // Enviar respuesta a FSM vía DISPATCHER
+                    osMessageQueuePut(dispatcherQueueHandle, &msgResponse, 0, 0);
                     break;
                 }
                 
                 // ============================================================
-                // REQUEST ACCELEROMETER (IMU)
+                // REQUEST IMU
                 // ============================================================
-                case MSG_REQUEST_ACCELEROMETER: {
+                case MSG_ID_REQUEST_IMU: {
                     const TestIMUData_t* imuData = TestData_GetNextIMU();
                     
                     if (imuData != nullptr) {
-                        msgResponse.msgId = MSG_RESPONSE_ACCELEROMETER;
+                        msgResponse->id = MSG_ID_SEND_IMU;
                         
                         // Copiar aceleración (ax, ay, az) en el payload
-                        memcpy(&msgResponse.payload[0], &imuData->acceleration.ax, sizeof(double));
-                        memcpy(&msgResponse.payload[8], &imuData->acceleration.ay, sizeof(double));
-                        memcpy(&msgResponse.payload[16], &imuData->acceleration.az, sizeof(double));
-                        msgResponse.payloadSize = 24;
+                        memcpy(&msgResponse->payload[0], &imuData->acceleration.ax, sizeof(double));
+                        memcpy(&msgResponse->payload[8], &imuData->acceleration.ay, sizeof(double));
+                        memcpy(&msgResponse->payload[16], &imuData->acceleration.az, sizeof(double));
+                        msgResponse->length = 24;
                         
                         rtos_printf("[TEST_IMU %02d] ax: %.2f, ay: %.2f, az: %.2f | %s -> %s\n",
                                     TestData_GetIMUIndex() - 1,
@@ -105,31 +113,31 @@ void sensorAcqTask_Test(void *argument) {
                                     (imuData->expectedState == CowState::GRAZING) ? "GRAZING" : "MOVEMENT");
                     } else {
                         // No hay más datos
-                        msgResponse.msgId = MSG_ERROR_TIMEOUT;
+                        msgResponse->id = MSG_ID_ERROR;
                         rtos_printf("[TEST_IMU] WARNING: No hay mas datos de prueba\n");
                     }
                     
-                    // Enviar respuesta a FSM
-                    osMessageQueuePut(fsmQueueHandle, &msgResponse, 0, 0);
+                    // Enviar respuesta a FSM vía DISPATCHER
+                    osMessageQueuePut(dispatcherQueueHandle, &msgResponse, 0, 0);
                     break;
                 }
                 
                 // ============================================================
-                // REQUEST ZONE
+                // REQUEST ZONE AND DISTANCE
                 // ============================================================
-                case MSG_REQUEST_ZONE: {
+                case MSG_ID_REQUEST_ZONE_AND_DISTANCE_TO_FENCE: {
                     // Extraer posición del payload (enviada por FSM)
                     Position cowPos;
-                    memcpy(&cowPos.latitude, &msgReceived.payload[0], sizeof(double));
-                    memcpy(&cowPos.longitude, &msgReceived.payload[8], sizeof(double));
+                    memcpy(&cowPos.latitude, &msgReceived->payload[0], sizeof(double));
+                    memcpy(&cowPos.longitude, &msgReceived->payload[8], sizeof(double));
                     
                     // Obtener zona basada en la posición
                     TestZoneData_t zoneData = TestData_GetZone(cowPos);
                     
-                    msgResponse.msgId = MSG_RESPONSE_ZONE;
-                    msgResponse.payload[0] = static_cast<uint8_t>(zoneData.zone);
-                    memcpy(&msgResponse.payload[1], &zoneData.distance, sizeof(double));
-                    msgResponse.payloadSize = 9;
+                    msgResponse->id = MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE;
+                    msgResponse->payload[0] = static_cast<uint8_t>(zoneData.zone);
+                    memcpy(&msgResponse->payload[1], &zoneData.distance, sizeof(double));
+                    msgResponse->length = 9;
                     
                     rtos_printf("[TEST_ZONE] Zona: %s, Distancia: %.1fm\n",
                                 (zoneData.zone == GREEN_ZONE) ? "GREEN" :
@@ -140,21 +148,22 @@ void sensorAcqTask_Test(void *argument) {
                                 (zoneData.zone == RED_ZONE) ? "RED" : "BLACK",
                                 zoneData.distance);
                     
-                    // Enviar respuesta a FSM
-                    osMessageQueuePut(fsmQueueHandle, &msgResponse, 0, 0);
+                    // Enviar respuesta a FSM vía DISPATCHER
+                    osMessageQueuePut(dispatcherQueueHandle, &msgResponse, 0, 0);
                     break;
                 }
                 
                 // ============================================================
-                // SET GPS RATE
+                // GPS CONFIG REQUEST
                 // ============================================================
-                case MSG_SET_GPS_RATE: {
-                    uint32_t rate = msgReceived.payload[0];
+                case MSG_ID_GPS_REQUEST_CONFIG: {
+                    uint32_t rate = msgReceived->payload[0];
                     rtos_printf("[TEST_GPS_RATE] Nueva tasa: %d Hz (ignorado en test)\n", rate);
                     
                     // En modo test, simplemente confirmar
-                    msgResponse.msgId = MSG_RESPONSE_OK;
-                    osMessageQueuePut(fsmQueueHandle, &msgResponse, 0, 0);
+                    msgResponse->id = MSG_ID_GPS_CONFIG_RESPONSE;
+                    msgResponse->length = 0;
+                    osMessageQueuePut(dispatcherQueueHandle, &msgResponse, 0, 0);
                     break;
                 }
                 
@@ -163,9 +172,14 @@ void sensorAcqTask_Test(void *argument) {
                 // ============================================================
                 default:
                     rtos_printf("[TEST_SENSOR_ACQ] WARNING: Comando no implementado: 0x%02X\n", 
-                                msgReceived.msgId);
+                                msgReceived->id);
+                    MessagePool_Free(msgResponse);
+                    msgResponse = NULL;
                     break;
             }
+            
+            // Liberar mensaje recibido
+            MessagePool_Free(msgReceived);
         }
         
         // Delay para simular tiempo de adquisición
@@ -177,21 +191,21 @@ void sensorAcqTask_Test(void *argument) {
 // FUNCIONES DE CONTROL DEL MODO TEST
 // ============================================================================
 
-void TestMode_Enable(void) {
+extern "C" void TestMode_Enable(void) {
     testModeEnabled = true;
     rtos_printf("[TEST] Modo test HABILITADO\n");
 }
 
-void TestMode_Disable(void) {
+extern "C" void TestMode_Disable(void) {
     testModeEnabled = false;
     rtos_printf("[TEST] Modo test DESHABILITADO\n");
 }
 
-bool TestMode_IsEnabled(void) {
+extern "C" bool TestMode_IsEnabled(void) {
     return testModeEnabled;
 }
 
-void TestMode_Reset(void) {
+extern "C" void TestMode_Reset(void) {
     TestData_Reset();
     rtos_printf("[TEST] Datos de prueba RESETEADOS\n");
 }

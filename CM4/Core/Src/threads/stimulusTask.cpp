@@ -157,7 +157,7 @@ static void handleZoneChange(zone_t newZone) {
             break;
     }
     
-    sendStimulusFeedback();
+    
 }
 
 /**
@@ -178,6 +178,7 @@ void stimulusTask(void *argument) {
                 if (msg->length >= sizeof(uint8_t)) {
                     zone_t newZone = (zone_t)msg->payload[0];
                     currentZone = newZone;
+                    sendStimulusFeedback();
                 }
                 
                 // Free message back to pool

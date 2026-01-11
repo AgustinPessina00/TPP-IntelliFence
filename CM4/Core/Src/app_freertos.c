@@ -27,11 +27,20 @@
 /* USER CODE BEGIN Includes */
 #include "rtos_printf.h"
 #include "EmbeddedMessage.h"
+
 // Forward declarations para threads del sistema FreeRTOS
 extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
 extern void sensorAcqTask(void *argument);
 extern void stimulusTask(void *argument);
+extern void loraTask(void *argument);
+
+// Test mode support
+#ifdef ENABLE_TEST_MODE
+#include "Test/test_data_c_wrapper.h"
+extern void sensorAcqTask_Test(void *argument);
+#endif
+
 //extern void MessagePool_Init(void);
 /* USER CODE END Includes */
 
@@ -131,6 +140,14 @@ const osThreadAttr_t sensorAcq_Task_attributes = {
   .stack_size = 256 * 4,  // 1024 bytes sensorAcq
   .priority = (osPriority_t) osPriorityNormal,
 };
+
+// Thread LoRa TX - transmisión LoRa
+osThreadId_t lora_TaskHandle;
+const osThreadAttr_t lora_Task_attributes = {
+  .name = "lora_Task",
+  .stack_size = 256 * 3,  // 768 bytes LoRa
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -150,21 +167,28 @@ void initialize_message_queues(void) {
     printf("[QUEUES] Inicializando colas de mensajes FreeRTOS...\n");
     
     // Cola principal del dispatcher (más grande, recibe todos los mensajes)
-    dispatcherQueueHandle = osMessageQueueNew(32, sizeof(EmbeddedMessage_t), &dispatcherQueue_attributes);
+    dispatcherQueueHandle = osMessageQueueNew(32, sizeof(void*), &dispatcherQueue_attributes);
     if (dispatcherQueueHandle == NULL) {
         printf("[QUEUES] ERROR - Fallo creación dispatcherQueue\n");
         Error_Handler();
     }
+
+    // Cola principal del dispatcher (más grande, recibe todos los mensajes)
+    fsmQueueHandle = osMessageQueueNew(16, sizeof(void*), &fsmQueue_attributes);
+    if (fsmQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación fsmQueue\n");
+        Error_Handler();
+    }
     
     // Cola para adquisición de sensores
-    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(EmbeddedMessage_t), &sensorAcqQueue_attributes);
+    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
     if (sensorAcqQueueHandle == NULL) {
         printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
         Error_Handler();
     }
 
     // Cola para estímulos
-    stimulusQueueHandle = osMessageQueueNew(16, sizeof(EmbeddedMessage_t), &stimulusQueue_attributes);
+    stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
     if (stimulusQueueHandle == NULL) {
         printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
         Error_Handler();
@@ -172,7 +196,7 @@ void initialize_message_queues(void) {
     
     // Colas adicionales (tamaños más pequeños para funciones futuras)
     //gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
-    loraTxQueueHandle = osMessageQueueNew(12, sizeof(EmbeddedMessage_t), &loraTxQueue_attributes);
+    loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
     //loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
     //distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
     //fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
@@ -214,18 +238,36 @@ void initialize_system_threads(void) {
         Error_Handler();
     }
 
+    
+
     //Thread sensor acquisition - prioridad normal (adquisición periódica)
+#ifdef ENABLE_TEST_MODE
+    // TEST MODE: Usar tarea mock con datos predefinidos
+    sensorAcq_TaskHandle = osThreadNew(sensorAcqTask_Test, NULL, &sensorAcq_Task_attributes);
+    printf("[THREADS] ** TEST MODE ** - Using mock sensor task\n");
+#else
+    // PRODUCTION MODE: Usar tarea real con sensores de hardware
     sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
+#endif
     if (sensorAcq_TaskHandle == NULL) {
         printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
         Error_Handler();
     }
 
+    //Thread LoRa TX - prioridad normal (transmisión LoRa)
+    lora_TaskHandle = osThreadNew(loraTask, NULL, &lora_Task_attributes);
+    if (lora_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación lora_Task\n");
+        Error_Handler();
+    }
+
     printf("[THREADS] OK - Todos los threads creados exitosamente\n");
-    printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 1KB\n");
+    printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 768B\n");
     printf("[THREADS] - fsm_Task: Prioridad NORMAL, Stack 1KB\n");
+    printf("[THREADS] - stimulus_Task: Prioridad NORMAL, Stack 512B\n");
     printf("[THREADS] - sensorAcq_Task: Prioridad NORMAL, Stack 1KB\n");
-    printf("[THREADS] Total stack allocated: ~3KB\n");
+    printf("[THREADS] - lora_Task: Prioridad NORMAL, Stack 768B\n");
+    printf("[THREADS] Total stack allocated: ~4KB\n");
 }
 /* USER CODE END FunctionPrototypes */
 
@@ -246,6 +288,20 @@ void MX_FREERTOS_Init(void) {
   if (rtos_printf_init() != 0) {
     Error_Handler();  // Fallo crítico en inicialización de printf
   }
+  
+#ifdef ENABLE_TEST_MODE
+  // Inicializar datos de prueba para sensores mock
+  TestData_Init();
+  TestMode_Enable();
+  printf("\n");
+  printf("========================================\n");
+  printf("     TEST MODE ENABLED\n");
+  printf("========================================\n");
+  printf("Using mock sensor data for FSM testing\n");
+  printf("GPS samples: %d | IMU samples: %d\n", TEST_GPS_DATA_COUNT, TEST_IMU_DATA_COUNT);
+  printf("========================================\n");
+  printf("\n");
+#endif
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */

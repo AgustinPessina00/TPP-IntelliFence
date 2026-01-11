@@ -9,73 +9,75 @@ static uint32_t gpsIndex = 0;
 static uint32_t imuIndex = 0;
 
 // ============================================================================
-// CERCA DE PRUEBA - Cuadrado de ~222m x 222m
+// CERCA DE PRUEBA - Polígono en Flores, Buenos Aires
 // ============================================================================
 
-// Centro en (-34.9205, -57.9536) - Coordenadas ejemplo cerca de La Plata
-// Cada 0.001° ≈ 111m de latitud
-// Radio de ~100m = 0.001° en cada dirección
+// Centro aproximado en (-34.5633, -58.4612) - Flores, Buenos Aires
+// Polígono de 4 vértices con perímetro de ~800m
+// Umbrales: 80m (LIGHT_BLUE), 60m (BLUE), 40m (DARK_BLUE), 20m (YELLOW), 0m (RED)
 const Vertex TEST_FENCE_VERTICES[TEST_FENCE_VERTEX_COUNT] = {
-    {-34.919500, -57.954600},  // NO (Noroeste)
-    {-34.919500, -57.952600},  // NE (Noreste)
-    {-34.921500, -57.952600},  // SE (Sureste)
-    {-34.921500, -57.954600}   // SO (Suroeste)
+    {-34.561846, -58.461113},  // Vértice 1
+    {-34.562827, -58.462862},  // Vértice 2
+    {-34.564726, -58.461292},  // Vértice 3
+    {-34.563648, -58.459404}   // Vértice 4
 };
 
 // ============================================================================
-// DATOS DE GPS - 30 POSICIONES QUE RECORREN TODAS LAS ZONAS
+// DATOS DE GPS - 26 POSICIONES DEL RECORRIDO REAL EN FLORES
 // ============================================================================
 
 const TestGPSData_t TEST_GPS_DATA[TEST_GPS_DATA_COUNT] = {
-    // ESCENARIO 1: STARTUP - Posición inicial en GREEN_ZONE
-    {{-34.920400, -57.953600}, GREEN_ZONE, 5.0, "STARTUP: Centro del cerco"},
+    // Puntos 1-4: Zona Segura (>85m)
+    {{-34.563363, -58.461126}, GREEN_ZONE, 97.9, "GREEN: Zona segura - 97.9m"},
+    {{-34.563248, -58.461244}, GREEN_ZONE, 96.2, "GREEN: Zona segura - 96.2m"},
+    {{-34.563089, -58.461383}, GREEN_ZONE, 95.6, "GREEN: Zona segura - 95.6m"},
+    {{-34.563031, -58.461458}, GREEN_ZONE, 91.1, "GREEN: Zona segura - 91.1m"},
     
-    // ESCENARIO 2: OPERACIÓN NORMAL - GREEN ZONE (pastando/durmiendo)
-    {{-34.920350, -57.953580}, GREEN_ZONE, 8.0, "GREEN: Pastando tranquila"},
-    {{-34.920320, -57.953550}, GREEN_ZONE, 12.0, "GREEN: Durmiendo"},
-    {{-34.920380, -57.953620}, GREEN_ZONE, 6.5, "GREEN: Movimiento lento"},
-    {{-34.920420, -57.953650}, GREEN_ZONE, 4.2, "GREEN: Cerca del centro"},
+    // Punto 5: Zona Precaución (70-85m)
+    {{-34.562939, -58.461560}, LIGHT_BLUE_ZONE, 77.4, "LIGHT_BLUE: Precaución - 77.4m"},
     
-    // ESCENARIO 3: MOVIMIENTO DENTRO DE GREEN_ZONE
-    {{-34.920450, -57.953700}, GREEN_ZONE, 8.5, "GREEN: Explorando"},
-    {{-34.920480, -57.953750}, GREEN_ZONE, 15.0, "GREEN: Alejándose"},
-    {{-34.920500, -57.953800}, GREEN_ZONE, 22.0, "GREEN: Más lejos"},
+    // Puntos 6-7: Zona Alerta (50-70m)
+    {{-34.562846, -58.461672}, BLUE_ZONE, 63.0, "BLUE: Alerta - 63.0m"},
+    {{-34.562841, -58.461801}, BLUE_ZONE, 56.0, "BLUE: Alerta - 56.0m"},
     
-    // ESCENARIO 4: APROXIMACIÓN AL LÍMITE - LIGHT_BLUE_ZONE
-    {{-34.920520, -57.953850}, LIGHT_BLUE_ZONE, 35.0, "LIGHT_BLUE: Buzzer leve"},
-    {{-34.920530, -57.953880}, LIGHT_BLUE_ZONE, 42.0, "LIGHT_BLUE: Acercándose"},
-    {{-34.920540, -57.953900}, LIGHT_BLUE_ZONE, 48.0, "LIGHT_BLUE: Sigue avanzando"},
+    // Puntos 8-9: Zona Advertencia (30-50m)
+    {{-34.562766, -58.461935}, DARK_BLUE_ZONE, 42.2, "DARK_BLUE: Advertencia - 42.2m"},
+    {{-34.562749, -58.462085}, DARK_BLUE_ZONE, 32.8, "DARK_BLUE: Advertencia - 32.8m"},
     
-    // ESCENARIO 5: BLUE_ZONE - Buzzer medio
-    {{-34.920550, -57.953930}, BLUE_ZONE, 55.0, "BLUE: Buzzer medio"},
-    {{-34.920560, -57.953950}, BLUE_ZONE, 62.0, "BLUE: Advertencia aumenta"},
-    {{-34.920570, -57.953970}, BLUE_ZONE, 68.0, "BLUE: Cerca del límite azul"},
+    // Puntos 10-11: Zona Peligro (10-30m)
+    {{-34.562643, -58.462187}, YELLOW_ZONE, 17.8, "YELLOW: Peligro - 17.8m"},
+    {{-34.562532, -58.461962}, YELLOW_ZONE, 19.3, "YELLOW: Peligro - 19.3m"},
     
-    // ESCENARIO 6: DARK_BLUE_ZONE - Buzzer intenso
-    {{-34.920580, -57.953990}, DARK_BLUE_ZONE, 75.0, "DARK_BLUE: Buzzer intenso"},
-    {{-34.920590, -57.954010}, DARK_BLUE_ZONE, 82.0, "DARK_BLUE: Muy cerca del límite"},
-    {{-34.920595, -57.954020}, DARK_BLUE_ZONE, 88.0, "DARK_BLUE: Peligro inminente"},
+    // Punto 12: Zona Crítica (0-10m)
+    {{-34.562452, -58.462096}, RED_ZONE, 5.0, "RED: Crítica - 5.0m"},
     
-    // ESCENARIO 7: YELLOW_ZONE - Buzzer + Vibración
-    {{-34.920600, -57.954030}, YELLOW_ZONE, 95.0, "YELLOW: Buzzer + Vibración"},
-    {{-34.920605, -57.954040}, YELLOW_ZONE, 102.0, "YELLOW: Estímulo fuerte"},
-    {{-34.920610, -57.954050}, YELLOW_ZONE, 108.0, "YELLOW: Debe retroceder"},
+    // Puntos 13-14: ESCAPE (Fuera del cerco)
+    {{-34.562262, -58.462289}, BLACK_ZONE, -15.0, "BLACK: Fuera del cerco - ESCAPE"},
+    {{-34.562430, -58.462477}, BLACK_ZONE, -20.0, "BLACK: Fuera del cerco - ESCAPE"},
     
-    // ESCENARIO 8: RED_ZONE - Vibración intensa
-    {{-34.920615, -57.954060}, RED_ZONE, 115.0, "RED: Vibración intensa"},
-    {{-34.920620, -57.954070}, RED_ZONE, 122.0, "RED: Última advertencia"},
-    {{-34.920623, -57.954075}, RED_ZONE, 128.0, "RED: Al borde del escape"},
+    // Puntos 15-16: Regreso - Zona Crítica (0-10m)
+    {{-34.562669, -58.462503}, RED_ZONE, 3.9, "RED: Regreso - Crítica - 3.9m"},
+    {{-34.562691, -58.462482}, RED_ZONE, 7.1, "RED: Crítica - 7.1m"},
     
-    // ESCENARIO 9: BLACK_ZONE - Se escapó
-    {{-34.920628, -57.954085}, BLACK_ZONE, 138.0, "BLACK: ESCAPE - Alerta crítica"},
-    {{-34.920632, -57.954090}, BLACK_ZONE, 145.0, "BLACK: Fuera del cerco"},
+    // Puntos 17-18: Zona Peligro (10-30m)
+    {{-34.562744, -58.462439}, YELLOW_ZONE, 14.2, "YELLOW: Peligro - 14.2m"},
+    {{-34.562780, -58.462386}, YELLOW_ZONE, 20.2, "YELLOW: Peligro - 20.2m"},
     
-    // ESCENARIO 10: REGRESO - Vuelve hacia zona segura
-    {{-34.920625, -57.954078}, RED_ZONE, 130.0, "RED: Regresando"},
-    {{-34.920610, -57.954050}, YELLOW_ZONE, 110.0, "YELLOW: Volviendo"},
-    {{-34.920580, -57.953990}, DARK_BLUE_ZONE, 78.0, "DARK_BLUE: Retorno exitoso"},
-    {{-34.920500, -57.953800}, GREEN_ZONE, 25.0, "GREEN: De vuelta en zona segura"},
-    {{-34.920400, -57.953600}, GREEN_ZONE, 5.0, "GREEN: Centro - Test completo"}
+    // Puntos 19-20: Zona Advertencia (30-50m)
+    {{-34.562868, -58.462241}, DARK_BLUE_ZONE, 35.8, "DARK_BLUE: Advertencia - 35.8m"},
+    {{-34.562925, -58.462187}, DARK_BLUE_ZONE, 43.8, "DARK_BLUE: Advertencia - 43.8m"},
+    
+    // Puntos 21-22: Zona Alerta (50-70m)
+    {{-34.563014, -58.461973}, BLUE_ZONE, 55.7, "BLUE: Alerta - 55.7m"},
+    {{-34.563067, -58.461849}, BLUE_ZONE, 61.7, "BLUE: Alerta - 61.7m"},
+    
+    // Puntos 23-25: Zona Precaución (70-85m)
+    {{-34.563098, -58.461656}, LIGHT_BLUE_ZONE, 74.4, "LIGHT_BLUE: Precaución - 74.4m"},
+    {{-34.563124, -58.461613}, LIGHT_BLUE_ZONE, 75.9, "LIGHT_BLUE: Precaución - 75.9m"},
+    {{-34.563186, -58.461571}, LIGHT_BLUE_ZONE, 75.3, "LIGHT_BLUE: Precaución - 75.3m"},
+    
+    // Punto 26: Zona Segura (>85m)
+    {{-34.563182, -58.461362}, GREEN_ZONE, 91.4, "GREEN: Zona segura - 91.4m"}
 };
 
 // ============================================================================
@@ -84,54 +86,54 @@ const TestGPSData_t TEST_GPS_DATA[TEST_GPS_DATA_COUNT] = {
 
 const TestIMUData_t TEST_IMU_DATA[TEST_IMU_DATA_COUNT] = {
     // ESCENARIO 1: STARTUP - Vaca quieta al inicio
-    {{0.02, -0.01, 9.81}, SLEEP, "STARTUP: Vaca en reposo"},
+    {{0.02, -0.01, 9.81}, CowState::SLEEP, "STARTUP: Vaca en reposo"},
     
     // ESCENARIO 2: GRAZING - Pastando (movimientos suaves de cabeza)
-    {{0.15, 0.12, 9.85}, GRAZING, "GRAZING: Pastando tranquila"},
-    {{0.18, -0.10, 9.78}, GRAZING, "GRAZING: Comiendo pasto"},
-    {{0.12, 0.08, 9.82}, GRAZING, "GRAZING: Movimientos lentos"},
-    {{0.20, 0.15, 9.80}, GRAZING, "GRAZING: Masticando"},
+    {{0.15, 0.12, 9.85}, CowState::GRAZING, "GRAZING: Pastando tranquila"},
+    {{0.18, -0.10, 9.78}, CowState::GRAZING, "GRAZING: Comiendo pasto"},
+    {{0.12, 0.08, 9.82}, CowState::GRAZING, "GRAZING: Movimientos lentos"},
+    {{0.20, 0.15, 9.80}, CowState::GRAZING, "GRAZING: Masticando"},
     
     // ESCENARIO 3: SLEEP - Durmiendo (casi sin movimiento)
-    {{0.01, 0.02, 9.81}, SLEEP, "SLEEP: Durmiendo profundo"},
-    {{-0.01, 0.01, 9.80}, SLEEP, "SLEEP: Respiración lenta"},
-    {{0.02, -0.01, 9.82}, SLEEP, "SLEEP: En reposo"},
+    {{0.01, 0.02, 9.81}, CowState::SLEEP, "SLEEP: Durmiendo profundo"},
+    {{-0.01, 0.01, 9.80}, CowState::SLEEP, "SLEEP: Respiración lenta"},
+    {{0.02, -0.01, 9.82}, CowState::SLEEP, "SLEEP: En reposo"},
     
     // ESCENARIO 4: MOVEMENT - Caminando lento
-    {{0.45, 0.38, 10.20}, MOVEMENT, "MOVEMENT: Caminando lento"},
-    {{0.52, -0.42, 10.35}, MOVEMENT, "MOVEMENT: Avanzando"},
-    {{0.48, 0.40, 10.15}, MOVEMENT, "MOVEMENT: Explorando"},
+    {{0.45, 0.38, 10.20}, CowState::MOVEMENT, "MOVEMENT: Caminando lento"},
+    {{0.52, -0.42, 10.35}, CowState::MOVEMENT, "MOVEMENT: Avanzando"},
+    {{0.48, 0.40, 10.15}, CowState::MOVEMENT, "MOVEMENT: Explorando"},
     
     // ESCENARIO 5: MOVEMENT - Caminando normal (acercándose al límite)
-    {{0.65, 0.55, 10.50}, MOVEMENT, "MOVEMENT: Caminata normal"},
-    {{0.72, -0.60, 10.65}, MOVEMENT, "MOVEMENT: Paso firme"},
-    {{0.68, 0.58, 10.48}, MOVEMENT, "MOVEMENT: Avance constante"},
+    {{0.65, 0.55, 10.50}, CowState::MOVEMENT, "MOVEMENT: Caminata normal"},
+    {{0.72, -0.60, 10.65}, CowState::MOVEMENT, "MOVEMENT: Paso firme"},
+    {{0.68, 0.58, 10.48}, CowState::MOVEMENT, "MOVEMENT: Avance constante"},
     
     // ESCENARIO 6: MOVEMENT - Movimiento rápido (con buzzer)
-    {{0.85, 0.75, 11.00}, MOVEMENT, "MOVEMENT: Caminando rápido"},
-    {{0.92, -0.80, 11.20}, MOVEMENT, "MOVEMENT: Molesta por buzzer"},
-    {{0.88, 0.78, 11.10}, MOVEMENT, "MOVEMENT: Intenta seguir"},
+    {{0.85, 0.75, 11.00}, CowState::MOVEMENT, "MOVEMENT: Caminando rápido"},
+    {{0.92, -0.80, 11.20}, CowState::MOVEMENT, "MOVEMENT: Molesta por buzzer"},
+    {{0.88, 0.78, 11.10}, CowState::MOVEMENT, "MOVEMENT: Intenta seguir"},
     
     // ESCENARIO 7: MOVEMENT - Intensa (con buzzer + vibración)
-    {{1.10, 0.95, 11.50}, MOVEMENT, "MOVEMENT: Movimiento intenso"},
-    {{1.25, -1.05, 11.80}, MOVEMENT, "MOVEMENT: Agitada por estímulo"},
-    {{1.15, 1.00, 11.60}, MOVEMENT, "MOVEMENT: Incomodidad notable"},
+    {{1.10, 0.95, 11.50}, CowState::MOVEMENT, "MOVEMENT: Movimiento intenso"},
+    {{1.25, -1.05, 11.80}, CowState::MOVEMENT, "MOVEMENT: Agitada por estímulo"},
+    {{1.15, 1.00, 11.60}, CowState::MOVEMENT, "MOVEMENT: Incomodidad notable"},
     
     // ESCENARIO 8: MOVEMENT - Muy intensa (vibración fuerte)
-    {{1.45, 1.25, 12.20}, MOVEMENT, "MOVEMENT: Muy agitada"},
-    {{1.60, -1.40, 12.50}, MOVEMENT, "MOVEMENT: Tratando de escapar"},
-    {{1.55, 1.35, 12.35}, MOVEMENT, "MOVEMENT: Resistiendo estímulo"},
+    {{1.45, 1.25, 12.20}, CowState::MOVEMENT, "MOVEMENT: Muy agitada"},
+    {{1.60, -1.40, 12.50}, CowState::MOVEMENT, "MOVEMENT: Tratando de escapar"},
+    {{1.55, 1.35, 12.35}, CowState::MOVEMENT, "MOVEMENT: Resistiendo estímulo"},
     
     // ESCENARIO 9: MOVEMENT - Escape (movimiento brusco)
-    {{1.85, 1.65, 13.00}, MOVEMENT, "MOVEMENT: ESCAPE - Corriendo"},
-    {{2.00, -1.80, 13.40}, MOVEMENT, "MOVEMENT: Fuera del cerco"},
+    {{1.85, 1.65, 13.00}, CowState::MOVEMENT, "MOVEMENT: ESCAPE - Corriendo"},
+    {{2.00, -1.80, 13.40}, CowState::MOVEMENT, "MOVEMENT: Fuera del cerco"},
     
     // ESCENARIO 10: REGRESO - Vuelve caminando
-    {{1.20, 1.05, 11.70}, MOVEMENT, "MOVEMENT: Regresando"},
-    {{0.75, 0.62, 10.60}, MOVEMENT, "MOVEMENT: Volviendo"},
-    {{0.50, -0.45, 10.25}, MOVEMENT, "MOVEMENT: Caminata tranquila"},
-    {{0.18, 0.12, 9.85}, GRAZING, "GRAZING: De vuelta pastando"},
-    {{0.02, -0.01, 9.81}, SLEEP, "SLEEP: Descansando después"}
+    {{1.20, 1.05, 11.70}, CowState::MOVEMENT, "MOVEMENT: Regresando"},
+    {{0.75, 0.62, 10.60}, CowState::MOVEMENT, "MOVEMENT: Volviendo"},
+    {{0.50, -0.45, 10.25}, CowState::MOVEMENT, "MOVEMENT: Caminata tranquila"},
+    {{0.18, 0.12, 9.85}, CowState::GRAZING, "GRAZING: De vuelta pastando"},
+    {{0.02, -0.01, 9.81}, CowState::SLEEP, "SLEEP: Descansando después"}
 };
 
 // ============================================================================

@@ -14,11 +14,18 @@
 
 Fence::Fence() : vertexCount(0), limitCount(0) {
     // Inicializar umbrales de zona (en metros desde el límite)
-    this->lightBlue = 20.0f;  // LIGHT_BLUE_ZONE: 15-20m desde límite
-    this->blue = 15.0f;       // BLUE_ZONE: 10-15m desde límite
-    this->darkBlue = 10.0f;   // DARK_BLUE_ZONE: 5-10m desde límite
-    this->yellow = 5.0f;      // YELLOW_ZONE: 1-5m desde límite
-    this->red = 1.0f;         // RED_ZONE: 0-1m desde límite
+    // Ajustados para fence en Flores, Buenos Aires con datos de campo
+    // GREEN_ZONE (Segura): 85m+
+    // LIGHT_BLUE_ZONE (Precaución): 70-85m
+    // BLUE_ZONE (Alerta): 50-70m
+    // DARK_BLUE_ZONE (Advertencia): 30-50m
+    // YELLOW_ZONE (Peligro): 10-30m
+    // RED_ZONE (Crítica): 0-10m
+    this->lightBlue = 85.0f;  // LIGHT_BLUE_ZONE: 70-85m desde límite
+    this->blue = 70.0f;       // BLUE_ZONE: 50-70m desde límite
+    this->darkBlue = 50.0f;   // DARK_BLUE_ZONE: 30-50m desde límite
+    this->yellow = 30.0f;     // YELLOW_ZONE: 10-30m desde límite
+    this->red = 10.0f;        // RED_ZONE: 0-10m desde límite
 
     setZoneThresholds();
 
