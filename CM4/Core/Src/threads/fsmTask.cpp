@@ -39,7 +39,7 @@ void fsmTask(void *argument) {
     static Fence fence;
     
     EmbeddedMessage_t *msgReceived = NULL;
-    uint8_t tries = 0;
+    TimeoutContext_t timeout = {0, 0};
     
     RTOS_LOG_INFO("[FSM] Task initialized successfully\n");
 
@@ -55,12 +55,12 @@ void fsmTask(void *argument) {
         
         switch (s_mainFSM) {
             case MainFSM_t::STARTUP_ROUTINE:
-                runStartupRoutineFSM(s_mainFSM, &s_startupRoutineState, &msgReceived, tries, cow, fence);
+                runStartupRoutineFSM(s_mainFSM, &s_startupRoutineState, &msgReceived, timeout, cow, fence);
                 break;
                 
             case MainFSM_t::NORMAL_OPERATION:
                 runNormalOperationFSM(s_normalOpFSM, s_initializeState, s_greenZoneState, 
-                                     s_stimulusZoneState, &msgReceived, tries, cow, fence);
+                                     s_stimulusZoneState, &msgReceived, timeout, cow, fence);
                 if (receivedMsgLoraRX) {
                     s_mainFSM = MainFSM_t::FENCE_TRANSITION;
                     receivedMsgLoraRX = false;
@@ -68,7 +68,7 @@ void fsmTask(void *argument) {
                 break;
                 
             case MainFSM_t::FENCE_TRANSITION:
-                runFenceTransitionFSM(s_mainFSM, s_fenceTransitionState, &msgReceived, tries, cow, fence);
+                runFenceTransitionFSM(s_mainFSM, s_fenceTransitionState, &msgReceived, timeout, cow, fence);
                 break;
         }
         
@@ -81,31 +81,30 @@ void fsmTask(void *argument) {
 // ============================================================================
 
 void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state, 
-                         EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                         EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, 
                          Cow& cow, Fence& fence) {
     switch (*state) {
         case STARTUP_ROUTINE_BEGIN:
-            tries = 0;
             RTOS_LOG_INFO("[FSM] Starting STARTUP_ROUTINE\n");
             *state = STARTUP_ROUTINE_REQUEST_POSITION;
             break;
             
         case STARTUP_ROUTINE_REQUEST_POSITION:
             sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
-            RTOS_LOG_DEBUG("[FSM] Requesting initial GPS position\n");
+            Timeout_Start(&timeout, GPS_TIMEOUT_MS);
+            RTOS_LOG_DEBUG("[FSM] Requesting initial GPS position (timeout: %lums)\n", timeout.timeoutMs);
             *state = STARTUP_ROUTINE_WAIT_POSITION;
             break;
             
         case STARTUP_ROUTINE_WAIT_POSITION:
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updatePosition(cow, *msgReceived) == HAL_OK) {
+                    RTOS_LOG_DEBUG("[FSM] GPS position received after %lums\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
-                    RTOS_LOG_WARN("[FSM] GPS position timeout, retrying...\n");
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] GPS timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_REQUEST_POSITION;
                 }
             }
@@ -113,18 +112,21 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             
         case STARTUP_ROUTINE_SEND_POSITION_LORA:
             sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
+            Timeout_Start(&timeout, LORA_TX_TIMEOUT_MS);
+            RTOS_LOG_DEBUG("[FSM] Sending position via LoRa (timeout: %lums)\n", timeout.timeoutMs);
             *state = STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE;
             break;
             
         case STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE:
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (loraTxResponse(*msgReceived) == HAL_OK) {
+                    RTOS_LOG_DEBUG("[FSM] LoRa TX confirmed after %lums\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_WAIT_FENCE;
-                    tries = 0;
+                    Timeout_Start(&timeout, LORA_RX_TIMEOUT_MS);
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] LoRa TX timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
                 }
             }
@@ -133,8 +135,15 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
         case STARTUP_ROUTINE_WAIT_FENCE:
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (receivedMsgLoraRX) {
+                    RTOS_LOG_INFO("[FSM] Fence vertices received after %lums\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_SAVE_FENCE;
                     receivedMsgLoraRX = false;
+                }
+            } else {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] Fence RX timeout (%lums), waiting...\n", Timeout_GetElapsed(&timeout));
+                    // Re-iniciar timeout para seguir esperando
+                    Timeout_Start(&timeout, LORA_RX_TIMEOUT_MS);
                 }
             }
             break;
@@ -146,18 +155,20 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             
         case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
             sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
+            Timeout_Start(&timeout, GPS_TIMEOUT_MS);
+            RTOS_LOG_DEBUG("[FSM] Requesting GPS position after fence update\n");
             *state = STARTUP_ROUTINE_WAIT_NEW_POSITION;
             break;
             
         case STARTUP_ROUTINE_WAIT_NEW_POSITION:
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updatePosition(cow, *msgReceived) == HAL_OK) {
+                    RTOS_LOG_DEBUG("[FSM] GPS position received after %lums\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_REQUEST_ZONE;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] GPS timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
                 }
             }
@@ -165,18 +176,20 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             
         case STARTUP_ROUTINE_REQUEST_ZONE:
             sendMessage(MSG_ID_REQUEST_ZONE_TO_FENCE, MODULE_DISTANCE);
+            Timeout_Start(&timeout, DISTANCE_TIMEOUT_MS);
+            RTOS_LOG_DEBUG("[FSM] Requesting zone calculation\n");
             *state = STARTUP_ROUTINE_EVALUATE_ZONE;
             break;
             
         case STARTUP_ROUTINE_EVALUATE_ZONE:
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
+                    RTOS_LOG_DEBUG("[FSM] Zone calculated after %lums\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_END;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] Zone calculation timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     *state = STARTUP_ROUTINE_REQUEST_ZONE;
                 }
             }
@@ -201,19 +214,19 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
 
 void runNormalOperationFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState,
                           GreenZoneState_t& greenZoneState, StimulusZone_t& stimulusZoneState,
-                          EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                          EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, 
                           Cow& cow, Fence& fence) {
     switch (normalOpFSM) {
         case NormalOpFSM_t::INITIALIZE:
-            runInitializeFSM(normalOpFSM, initializeState, msgReceived, tries, cow, fence);
+            runInitializeFSM(normalOpFSM, initializeState, msgReceived, timeout, cow, fence);
             break;
             
         case NormalOpFSM_t::GREEN_ZONE:
-            runGreenZoneFSM(normalOpFSM, greenZoneState, msgReceived, tries, cow, fence);
+            runGreenZoneFSM(normalOpFSM, greenZoneState, msgReceived, timeout, cow, fence);
             break;
             
         case NormalOpFSM_t::STIMULUS_ZONE:
-            runStimulusZoneFSM(normalOpFSM, stimulusZoneState, msgReceived, tries, cow, fence);
+            runStimulusZoneFSM(normalOpFSM, stimulusZoneState, msgReceived, timeout, cow, fence);
             break;
     }
 }
@@ -223,16 +236,16 @@ void runNormalOperationFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initia
 // ============================================================================
 
 void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState,
-                     EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                     EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, 
                      Cow& cow, Fence& fence) {
     switch (initializeState) {
         case INITIALIZE_BEGIN:
-            tries = 0;
             initializeState = INITIALIZE_REQUEST_POSITION;
             break;
             
         case INITIALIZE_REQUEST_POSITION:
             sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
+            Timeout_Start(&timeout, GPS_TIMEOUT_MS);
             initializeState = INITIALIZE_WAIT_POSITION;
             break;
             
@@ -240,11 +253,10 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updatePosition(cow, *msgReceived) == HAL_OK) {
                     initializeState = INITIALIZE_REQUEST_ZONE;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] INIT: GPS timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     initializeState = INITIALIZE_REQUEST_POSITION;
                 }
             }
@@ -252,6 +264,7 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
             
         case INITIALIZE_REQUEST_ZONE:
             sendMessage(MSG_ID_REQUEST_ZONE_TO_FENCE, MODULE_DISTANCE);
+            Timeout_Start(&timeout, DISTANCE_TIMEOUT_MS);
             initializeState = INITIALIZE_EVALUATE_ZONE;
             break;
             
@@ -259,11 +272,10 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
                     initializeState = INITIALIZE_END;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] INIT: Zone timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     initializeState = INITIALIZE_REQUEST_ZONE;
                 }
             }
@@ -286,19 +298,19 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
 // ============================================================================
 
 void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneState,
-                    EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                    EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, 
                     Cow& cow, Fence& fence) {
     // CowState state;
     
     switch (greenZoneState) {
         case GREEN_ZONE_BEGIN:
             sendZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
-            tries = 0;
             greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
             break;
             
         case GREEN_ZONE_REQUEST_ACCELERATION:
             sendMessage(MSG_ID_REQUEST_IMU, MODULE_SENSOR_ACQ);
+            Timeout_Start(&timeout, IMU_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_ACCELERATION;
             break;
             
@@ -306,11 +318,10 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updateAcceleration(*msgReceived, cow) == HAL_OK) {
                     greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] GREEN: IMU timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
                 }
             }
@@ -333,11 +344,13 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             
         case GREEN_ZONE_GRAZING:
             updateGpsAdqTime(GpsRate::SLOW);
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_SLEEP:
             updateGpsAdqTime(GpsRate::STOP);
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             enterLowPowerSleep();
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
@@ -352,11 +365,13 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             
         case GREEN_ZONE_NEAR_LIMIT:
             updateGpsAdqTime(GpsRate::FAST);
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_FAR_LIMIT:
             updateGpsAdqTime(GpsRate::MEDIUM);
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
@@ -364,11 +379,10 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (gpsResponse(*msgReceived) == HAL_OK) {
                     greenZoneState = GREEN_ZONE_END;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] GREEN: GPS config timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
                 }
             }
@@ -386,7 +400,7 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
 // ============================================================================
 
 void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZoneState,
-                       EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                       EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, 
                        Cow& cow, Fence& fence) {
     switch (stimulusZoneState) {
         case STIMULUS_ZONE_BEGIN:
@@ -395,6 +409,7 @@ void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZone
             
         case STIMULUS_ZONE_SEND_ZONE:
             sendZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
+            Timeout_Start(&timeout, STIMULUS_TIMEOUT_MS);
             stimulusZoneState = STIMULUS_ZONE_WAIT_RESPONSE;
             break;
             
@@ -402,11 +417,10 @@ void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZone
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (receivedStimulusResponse(*msgReceived) == HAL_OK) {
                     stimulusZoneState = STIMULUS_ZONE_END;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] STIMULUS: Response timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     stimulusZoneState = STIMULUS_ZONE_SEND_ZONE;
                 }
             }
@@ -424,17 +438,17 @@ void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZone
 // ============================================================================
 
 void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTransitionState,
-                          EmbeddedMessage_t** msgReceived, uint8_t& tries, 
+                          EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, 
                           Cow& cow, Fence& fence) {
     switch (fenceTransitionState) {
         case FENCE_TRANSITION_BEGIN:
-            tries = 0;
             RTOS_LOG_INFO("[FSM] Starting FENCE_TRANSITION\n");
             fenceTransitionState = FENCE_TRANSITION_DISABLE_STIMULUS;
             break;
             
         case FENCE_TRANSITION_DISABLE_STIMULUS:
             sendZoneToStimulus(BLACK_ZONE, MODULE_STIMULUS);
+            Timeout_Start(&timeout, STIMULUS_TIMEOUT_MS);
             fenceTransitionState = FENCE_TRANSITION_WAIT_STIMULUS_RESPONSE;
             break;
             
@@ -442,11 +456,10 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (receivedStimulusResponse(*msgReceived) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_UPDATE_FENCE;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] FENCE_TRANS: Stimulus timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     fenceTransitionState = FENCE_TRANSITION_DISABLE_STIMULUS;
                 }
             }
@@ -459,6 +472,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             
         case FENCE_TRANSITION_GPSRATE_FAST:
             updateGpsAdqTime(GpsRate::FAST);
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             fenceTransitionState = FENCE_TRANSITION_WAIT_GPS_ADQ_TIME;
             break;
             
@@ -466,11 +480,10 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (gpsResponse(*msgReceived) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] FENCE_TRANS: GPS config timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
                 }
             }
@@ -478,6 +491,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             
         case FENCE_TRANSITION_REQUEST_POSITION:
             sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
+            Timeout_Start(&timeout, GPS_TIMEOUT_MS);
             fenceTransitionState = FENCE_TRANSITION_WAIT_POSITION;
             break;
             
@@ -485,11 +499,10 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updatePosition(cow, *msgReceived) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] FENCE_TRANS: GPS timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
                 }
             }
@@ -497,6 +510,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             
         case FENCE_TRANSITION_REQUEST_ZONE:
             sendMessage(MSG_ID_REQUEST_ZONE_TO_FENCE, MODULE_DISTANCE);
+            Timeout_Start(&timeout, DISTANCE_TIMEOUT_MS);
             fenceTransitionState = FENCE_TRANSITION_EVALUATE_ZONE;
             break;
             
@@ -504,11 +518,10 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             if (dequeuedMessage(msgReceived, fence) == HAL_OK) {
                 if (updateDistAndZone(*msgReceived, cow) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_END;
-                    tries = 0;
                 }
             } else {
-                tries++;
-                if (tries >= MAX_TRIES) {
+                if (Timeout_IsExpired(&timeout)) {
+                    RTOS_LOG_WARN("[FSM] FENCE_TRANS: Zone timeout (%lums), retrying...\n", Timeout_GetElapsed(&timeout));
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
                 }
             }

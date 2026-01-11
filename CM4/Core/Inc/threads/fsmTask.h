@@ -16,8 +16,43 @@ extern "C" {
 //TODO: Integration of GetZone in this task
 #include "getZone.h"
 
+// ============================================================================
+// TIMEOUT CONFIGURATION (en milisegundos)
+// ============================================================================
+#define GPS_TIMEOUT_MS       30000  // 30 segundos - GPS puede tardar en obtener fix
+#define LORA_TX_TIMEOUT_MS   10000  // 10 segundos - Transmisión LoRa
+#define LORA_RX_TIMEOUT_MS   60000  // 60 segundos - Espera de mensajes LoRa entrantes
+#define IMU_TIMEOUT_MS        2000  // 2 segundos  - Lectura del acelerómetro
+#define DISTANCE_TIMEOUT_MS   3000  // 3 segundos  - Cálculo de zona y distancia
+#define STIMULUS_TIMEOUT_MS   5000  // 5 segundos  - Respuesta del módulo de estímulo
+#define GPS_CONFIG_TIMEOUT_MS 5000  // 5 segundos  - Configuración de tasa GPS
+
 #define NEAR_LIMIT  10.0f   // en metros
-#define MAX_TRIES   10
+
+// ============================================================================
+// TIMEOUT CONTEXT STRUCTURE
+// ============================================================================
+typedef struct {
+    uint32_t startTick;    // Tick de inicio de la operación
+    uint32_t timeoutMs;    // Timeout en milisegundos
+} TimeoutContext_t;
+
+// Helper para iniciar timeout
+inline void Timeout_Start(TimeoutContext_t* ctx, uint32_t timeoutMs) {
+    ctx->startTick = xTaskGetTickCount();
+    ctx->timeoutMs = timeoutMs;
+}
+
+// Helper para verificar si expiró el timeout
+inline bool Timeout_IsExpired(const TimeoutContext_t* ctx) {
+    uint32_t elapsed = (xTaskGetTickCount() - ctx->startTick) * portTICK_PERIOD_MS;
+    return (elapsed >= ctx->timeoutMs);
+}
+
+// Helper para obtener tiempo transcurrido
+inline uint32_t Timeout_GetElapsed(const TimeoutContext_t* ctx) {
+    return (xTaskGetTickCount() - ctx->startTick) * portTICK_PERIOD_MS;
+}
 
 enum class GpsRate {
   STOP,
@@ -107,23 +142,23 @@ typedef enum {
 void fsmTask(void *argument);
 
 void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* startupRoutineState, 
-                         EmbeddedMessage_t** msgReceived, uint8_t& tries, Cow& cow, Fence& fence);
+                         EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
 
 void runNormalOperationFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState, 
                           GreenZoneState_t& greenZoneState, StimulusZone_t& stimulusZoneState, 
-                          EmbeddedMessage_t** msgReceived, uint8_t& tries, Cow& cow, Fence& fence);
+                          EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
 
 void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState, 
-                     EmbeddedMessage_t** msgReceived, uint8_t& tries, Cow& cow, Fence& fence);
+                     EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
 
 void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneState, 
-                    EmbeddedMessage_t** msgReceived, uint8_t& tries, Cow& cow, Fence& fence);
+                    EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
 
 void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZoneState, 
-                       EmbeddedMessage_t** msgReceived, uint8_t& tries, Cow& cow, Fence& fence);
+                       EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
 
 void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTransitionState, 
-                          EmbeddedMessage_t** msgReceived, uint8_t& tries, Cow& cow, Fence& fence);
+                          EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
 
 // ============================================================================
 // HELPER FUNCTIONS
