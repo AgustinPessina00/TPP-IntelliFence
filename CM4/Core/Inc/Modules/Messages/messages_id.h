@@ -64,6 +64,20 @@
 #define MSG_ID_GPS_REQUEST_CONFIG   0x70 // Pedido para configurar el rate del ADQTIME de GPS
 #define MSG_ID_GPS_CONFIG_RESPONSE  0x71 // Respuesta del GPS
 
+// Console UART - Requests from console to sensors
+#define MSG_ID_CONSOLE_READ_GPS      0x80  // Console pide lectura de GPS
+#define MSG_ID_CONSOLE_READ_IMU      0x81  // Console pide lectura de IMU
+#define MSG_ID_CONSOLE_READ_INA_GPS  0x82  // Console pide lectura de INA GPS
+#define MSG_ID_CONSOLE_READ_INA_IMU  0x83  // Console pide lectura de INA IMU
+#define MSG_ID_CONSOLE_READ_INA_MCU  0x84  // Console pide lectura de INA MCU
+
+// Console UART - Responses from sensors to console
+#define MSG_ID_SENSOR_GPS_DATA       0x85  // Respuesta con datos de GPS
+#define MSG_ID_SENSOR_IMU_DATA       0x86  // Respuesta con datos de IMU
+#define MSG_ID_SENSOR_INA_GPS_DATA   0x87  // Respuesta con datos de INA GPS
+#define MSG_ID_SENSOR_INA_IMU_DATA   0x88  // Respuesta con datos de INA IMU
+#define MSG_ID_SENSOR_INA_MCU_DATA   0x89  // Respuesta con datos de INA MCU
+
 // Errores y log
 #define MSG_ID_ERROR             0xF0  // Error genérico
 #define MSG_ID_DIAGNOSTIC        0xF1  // Mensaje de diagnóstico

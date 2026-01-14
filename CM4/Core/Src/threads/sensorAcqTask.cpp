@@ -135,6 +135,67 @@ void sensorAcqTask(void *argument) {
                         RTOS_LOG_WARN("[SENSOR_ACQ] Failed to set GPS acquisition time\n");
                     }
                     break;
+
+                // Console UART requests
+                case MSG_ID_CONSOLE_READ_GPS:
+                    msgToSend = MessagePool_Allocate();
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_GPS_DATA, 
+                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         (uint8_t*)gpsData, 2 * sizeof(double));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent GPS data to console\n");
+                        msgToSend = NULL;
+                    }
+                    break;
+
+                case MSG_ID_CONSOLE_READ_IMU:
+                    msgToSend = MessagePool_Allocate();
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_IMU_DATA, 
+                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         (uint8_t*)imuData, 3 * sizeof(double));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent IMU data to console\n");
+                        msgToSend = NULL;
+                    }
+                    break;
+
+                case MSG_ID_CONSOLE_READ_INA_GPS:
+                    msgToSend = MessagePool_Allocate();
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_GPS_DATA, 
+                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         (uint8_t*)&(inaGps.current), sizeof(float));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent INA GPS data to console\n");
+                        msgToSend = NULL;
+                    }
+                    break;
+
+                case MSG_ID_CONSOLE_READ_INA_IMU:
+                    msgToSend = MessagePool_Allocate();
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_IMU_DATA, 
+                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         (uint8_t*)&(inaImu.current), sizeof(float));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent INA IMU data to console\n");
+                        msgToSend = NULL;
+                    }
+                    break;
+
+                case MSG_ID_CONSOLE_READ_INA_MCU:
+                    msgToSend = MessagePool_Allocate();
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_MCU_DATA, 
+                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         (uint8_t*)&(inaMcu.current), sizeof(float));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent INA MCU data to console\n");
+                        msgToSend = NULL;
+                    }
+                    break;
         
                 default:
                     break;

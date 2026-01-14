@@ -21,7 +21,8 @@ typedef enum {
     MODULE_FSM          = 6,
     MODULE_DISTANCE     = 7,
     MODULE_FENCE_UPDATE = 8,
-    MODULE_DISPATCHER   = 9
+    MODULE_DISPATCHER   = 9,
+    MODULE_CONSOLE      = 10
 } ModuleId_t;
 
 // Estructura de mensaje embedded-friendly
