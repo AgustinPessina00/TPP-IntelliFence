@@ -163,7 +163,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                   cmd->module_code, cmd->operation_code);
     
     switch (cmd->module_code) {
-        case MODULE_GPS: // 41
+        case CONSOLE_DEV_GPS: // 41
             if (cmd->operation_code == OP_READ) {
                 // Request GPS data from sensor task
                 msgToSend = MessagePool_Allocate();
@@ -195,7 +195,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
             }
             break;
             
-        case MODULE_IMU: // 42
+        case CONSOLE_DEV_IMU: // 42
             if (cmd->operation_code == OP_READ) {
                 // Request IMU data from sensor task
                 msgToSend = MessagePool_Allocate();
@@ -226,7 +226,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
             }
             break;
             
-        case MODULE_INA_GPS: // 43
+        case CONSOLE_DEV_INA_GPS: // 43
             if (cmd->operation_code == OP_READ) {
                 // Request INA GPS data
                 msgToSend = MessagePool_Allocate();
@@ -253,7 +253,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
             }
             break;
             
-        case MODULE_INA_IMU: // 44
+        case CONSOLE_DEV_INA_IMU: // 44
             if (cmd->operation_code == OP_READ) {
                 // Request INA IMU data
                 msgToSend = MessagePool_Allocate();
@@ -280,7 +280,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
             }
             break;
             
-        case MODULE_INA_MCU: // 45
+        case CONSOLE_DEV_INA_MCU: // 45
             if (cmd->operation_code == OP_READ) {
                 // Request INA MCU data
                 msgToSend = MessagePool_Allocate();
@@ -413,8 +413,8 @@ void consoleTask(void *argument) {
                     break;
                     
                 default:
-                    RTOS_LOG_WARNING("[CONSOLE] Unhandled message ID: %d\n", 
-                                    msgReceived->id);
+                    RTOS_LOG_WARN("[CONSOLE] Unhandled message ID: %d\n", 
+                                  msgReceived->id);
                     break;
             }
             

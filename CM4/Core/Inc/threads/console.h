@@ -1,7 +1,7 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#include <cstdint>
+#include <stdint.h>
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -14,12 +14,12 @@ void consoleTask(void *argument);
 }
 #endif
 
-// Module codes
-#define MODULE_GPS      41
-#define MODULE_IMU      42
-#define MODULE_INA_GPS  43
-#define MODULE_INA_IMU  44
-#define MODULE_INA_MCU  45
+// Console device codes (for UART protocol)
+#define CONSOLE_DEV_GPS      41
+#define CONSOLE_DEV_IMU      42
+#define CONSOLE_DEV_INA_GPS  43
+#define CONSOLE_DEV_INA_IMU  44
+#define CONSOLE_DEV_INA_MCU  45
 
 // Operation codes
 #define OP_READ   0x00

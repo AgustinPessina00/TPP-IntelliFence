@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "rtos_printf.h"
 #include "EmbeddedMessage.h"
+#include "threads/console.h"
 
 // Forward declarations para threads del sistema FreeRTOS
 extern void dispatcherTask(void *argument);
@@ -34,7 +35,6 @@ extern void fsmTask(void *argument);
 extern void sensorAcqTask(void *argument);
 extern void stimulusTask(void *argument);
 extern void loraTask(void *argument);
-extern void consoleTask(void *argument);
 
 // Test mode support
 #ifdef ENABLE_TEST_MODE
