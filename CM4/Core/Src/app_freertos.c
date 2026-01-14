@@ -34,6 +34,7 @@ extern void fsmTask(void *argument);
 extern void sensorAcqTask(void *argument);
 extern void stimulusTask(void *argument);
 extern void loraTask(void *argument);
+extern void consoleTask(void *argument);
 
 // Test mode support
 #ifdef ENABLE_TEST_MODE
@@ -95,6 +96,11 @@ const osMessageQueueAttr_t loraTxQueue_attributes = {
   .name = "loraTxQueue"
 };
 
+osMessageQueueId_t consoleQueueHandle;
+const osMessageQueueAttr_t consoleQueue_attributes = {
+  .name = "consoleQueue"
+};
+
 // osMessageQueueId_t loraRxQueueHandle;
 // const osMessageQueueAttr_t loraRxQueue_attributes = {
 //   .name = "loraRxQueue"
@@ -146,6 +152,14 @@ osThreadId_t lora_TaskHandle;
 const osThreadAttr_t lora_Task_attributes = {
   .name = "lora_Task",
   .stack_size = 256 * 3,  // 768 bytes LoRa
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// Thread Console - protocolo UART para comunicación con backend
+osThreadId_t console_TaskHandle;
+const osThreadAttr_t console_Task_attributes = {
+  .name = "console_Task",
+  .stack_size = 256 * 3,  // 768 bytes console
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE END Variables */
@@ -200,6 +214,13 @@ void initialize_message_queues(void) {
     //loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
     //distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
     //fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
+    
+    // Cola para consola UART
+    consoleQueueHandle = osMessageQueueNew(12, sizeof(void*), &consoleQueue_attributes);
+    if (consoleQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación consoleQueue\n");
+        Error_Handler();
+    }
     
     printf("[QUEUES] OK - Todas las colas creadas exitosamente\n");
     printf("[QUEUES] - DispatcherQueue: 32 slots\n");
@@ -261,13 +282,21 @@ void initialize_system_threads(void) {
         Error_Handler();
     }
 
+    //Thread Console - prioridad normal (protocolo UART)
+    console_TaskHandle = osThreadNew(consoleTask, NULL, &console_Task_attributes);
+    if (console_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación console_Task\n");
+        Error_Handler();
+    }
+
     printf("[THREADS] OK - Todos los threads creados exitosamente\n");
     printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 768B\n");
     printf("[THREADS] - fsm_Task: Prioridad NORMAL, Stack 1KB\n");
     printf("[THREADS] - stimulus_Task: Prioridad NORMAL, Stack 512B\n");
     printf("[THREADS] - sensorAcq_Task: Prioridad NORMAL, Stack 1KB\n");
     printf("[THREADS] - lora_Task: Prioridad NORMAL, Stack 768B\n");
-    printf("[THREADS] Total stack allocated: ~4KB\n");
+    printf("[THREADS] - console_Task: Prioridad NORMAL, Stack 768B\n");
+    printf("[THREADS] Total stack allocated: ~4.5KB\n");
 }
 /* USER CODE END FunctionPrototypes */
 

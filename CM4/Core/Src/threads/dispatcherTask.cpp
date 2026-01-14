@@ -12,6 +12,7 @@ extern osMessageQueueId_t sensorAcqQueueHandle;
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t stimulusQueueHandle;
 extern osMessageQueueId_t loraTxQueueHandle;
+extern osMessageQueueId_t consoleQueueHandle;
 
 void dispatcherTask(void *argument) {
     EmbeddedMessage_t *msg = NULL;
@@ -49,6 +50,12 @@ void dispatcherTask(void *argument) {
                 case MODULE_LORA_TX:
                     if (osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0) != osOK) {
                         RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to LORA_TX\n");
+                        MessagePool_Free(msg);
+                    }
+                    break;
+                case MODULE_CONSOLE:
+                    if (osMessageQueuePut(consoleQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to CONSOLE\n");
                         MessagePool_Free(msg);
                     }
                     break;
