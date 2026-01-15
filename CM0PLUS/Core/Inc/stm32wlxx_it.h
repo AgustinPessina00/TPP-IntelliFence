@@ -51,7 +51,9 @@ void HardFault_Handler(void);
 void SVC_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
+void RTC_LSECSS_IRQHandler(void);
 void IPCC_C2_RX_C2_TX_IRQHandler(void);
+void SUBGHZ_Radio_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

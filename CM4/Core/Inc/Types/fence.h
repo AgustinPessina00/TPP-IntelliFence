@@ -9,14 +9,14 @@
 // EMBEDDED-FRIENDLY FENCE IMPLEMENTATION (NO STL, STATIC ALLOCATION)
 // ============================================================================
 
-#define MAX_VERTICES 20      // Máximo número de vértices del cerco
+#define MAX_VERTICES 10      // Máximo número de vértices del cerco
 #define TOTAL_TRESHOLDS 5    // Número de umbrales de zona
 
 typedef float threshold_t;
 
 struct Vertex {
-    double latitude;
-    double longitude;
+    float latitude;
+    float longitude;
 };
 
 struct Line {
@@ -28,30 +28,16 @@ class Fence {
 public:
     Fence();
 
-    // ===== VERTEX MANAGEMENT =====
+    // ===== LIMIT MANAGEMENT =====
     /**
-     * @brief Guardar vértices del cerco recibidos de LoRa
-     * @param v Puntero al array de vértices
+     * @brief Crear segmentos (límites) directamente desde buffer de vértices externo
+     * @param v Puntero al array de vértices (no se guarda internamente)
      * @param count Número de vértices (max MAX_VERTICES)
-     * @return true si se guardaron exitosamente, false si count > MAX_VERTICES
+     * @note No guarda los vértices, solo genera los límites
      */
-    bool saveVertices(const Vertex* v, uint8_t count);
-    
-    /**
-     * @brief Recalcular segmentos (límites) a partir de vértices
-     * @note Debe llamarse después de saveVertices()
-     */
-    void createLimits();
-    
-    /**
-     * @brief Limpiar vértices para actualización de cerco
-     */
-    void clearVertices();
+    void createLimits(const Vertex* v, uint8_t count);
 
     // ===== GETTERS =====
-    const Vertex* getVertices() const { return vertices; }
-    uint8_t getVertexCount() const { return vertexCount; }
-    
     const Line* getLimits() const { return limites; }
     uint8_t getLimitCount() const { return limitCount; }
     
@@ -75,13 +61,10 @@ public:
     float thresholds[TOTAL_TRESHOLDS];
 
 private:
-    void updateCenterFence();
+    void updateCenterFence(const Vertex* v, uint8_t count);
 
     // ===== STATIC ARRAYS (NO DYNAMIC ALLOCATION) =====
-    Vertex vertices[MAX_VERTICES];   // Array estático de vértices
-    uint8_t vertexCount;              // Cantidad actual de vértices
-
-    Line limites[MAX_VERTICES];       // Array estático de límites (mismo tamaño que vértices)
+    Line limites[MAX_VERTICES];       // Array estático de límites
     uint8_t limitCount;               // Cantidad actual de límites
 
     Vertex centerFence;               // Centro promedio de los vértices

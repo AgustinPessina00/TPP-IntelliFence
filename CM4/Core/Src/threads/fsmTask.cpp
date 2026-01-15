@@ -150,7 +150,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_SAVE_FENCE:
-            updateFence(fence);
+            // Fence ya fue actualizado en receivedFence() via createLimits()
             *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
             break;
             
@@ -465,7 +465,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             break;
             
         case FENCE_TRANSITION_UPDATE_FENCE:
-            updateFence(fence);
+            // Fence ya fue actualizado en receivedFence() via createLimits()
             fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
             break;
             
@@ -566,10 +566,10 @@ HAL_StatusTypeDef updatePosition(Cow& cow, EmbeddedMessage_t *msgReceived) {
         return HAL_ERROR;
     }
     
-    if (msgReceived->length == 2 * sizeof(double)) {
-        double latitude, longitude;
-        memcpy(&latitude, msgReceived->payload, sizeof(double));
-        memcpy(&longitude, msgReceived->payload + sizeof(double), sizeof(double));
+    if (msgReceived->length == 2 * sizeof(float)) {
+        float latitude, longitude;
+        memcpy(&latitude, msgReceived->payload, sizeof(float));
+        memcpy(&longitude, msgReceived->payload + sizeof(float), sizeof(float));
         
         RTOS_LOG_DEBUG("[FSM] GPS position: lat=%.6f, lon=%.6f\n", latitude, longitude);
         
@@ -588,13 +588,13 @@ void sendPosition(uint8_t msgId, ModuleId_t dest, Cow& cow) {
     EmbeddedMessage_t *msg = MessagePool_Allocate();
     if (msg != NULL) {
         Position pos = cow.getPosition();
-        double latitude = pos.latitude, longitude = pos.longitude;
+        float latitude = pos.latitude, longitude = pos.longitude;
         
-        uint8_t data[2 * sizeof(double)];
-        memcpy(data, &latitude, sizeof(double));
-        memcpy(data + sizeof(double), &longitude, sizeof(double));
+        uint8_t data[2 * sizeof(float)];
+        memcpy(data, &latitude, sizeof(float));
+        memcpy(data + sizeof(float), &longitude, sizeof(float));
         
-        EmbeddedMessage_CreateWithPayload(msg, msgId, MODULE_FSM, dest, data, 2 * sizeof(double));
+        EmbeddedMessage_CreateWithPayload(msg, msgId, MODULE_FSM, dest, data, 2 * sizeof(float));
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
     }
 }
@@ -640,7 +640,7 @@ HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence) {
     
     // Copiar vértices de este fragmento
     uint8_t payloadOffset = 3;  // Después del header
-    const uint8_t VERTEX_SIZE = 2 * sizeof(double);
+    const uint8_t VERTEX_SIZE = 2 * sizeof(float);  // float lat + float lon
     
     for (uint8_t i = 0; i < verticesInFragment; i++) {
         if (totalVerticesReceived < MAX_VERTICES) {
@@ -659,8 +659,8 @@ HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence) {
         RTOS_LOG_INFO("[FSM] All fence fragments received (%d vertices total)\n",
                      totalVerticesReceived);
         
-        // Actualizar fence con todos los vértices
-        fence.saveVertices(receivedVertices, totalVerticesReceived);
+        // Crear límites directamente desde buffer sin guardar vértices
+        fence.createLimits(receivedVertices, totalVerticesReceived);
         
         // Reset para próxima recepción
         receivedFragments = 0;
@@ -674,11 +674,6 @@ HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence) {
         MessagePool_Free(msgReceived);
         return HAL_BUSY;  // Aún esperando más fragmentos
     }
-}
-
-void updateFence(Fence& fence) {
-    fence.createLimits();
-    RTOS_LOG_DEBUG("[FSM] Fence limits updated\n");
 }
 
 HAL_StatusTypeDef isInFence(Cow& cow) {

@@ -62,9 +62,9 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                         msgResponse->id = MSG_ID_SEND_GPS;
                         
                         // Copiar latitud y longitud en el payload
-                        memcpy(&msgResponse->payload[0], &gpsData->position.latitude, sizeof(double));
-                        memcpy(&msgResponse->payload[8], &gpsData->position.longitude, sizeof(double));
-                        msgResponse->length = 16;
+                        memcpy(&msgResponse->payload[0], &gpsData->position.latitude, sizeof(float));
+                        memcpy(&msgResponse->payload[4], &gpsData->position.longitude, sizeof(float));
+                        msgResponse->length = 8;
                         
                         rtos_printf("[TEST_GPS %02d] Lat: %.6f, Lon: %.6f | %s -> %s\n",
                                     TestData_GetGPSIndex() - 1,
@@ -128,16 +128,16 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                 case MSG_ID_REQUEST_ZONE_AND_DISTANCE_TO_FENCE: {
                     // Extraer posición del payload (enviada por FSM)
                     Position cowPos;
-                    memcpy(&cowPos.latitude, &msgReceived->payload[0], sizeof(double));
-                    memcpy(&cowPos.longitude, &msgReceived->payload[8], sizeof(double));
+                    memcpy(&cowPos.latitude, &msgReceived->payload[0], sizeof(float));
+                    memcpy(&cowPos.longitude, &msgReceived->payload[4], sizeof(float));
                     
                     // Obtener zona basada en la posición
                     TestZoneData_t zoneData = TestData_GetZone(cowPos);
                     
                     msgResponse->id = MSG_ID_SEND_ZONE_AND_DISTANCE_TO_FENCE;
                     msgResponse->payload[0] = static_cast<uint8_t>(zoneData.zone);
-                    memcpy(&msgResponse->payload[1], &zoneData.distance, sizeof(double));
-                    msgResponse->length = 9;
+                    memcpy(&msgResponse->payload[1], &zoneData.distance, sizeof(float));
+                    msgResponse->length = 5;
                     
                     rtos_printf("[TEST_ZONE] Zona: %s, Distancia: %.1fm\n",
                                 (zoneData.zone == GREEN_ZONE) ? "GREEN" :

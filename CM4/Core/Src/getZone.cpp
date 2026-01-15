@@ -93,19 +93,19 @@ float pointToSegmentDistance(const XY& p, const XY& a, const XY& b) {
     XY ab = {b.x - a.x, b.y - a.y};
     XY ap = {p.x - a.x, p.y - a.y};
 
-    double ab2 = ab.x * ab.x + ab.y * ab.y;
-    double ap_ab = ap.x * ab.x + ap.y * ab.y;
-    double t = ap_ab / ab2;
+    float ab2 = ab.x * ab.x + ab.y * ab.y;
+    float ap_ab = ap.x * ab.x + ap.y * ab.y;
+    float t = ap_ab / ab2;
 
     // Limitar t al rango [0, 1]
-    if (t < 0.0) t = 0.0;
-    else if (t > 1.0) t = 1.0;
+    if (t < 0.0f) t = 0.0f;
+    else if (t > 1.0f) t = 1.0f;
 
     XY proj = {a.x + t * ab.x, a.y + t * ab.y};
-    double dx = p.x - proj.x;
-    double dy = p.y - proj.y;
+    float dx = p.x - proj.x;
+    float dy = p.y - proj.y;
 
-    return static_cast<float>(sqrt(dx * dx + dy * dy));
+    return sqrtf(dx * dx + dy * dy);
 }
 
 XY latLonToXY(double lat, double lon, double lat0, double lon0) {
@@ -115,8 +115,8 @@ XY latLonToXY(double lat, double lon, double lat0, double lon0) {
     double lat0_rad = lat0 * M_PI / 180.0;
     double lon0_rad = lon0 * M_PI / 180.0;
 
-    double x = (lon_rad - lon0_rad) * cos(lat0_rad) * R;
-    double y = (lat_rad - lat0_rad) * R;
+    float x = (float)((lon_rad - lon0_rad) * cos(lat0_rad) * R);
+    float y = (float)((lat_rad - lat0_rad) * R);
 
     return {x, y};
 }

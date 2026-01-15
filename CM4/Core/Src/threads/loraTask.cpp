@@ -32,10 +32,10 @@ void loraTask(void *argument) {
             switch (msgReceived->id) {
                 case MSG_ID_LORA_SEND_POSITION:
                     // Procesar el mensaje de posición
-                    if (msgReceived->length == 2 * sizeof(double)) {
-                        double latitude, longitude;
-                        memcpy(&latitude, msgReceived->payload, sizeof(double));
-                        memcpy(&longitude, msgReceived->payload + sizeof(double), sizeof(double));
+                    if (msgReceived->length == 2 * sizeof(float)) {
+                        float latitude, longitude;
+                        memcpy(&latitude, msgReceived->payload, sizeof(float));
+                        memcpy(&longitude, msgReceived->payload + sizeof(float), sizeof(float));
                         
                         RTOS_LOG_INFO("[LORA] Sending position: lat=%.6f, lon=%.6f\n", 
                                      latitude, longitude);
@@ -66,9 +66,9 @@ void loraTask(void *argument) {
                         
                         // Enviar fence de test_data en fragmentos a FSM
 #ifdef ENABLE_TEST_MODE
-                        // Calcular fragmentación: 3 bytes header + N*16 bytes vertices
-                        // Con payload=35: 35-3=32 bytes -> 2 vertices por fragmento
-                        const uint8_t VERTEX_SIZE = 2 * sizeof(double);  // 16 bytes
+                        // Calcular fragmentación: 3 bytes header + N*8 bytes vertices
+                        // Con payload=35: 35-3=32 bytes -> 4 vertices por fragmento
+                        const uint8_t VERTEX_SIZE = 2 * sizeof(float);  // 8 bytes
                         const uint8_t HEADER_SIZE = 3;  // fragment_num, total_fragments, vertices_count
                         const uint8_t MAX_VERTICES_PER_MSG = (MAX_MESSAGE_PAYLOAD_SIZE - HEADER_SIZE) / VERTEX_SIZE;
                         

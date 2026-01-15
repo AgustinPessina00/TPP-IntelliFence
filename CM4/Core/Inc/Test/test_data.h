@@ -16,7 +16,7 @@
 typedef struct {
     Position position;
     zone_t expectedZone;
-    double distanceToLimit;  // en metros
+    float distanceToLimit;  // en metros
     const char* description; // Descripción del escenario
 } TestGPSData_t;
 
@@ -34,7 +34,7 @@ typedef struct {
  */
 typedef struct {
     zone_t zone;
-    double distance;
+    float distance;
 } TestZoneData_t;
 
 // ============================================================================

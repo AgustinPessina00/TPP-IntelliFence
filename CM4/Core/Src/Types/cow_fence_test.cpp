@@ -51,11 +51,11 @@ void test_cow_creation() {
     // Verify initial state
     TEST_ASSERT(vaca.getState() == CowState::SLEEP, "Initial state is SLEEP");
     TEST_ASSERT(vaca.getCurrentZone() == BLACK_ZONE, "Initial zone is BLACK_ZONE");
-    TEST_ASSERT(vaca.getDistanceToLimit() == -1.0, "Initial distance is -1");
+    TEST_ASSERT(vaca.getDistanceToLimit() == -1.0f, "Initial distance is -1");
     
     // Verify initial position (should be 0,0)
     Position pos = vaca.getPosition();
-    TEST_ASSERT(pos.latitude == 0.0 && pos.longitude == 0.0, "Initial position is (0,0)");
+    TEST_ASSERT(pos.latitude == 0.0f && pos.longitude == 0.0f, "Initial position is (0,0)");
     
     printf("  Cow created with ID: 0x%08X-%08X-%08X\n", 
            (unsigned int)testId.w0, (unsigned int)testId.w1, (unsigned int)testId.w2);
@@ -68,20 +68,20 @@ void test_cow_position_update() {
     Cow vaca(id);
     
     // Test position update (Buenos Aires coordinates)
-    Position buenosAires = {-34.603722, -58.381592};
+    Position buenosAires = {-34.603722f, -58.381592f};
     vaca.updatePosition(buenosAires);
     
     Position retrieved = vaca.getPosition();
-    TEST_ASSERT(fabs(retrieved.latitude - buenosAires.latitude) < 0.000001, 
+    TEST_ASSERT(fabs(retrieved.latitude - buenosAires.latitude) < 0.000001f, 
                 "Latitude updated correctly");
-    TEST_ASSERT(fabs(retrieved.longitude - buenosAires.longitude) < 0.000001, 
+    TEST_ASSERT(fabs(retrieved.longitude - buenosAires.longitude) < 0.000001f, 
                 "Longitude updated correctly");
     
     printf("  Position updated to: (%.6f, %.6f)\n", 
            retrieved.latitude, retrieved.longitude);
     
     // Test another position
-    Position newPos = {-34.600000, -58.380000};
+    Position newPos = {-34.600000f, -58.380000f};
     vaca.updatePosition(newPos);
     retrieved = vaca.getPosition();
     TEST_ASSERT(fabs(retrieved.latitude - newPos.latitude) < 0.000001, 
@@ -183,11 +183,10 @@ void test_fence_creation() {
     Fence fence;
     
     // Verify initial state
-    TEST_ASSERT(fence.getVertexCount() == 0, "Initial vertex count is 0");
     TEST_ASSERT(fence.getLimitCount() == 0, "Initial limit count is 0");
     
     Vertex center = fence.getCenterFence();
-    TEST_ASSERT(center.latitude == 0.0 && center.longitude == 0.0, 
+    TEST_ASSERT(center.latitude == 0.0f && center.longitude == 0.0f, 
                 "Initial center is (0,0)");
     
     // Verify thresholds are set
@@ -212,23 +211,20 @@ void test_fence_rectangular() {
     
     // Create a rectangular fence (approx 100m x 100m in Buenos Aires)
     Vertex rectangle[4] = {
-        {-34.603722, -58.381592},  // NW corner
-        {-34.603722, -58.380592},  // NE corner
-        {-34.602722, -58.380592},  // SE corner
-        {-34.602722, -58.381592}   // SW corner
+        {-34.603722f, -58.381592f},  // NW corner
+        {-34.603722f, -58.380592f},  // NE corner
+        {-34.602722f, -58.380592f},  // SE corner
+        {-34.602722f, -58.381592f}   // SW corner
     };
     
-    TEST_ASSERT(fence.saveVertices(rectangle, 4), "Saved 4 rectangular vertices");
-    TEST_ASSERT(fence.getVertexCount() == 4, "Vertex count is 4");
-    
-    // Create limits
-    fence.createLimits();
+    // Create limits directly from buffer
+    fence.createLimits(rectangle, 4);
     TEST_ASSERT(fence.getLimitCount() == 4, "Created 4 limits (sides)");
     
     // Verify center calculation
     Vertex center = fence.getCenterFence();
-    double expectedLat = (-34.603722 - 34.602722) / 2.0;
-    double expectedLon = (-58.381592 - 58.380592) / 2.0;
+    float expectedLat = (-34.603722f - 34.602722f) / 2.0f;
+    float expectedLon = (-58.381592f - 58.380592f) / 2.0f;
     
     TEST_ASSERT(fabs(center.latitude - expectedLat) < 0.000001, 
                 "Center latitude calculated correctly");
@@ -246,18 +242,15 @@ void test_fence_polygon() {
     
     // Create a hexagonal fence
     Vertex hexagon[6] = {
-        {-34.604000, -58.381000},
-        {-34.603500, -58.380500},
-        {-34.603000, -58.380500},
-        {-34.602500, -58.381000},
-        {-34.603000, -58.381500},
-        {-34.603500, -58.381500}
+        {-34.604000f, -58.381000f},
+        {-34.603500f, -58.380500f},
+        {-34.603000f, -58.380500f},
+        {-34.602500f, -58.381000f},
+        {-34.603000f, -58.381500f},
+        {-34.603500f, -58.381500f}
     };
     
-    TEST_ASSERT(fence.saveVertices(hexagon, 6), "Saved 6 hexagonal vertices");
-    TEST_ASSERT(fence.getVertexCount() == 6, "Vertex count is 6");
-    
-    fence.createLimits();
+    fence.createLimits(hexagon, 6);
     TEST_ASSERT(fence.getLimitCount() == 6, "Created 6 limits");
     
     // Verify polygon closure (last limit connects to first vertex)
@@ -275,64 +268,17 @@ void test_fence_overflow_protection() {
     
     Fence fence;
     
-    // Test 1: Try to add more than MAX_VERTICES
-    Vertex tooMany[MAX_VERTICES + 5];
-    for (uint8_t i = 0; i < MAX_VERTICES + 5; i++) {
-        tooMany[i] = {-34.0 + i * 0.001, -58.0 + i * 0.001};
-    }
-    
-    TEST_ASSERT(!fence.saveVertices(tooMany, MAX_VERTICES + 5), 
-                "Rejected oversized array (25 > 20)");
-    TEST_ASSERT(fence.getVertexCount() == 0, 
-                "Vertex count remains 0 after rejection");
-    
-    // Test 2: Add maximum allowed vertices
+    // Test: Add maximum allowed vertices
     Vertex maxVertices[MAX_VERTICES];
     for (uint8_t i = 0; i < MAX_VERTICES; i++) {
-        maxVertices[i] = {-34.0 + i * 0.0001, -58.0 + i * 0.0001};
+        maxVertices[i] = {-34.0f + i * 0.0001f, -58.0f + i * 0.0001f};
     }
     
-    TEST_ASSERT(fence.saveVertices(maxVertices, MAX_VERTICES), 
-                "Accepted maximum vertices (20)");
-    TEST_ASSERT(fence.getVertexCount() == MAX_VERTICES, 
-                "Vertex count is MAX_VERTICES");
-    
-    fence.createLimits();
+    fence.createLimits(maxVertices, MAX_VERTICES);
     TEST_ASSERT(fence.getLimitCount() == MAX_VERTICES, 
                 "Created MAX_VERTICES limits");
     
-    printf("  Overflow protection: [OK] Rejected 25, [OK] Accepted 20\n");
-}
-
-void test_fence_clear() {
-    TEST_SECTION("Fence Clear Functionality");
-    
-    Fence fence;
-    
-    // Add some vertices
-    Vertex triangle[3] = {
-        {-34.603000, -58.381000},
-        {-34.602500, -58.380500},
-        {-34.602000, -58.381000}
-    };
-    
-    fence.saveVertices(triangle, 3);
-    fence.createLimits();
-    
-    TEST_ASSERT(fence.getVertexCount() == 3, "3 vertices before clear");
-    TEST_ASSERT(fence.getLimitCount() == 3, "3 limits before clear");
-    
-    // Clear fence
-    fence.clearVertices();
-    
-    TEST_ASSERT(fence.getVertexCount() == 0, "0 vertices after clear");
-    TEST_ASSERT(fence.getLimitCount() == 0, "0 limits after clear");
-    
-    Vertex center = fence.getCenterFence();
-    TEST_ASSERT(center.latitude == 0.0 && center.longitude == 0.0, 
-                "Center reset to (0,0)");
-    
-    printf("  Clear: 3 vertices -> 0 vertices [OK]\n");
+    printf("  Overflow protection: [OK] Accepted MAX_VERTICES\n");
 }
 
 // ============================================================================
@@ -349,20 +295,19 @@ void test_cow_fence_integration() {
     
     // Setup fence (rectangular paddock)
     Vertex paddock[4] = {
-        {-34.604000, -58.381500},
-        {-34.604000, -58.380500},
-        {-34.603000, -58.380500},
-        {-34.603000, -58.381500}
+        {-34.604000f, -58.381500f},
+        {-34.604000f, -58.380500f},
+        {-34.603000f, -58.380500f},
+        {-34.603000f, -58.381500f}
     };
     
-    cercado.saveVertices(paddock, 4);
-    cercado.createLimits();
+    cercado.createLimits(paddock, 4);
     
     // Scenario 1: Cow inside fence (GREEN_ZONE)
-    Position inside = {-34.603500, -58.381000};  // Center of paddock
+    Position inside = {-34.603500f, -58.381000f};  // Center of paddock
     vaca.updatePosition(inside);
     vaca.updateCurrentZone(GREEN_ZONE);
-    vaca.updateDistanceToLimit(25.0);
+    vaca.updateDistanceToLimit(25.0f);
     
     TEST_ASSERT(vaca.getCurrentZone() == GREEN_ZONE, 
                 "Cow in GREEN_ZONE (inside fence)");
@@ -372,33 +317,33 @@ void test_cow_fence_integration() {
     printf("  Scenario 1: Cow safe inside fence (GREEN, 25m from edge)\n");
     
     // Scenario 2: Cow approaching limit (YELLOW_ZONE)
-    Position approaching = {-34.603200, -58.381000};
+    Position approaching = {-34.603200f, -58.381000f};
     vaca.updatePosition(approaching);
     vaca.updateCurrentZone(YELLOW_ZONE);
-    vaca.updateDistanceToLimit(4.5);
+    vaca.updateDistanceToLimit(4.5f);
     
     TEST_ASSERT(vaca.getCurrentZone() == YELLOW_ZONE, 
                 "Cow in YELLOW_ZONE (approaching limit)");
-    TEST_ASSERT(vaca.getDistanceToLimit() < 5.0, 
+    TEST_ASSERT(vaca.getDistanceToLimit() < 5.0f, 
                 "Distance < 5m (warning zone)");
     
     printf("  Scenario 2: Cow approaching fence (YELLOW, 4.5m from edge)\n");
     
     // Scenario 3: Cow at limit (RED_ZONE)
-    Position atLimit = {-34.603050, -58.381000};
+    Position atLimit = {-34.603050f, -58.381000f};
     vaca.updatePosition(atLimit);
     vaca.updateCurrentZone(RED_ZONE);
-    vaca.updateDistanceToLimit(0.8);
+    vaca.updateDistanceToLimit(0.8f);
     
     TEST_ASSERT(vaca.getCurrentZone() == RED_ZONE, 
                 "Cow in RED_ZONE (at limit)");
-    TEST_ASSERT(vaca.getDistanceToLimit() < 1.0, 
+    TEST_ASSERT(vaca.getDistanceToLimit() < 1.0f, 
                 "Distance < 1m (danger zone)");
     
     printf("  Scenario 3: Cow at fence limit (RED, 0.8m from edge)\n");
     
     // Scenario 4: Cow escaped (BLACK_ZONE)
-    Position escaped = {-34.602500, -58.381000};
+    Position escaped = {-34.602500f, -58.381000f};
     vaca.updatePosition(escaped);
     vaca.updateCurrentZone(BLACK_ZONE);
     vaca.updateDistanceToLimit(-5.0);  // Negative = outside
@@ -444,7 +389,6 @@ extern "C" void run_cow_fence_tests() {
     test_fence_rectangular();
     test_fence_polygon();
     test_fence_overflow_protection();
-    test_fence_clear();
     
     // ===== INTEGRATION TESTS =====
     printf("\n================================================================\n");

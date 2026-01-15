@@ -26,8 +26,8 @@ extern "C" {
  * @brief XY coordinates structure (local Cartesian)
  */
 typedef struct {
-    double x;  /**< X coordinate in meters */
-    double y;  /**< Y coordinate in meters */
+    float x;  /**< X coordinate in meters */
+    float y;  /**< Y coordinate in meters */
 } XY;
 
 /* Exported functions --------------------------------------------------------*/
