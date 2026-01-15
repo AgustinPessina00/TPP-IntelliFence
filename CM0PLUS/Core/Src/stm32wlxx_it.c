@@ -56,6 +56,8 @@
 
 /* External variables --------------------------------------------------------*/
 extern IPCC_HandleTypeDef hipcc;
+extern RTC_HandleTypeDef hrtc;
+extern SUBGHZ_HandleTypeDef hsubghz;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -127,7 +129,6 @@ void SysTick_Handler(void)
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
   /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -139,6 +140,21 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32wlxx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles RTC Wakeup + RTC Tamper and RTC TimeStamp + RTC Alarms (A & B) and RTC SSRU Interrupts and LSECSS Interrupts.
+  */
+void RTC_LSECSS_IRQHandler(void)
+{
+  /* USER CODE BEGIN RTC_LSECSS_IRQn 0 */
+
+  /* USER CODE END RTC_LSECSS_IRQn 0 */
+  HAL_RTC_AlarmIRQHandler(&hrtc);
+  HAL_RTCEx_SSRUIRQHandler(&hrtc);
+  /* USER CODE BEGIN RTC_LSECSS_IRQn 1 */
+
+  /* USER CODE END RTC_LSECSS_IRQn 1 */
+}
 
 /**
   * @brief This function handles IPCC RX Occupied and TX Free Interrupt.
@@ -153,6 +169,20 @@ void IPCC_C2_RX_C2_TX_IRQHandler(void)
   /* USER CODE BEGIN IPCC_C2_RX_C2_TX_IRQn 1 */
 
   /* USER CODE END IPCC_C2_RX_C2_TX_IRQn 1 */
+}
+
+/**
+  * @brief This function handles SUBGHZ Radio Interrupt.
+  */
+void SUBGHZ_Radio_IRQHandler(void)
+{
+  /* USER CODE BEGIN SUBGHZ_Radio_IRQn 0 */
+
+  /* USER CODE END SUBGHZ_Radio_IRQn 0 */
+  HAL_SUBGHZ_IRQHandler(&hsubghz);
+  /* USER CODE BEGIN SUBGHZ_Radio_IRQn 1 */
+
+  /* USER CODE END SUBGHZ_Radio_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

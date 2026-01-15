@@ -1,12 +1,13 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32wlxx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @file    stm32_lpm_if.h
+  * @author  MCD Application Team
+  * @brief   Header for Low Power Manager interface configuration
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -18,14 +19,16 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32WLxx_IT_H
-#define __STM32WLxx_IT_H
+#ifndef __STM32_LPM_IF_H__
+#define __STM32_LPM_IF_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Private includes ----------------------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
+#include "stm32_lpm.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -40,20 +43,51 @@ extern "C" {
 
 /* USER CODE END EC */
 
+/* External variables --------------------------------------------------------*/
+/* USER CODE BEGIN EV */
+
+/* USER CODE END EV */
+
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void SVC_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void RTC_LSECSS_IRQHandler(void);
-void IPCC_C2_RX_C2_TX_IRQHandler(void);
-void SUBGHZ_Radio_IRQHandler(void);
+/**
+  * @brief Enters Low Power Off Mode
+  */
+void PWR_EnterOffMode(void);
+
+/**
+  * @brief Exits Low Power Off Mode
+  */
+void PWR_ExitOffMode(void);
+
+/**
+  * @brief Enters Low Power Stop Mode
+  * @note ARM exists the function when waking up
+  */
+void PWR_EnterStopMode(void);
+
+/**
+  * @brief Exits Low Power Stop Mode
+  * @note Enable the pll at 32MHz
+  */
+void PWR_ExitStopMode(void);
+
+/**
+  * @brief Enters Low Power Sleep Mode
+  * @note ARM exits the function when waking up
+  */
+void PWR_EnterSleepMode(void);
+
+/**
+  * @brief Exits Low Power Sleep Mode
+  * @note ARM exits the function when waking up
+  */
+void PWR_ExitSleepMode(void);
+
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
@@ -62,4 +96,4 @@ void SUBGHZ_Radio_IRQHandler(void);
 }
 #endif
 
-#endif /* __STM32WLxx_IT_H */
+#endif /*__STM32_LPM_IF_H__ */

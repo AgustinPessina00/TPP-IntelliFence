@@ -1,12 +1,13 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32wlxx_it.h
-  * @brief   This file contains the headers of the interrupt handlers.
-  ******************************************************************************
+  * @file    app_lorawan.h
+  * @author  MCD Application Team
+  * @brief   Header of application of the LRWAN Middleware
+   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -18,14 +19,14 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32WLxx_IT_H
-#define __STM32WLxx_IT_H
+#ifndef __APP_LORAWAN_H__
+#define __APP_LORAWAN_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Private includes ----------------------------------------------------------*/
+/* Includes ------------------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -40,20 +41,27 @@ extern "C" {
 
 /* USER CODE END EC */
 
+/* External variables --------------------------------------------------------*/
+/* USER CODE BEGIN EV */
+
+/* USER CODE END EV */
+
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
 
-/* Exported functions prototypes ---------------------------------------------*/
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void SVC_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void RTC_LSECSS_IRQHandler(void);
-void IPCC_C2_RX_C2_TX_IRQHandler(void);
-void SUBGHZ_Radio_IRQHandler(void);
+/* Exported Functions Prototypes ---------------------------------------------*/
+/**
+  * @brief  Init Lora Application
+  */
+void MX_LoRaWAN_Init(void);
+
+/**
+  * @brief  Entry Lora Process or scheduling
+  */
+void MX_LoRaWAN_Process(void);
+
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
@@ -62,4 +70,4 @@ void SUBGHZ_Radio_IRQHandler(void);
 }
 #endif
 
-#endif /* __STM32WLxx_IT_H */
+#endif /*__APP_LORAWAN_H__*/

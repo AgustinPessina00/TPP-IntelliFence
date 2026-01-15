@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
-#include "ipcc.h"
+#include "app_lorawan.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -79,9 +79,6 @@ int main(void)
 
   /* USER CODE END Init */
 
-  /* IPCC initialisation */
-  MX_IPCC_Init();
-
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -97,6 +94,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+    MX_LoRaWAN_Process();
 
     /* USER CODE BEGIN 3 */
   }
