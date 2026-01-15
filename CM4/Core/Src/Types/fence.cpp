@@ -12,7 +12,7 @@
 // CONSTRUCTOR
 // ============================================================================
 
-Fence::Fence() : vertexCount(0), limitCount(0) {
+Fence::Fence() : limitCount(0) {
     // Inicializar umbrales de zona (en metros desde el límite)
     // Ajustados para fence en Flores, Buenos Aires con datos de campo
     // GREEN_ZONE (Segura): 85m+
@@ -30,94 +30,69 @@ Fence::Fence() : vertexCount(0), limitCount(0) {
     setZoneThresholds();
 
     // Inicializar centro del cerco
-    this->centerFence = {0.0, 0.0};
+    this->centerFence = {0.0f, 0.0f};
     
-    // Inicializar arrays a cero
-    memset(vertices, 0, sizeof(vertices));
+    // Inicializar array a cero
     memset(limites, 0, sizeof(limites));
 }
 
 // ============================================================================
-// VERTEX MANAGEMENT
+// LIMIT MANAGEMENT
 // ============================================================================
 
-bool Fence::saveVertices(const Vertex* v, uint8_t count) {
-    // Validar que no exceda la capacidad máxima
-    if (count > MAX_VERTICES) {
-        printf("[FENCE] ERROR: Vertex count %d exceeds MAX_VERTICES %d\r\n", count, MAX_VERTICES);
-        return false;
-    }
-    
-    // Validar puntero
-    if (v == nullptr) {
-        printf("[FENCE] ERROR: Null vertex pointer\r\n");
-        return false;
-    }
-    
-    // Limpiar vértices anteriores
-    clearVertices();
-    
-    // Copiar vértices al array estático
-    memcpy(vertices, v, count * sizeof(Vertex));
-    vertexCount = count;
-    
-    printf("[FENCE] Saved %d vertices successfully\r\n", vertexCount);
-    return true;
-}
-
-void Fence::createLimits() {
+void Fence::createLimits(const Vertex* v, uint8_t count) {
     limitCount = 0;
     
-    // Validar que haya al menos 2 vértices para formar líneas
-    if (vertexCount < 2) {
-        printf("[FENCE] WARNING: Need at least 2 vertices to create limits (have %d)\r\n", vertexCount);
+    // Validar entrada
+    if (v == nullptr) {
+        printf("[FENCE] ERROR: Null vertex pointer\r\n");
+        return;
+    }
+    
+    if (count > MAX_VERTICES) {
+        printf("[FENCE] ERROR: Vertex count %d exceeds MAX_VERTICES %d\r\n", count, MAX_VERTICES);
+        return;
+    }
+    
+    if (count < 2) {
+        printf("[FENCE] WARNING: Need at least 2 vertices to create limits (have %d)\r\n", count);
         return;
     }
 
     // Crear líneas conectando vértices consecutivos
-    for (uint8_t i = 0; i < vertexCount; i++) {
-        limites[i].start = vertices[i];
-        limites[i].end = vertices[(i + 1) % vertexCount];  // Cierre del polígono
+    for (uint8_t i = 0; i < count; i++) {
+        limites[i].start = v[i];
+        limites[i].end = v[(i + 1) % count];  // Cierre del polígono
         limitCount++;
     }
 
-    // Actualizar centro del cerco
-    updateCenterFence();
+    // Actualizar centro del cerco usando los vértices recibidos
+    updateCenterFence(v, count);
     
-    printf("[FENCE] Created %d limits from %d vertices\r\n", limitCount, vertexCount);
-}
-
-void Fence::clearVertices() {
-    vertexCount = 0;
-    limitCount = 0;
-    centerFence = {0.0, 0.0};
-    
-    // Limpiar arrays (opcional, por seguridad)
-    memset(vertices, 0, sizeof(vertices));
-    memset(limites, 0, sizeof(limites));
+    printf("[FENCE] Created %d limits from %d vertices\r\n", limitCount, count);
 }
 
 // ============================================================================
 // PRIVATE HELPERS
 // ============================================================================
 
-void Fence::updateCenterFence() {
-    if (vertexCount == 0) {
-        centerFence = {0.0, 0.0};
+void Fence::updateCenterFence(const Vertex* v, uint8_t count) {
+    if (count == 0 || v == nullptr) {
+        centerFence = {0.0f, 0.0f};
         return;
     }
 
-    double latSum = 0.0;
-    double lonSum = 0.0;
+    float latSum = 0.0f;
+    float lonSum = 0.0f;
 
     // Calcular promedio de coordenadas
-    for (uint8_t i = 0; i < vertexCount; i++) {
-        latSum += vertices[i].latitude;
-        lonSum += vertices[i].longitude;
+    for (uint8_t i = 0; i < count; i++) {
+        latSum += v[i].latitude;
+        lonSum += v[i].longitude;
     }
 
-    centerFence.latitude = latSum / vertexCount;
-    centerFence.longitude = lonSum / vertexCount;
+    centerFence.latitude = latSum / count;
+    centerFence.longitude = lonSum / count;
     
     printf("[FENCE] Center updated: (%.6f, %.6f)\r\n", centerFence.latitude, centerFence.longitude);
 }
