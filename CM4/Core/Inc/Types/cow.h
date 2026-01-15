@@ -18,8 +18,8 @@ enum class CowState {
 };
 
 struct Position {
-    double latitude;
-    double longitude;
+    float latitude;
+    float longitude;
 };
 
 struct Acceleration {
@@ -36,14 +36,14 @@ public:
     void updateAcceleration(Acceleration accel);
     void updateState(CowState state);
     void updateCurrentZone(zone_t zone);
-    void updateDistanceToLimit(double distance);
+    void updateDistanceToLimit(float distance);
 
     DeviceUID getId() const;
     Position getPosition() const;
     Acceleration getAcceleration() const;
     CowState getState() const;
     zone_t getCurrentZone() const;
-    double getDistanceToLimit() const;
+    float getDistanceToLimit() const;
 
 private:
     DeviceUID id;
@@ -51,7 +51,7 @@ private:
     Acceleration acceleration;
     CowState state;
     zone_t currentZone;
-    double distanceToLimit;
+    float distanceToLimit;
 };
 
 #endif
