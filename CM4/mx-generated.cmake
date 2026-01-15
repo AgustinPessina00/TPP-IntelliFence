@@ -14,12 +14,11 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/App
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/Target
     ${CMAKE_CURRENT_SOURCE_DIR}/MbMux
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Board
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/System
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/MbMux
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Inc
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/trace/adv_trace
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Inc/Legacy
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/trace/adv_trace
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/misc
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/timer
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/lpm/tiny_lpm
@@ -47,6 +46,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/app_freertos.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/adc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/dma.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/i2c.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ipcc.c
@@ -56,6 +56,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sys_app.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sys_sensors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/timer_if.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/adc_if.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/usart.c
@@ -76,6 +77,9 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/System/system_stm32wlxx.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_tim_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_adc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_adc_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_ll_adc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rcc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rcc_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_flash.c

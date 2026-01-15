@@ -149,9 +149,10 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
 )
 
 # Enable printf/scanf with floating point support
-target_link_options(${CMAKE_PROJECT_NAME} PRIVATE
-    -u_printf_float
-)
+# DISABLED to save ROM space (~8-10KB)
+#target_link_options(${CMAKE_PROJECT_NAME} PRIVATE
+#    -u_printf_float
+#)
 
 # Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
@@ -161,9 +162,12 @@ if((CMAKE_C_STANDARD EQUAL 90) OR (CMAKE_C_STANDARD EQUAL 99))
     message(ERROR "Generated code requires C11 or higher")
 endif()
 
-# Forzar flags de debug completos para RTOS debugging
+# Debug configuration - No optimization for better debugging
+# -O0: No optimization
+# -g3: Full debug information (macros, etc.)
 set(CMAKE_C_FLAGS_DEBUG "-O0 -g3" CACHE STRING "C Debug flags" FORCE)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3" CACHE STRING "C++ Debug flags" FORCE)
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-O0 -g3" CACHE STRING "Linker Debug flags" FORCE)
 
 
 

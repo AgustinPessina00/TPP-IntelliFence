@@ -33,7 +33,7 @@
 /**
   * @brief RTC handle
   */
-RTC_HandleTypeDef hrtc;
+extern RTC_HandleTypeDef hrtc;
 
 /**
   * @brief Timer driver callbacks handler

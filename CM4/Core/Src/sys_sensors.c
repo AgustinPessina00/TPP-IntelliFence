@@ -24,7 +24,7 @@
 #include "sys_conf.h"
 #include "sys_sensors.h"
 #if defined (SENSOR_ENABLED) && (SENSOR_ENABLED == 0)
-//#include "adc_if.h"
+#include "adc_if.h"
 #endif /* SENSOR_ENABLED */
 
 /* USER CODE BEGIN Includes */

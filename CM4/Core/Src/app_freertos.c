@@ -361,4 +361,31 @@ void StartDefaultTask(void *argument)
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
+/**
+ * @brief  Configure the DWT cycle counter for runtime stats
+ * @note   Called automatically by FreeRTOS during initialization
+ */
+void vConfigureTimerForRunTimeStats(void)
+{
+    /* Enable TRC (Trace) */
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    
+    /* Reset the cycle counter */
+    DWT->CYCCNT = 0;
+    
+    /* Enable the cycle counter */
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
+
+/**
+ * @brief  Get current value of the runtime counter
+ * @retval Current cycle count value
+ * @note   Called by FreeRTOS to measure task execution time
+ */
+uint32_t vGetRunTimeCounterValue(void)
+{
+    /* Return current cycle count */
+    return DWT->CYCCNT;
+}
+
 /* USER CODE END Application */

@@ -157,16 +157,18 @@ standard names. */
 /* Configuraciones para RTOS Views debugging */
 #define configRECORD_STACK_HIGH_ADDRESS          1
 
-/* Runtime statistics configuration */
+/* Runtime statistics configuration - Enabled for task monitoring */
 #define configGENERATE_RUN_TIME_STATS            1
 #define configUSE_STATS_FORMATTING_FUNCTIONS     1
 
 /* High-speed counter for runtime stats - using DWT cycle counter */
+#if configGENERATE_RUN_TIME_STATS == 1
 extern void vConfigureTimerForRunTimeStats(void);
 extern uint32_t vGetRunTimeCounterValue(void);
 
 #define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() vConfigureTimerForRunTimeStats()
 #define portGET_RUN_TIME_COUNTER_VALUE()         vGetRunTimeCounterValue()
+#endif
 
 /* USER CODE END Defines */
 

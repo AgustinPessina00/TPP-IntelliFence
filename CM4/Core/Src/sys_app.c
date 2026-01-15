@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include "platform.h"
 #include "sys_app.h"
-//#include "adc_if.h"
+#include "adc_if.h"
 #include "stm32_systime.h"
 #include "stm32_lpm.h"
 #include "timer_if.h"
@@ -124,7 +124,7 @@ void SystemApp_Init(void)
   UTIL_ADV_TRACE_SetVerboseLevel(VERBOSE_LEVEL);
 
   /*Initialize the temperature and Battery measurement services */
-  //SYS_InitMeasurement();
+  SYS_InitMeasurement();
 
   /*Initialize the Sensors */
   EnvSensors_Init();
@@ -193,6 +193,52 @@ void Process_Sys_Notif(MBMUX_ComParam_t *ComObj)
   /* USER CODE END Process_Sys_Notif_2 */
 }
 
+uint8_t GetBatteryLevel(void)
+{
+  uint8_t batteryLevel = 0;
+  uint16_t batteryLevelmV;
+
+  /* USER CODE BEGIN GetBatteryLevel_0 */
+
+  /* USER CODE END GetBatteryLevel_0 */
+
+  batteryLevelmV = (uint16_t) SYS_GetBatteryLevel();
+
+  /* Convert battery level from mV to linear scale: 1 (very low) to 254 (fully charged) */
+  if (batteryLevelmV > VDD_BAT)
+  {
+    batteryLevel = LORAWAN_MAX_BAT;
+  }
+  else if (batteryLevelmV < VDD_MIN)
+  {
+    batteryLevel = 0;
+  }
+  else
+  {
+    batteryLevel = (((uint32_t)(batteryLevelmV - VDD_MIN) * LORAWAN_MAX_BAT) / (VDD_BAT - VDD_MIN));
+  }
+
+  /* USER CODE BEGIN GetBatteryLevel_2 */
+
+  /* USER CODE END GetBatteryLevel_2 */
+
+  return batteryLevel;  /* 1 (very low) to 254 (fully charged) */
+}
+
+int16_t GetTemperatureLevel(void)
+{
+  int16_t temperatureLevel = 0;
+
+  sensor_t sensor_data;
+
+  EnvSensors_Read(&sensor_data);
+  temperatureLevel = (int16_t)(sensor_data.temperature);
+  /* USER CODE BEGIN GetTemperatureLevel */
+
+  /* USER CODE END GetTemperatureLevel */
+  return temperatureLevel;
+}
+
 /* USER CODE BEGIN EF */
 
 /* USER CODE END EF */
@@ -206,7 +252,7 @@ static void MBMUXIF_Init(void)
   FEAT_INFO_List_t *p_cm0plus_supported_features_list;
   int8_t init_status;
 
-  //APP_LOG(TS_ON, VLEVEL_H, "\r\nCM4: System Initialization started \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "\r\nCM4: System Initialization started \r\n");
 
   init_status = MBMUXIF_SystemInit();
   if (init_status < 0)

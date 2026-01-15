@@ -14,7 +14,6 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/App
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/Target
     ${CMAKE_CURRENT_SOURCE_DIR}/MbMux
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Board
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/System
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/MbMux
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/trace/adv_trace
