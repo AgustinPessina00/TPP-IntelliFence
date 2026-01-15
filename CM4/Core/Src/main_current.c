@@ -320,19 +320,13 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure LSE Drive Capability
-  */
-  HAL_PWR_EnableBkUpAccess();
-  __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
-
   /** Configure the main internal regulator output voltage
   */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = RCC_MSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
@@ -354,13 +348,45 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.AHBCLK2Divider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.AHBCLK3Divider = RCC_SYSCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
 }
 
 /* USER CODE BEGIN 4 */
+
+/* ===== FreeRTOS Runtime Stats Implementation ===== */
+/* Uses ARM Cortex-M DWT (Data Watchpoint and Trace) cycle counter */
+/* This provides a high-resolution counter for runtime statistics */
+
+/**
+ * @brief  Configure the DWT cycle counter for runtime stats
+ * @note   Called automatically by FreeRTOS during initialization
+ */
+void vConfigureTimerForRunTimeStats(void)
+{
+    /* Enable TRC (Trace) */
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    
+    /* Reset the cycle counter */
+    DWT->CYCCNT = 0;
+    
+    /* Enable the cycle counter */
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
+
+/**
+ * @brief  Get current value of the runtime counter
+ * @retval Current cycle count value (in 0.1ms units)
+ * @note   Called by FreeRTOS to measure task execution time
+ */
+uint32_t vGetRunTimeCounterValue(void)
+{
+    /* Return current cycle count converted to 0.1ms units (10kHz) */
+    /* Divide by (SystemCoreClock / 10000) to convert CPU cycles to 0.1ms ticks */
+    return DWT->CYCCNT;
+}
 
 /* USER CODE END 4 */
 

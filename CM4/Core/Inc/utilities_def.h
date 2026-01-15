@@ -1,13 +1,13 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file    utilities_def.h
+  * @author  MCD Application Team
+  * @brief   Definitions for modules requiring utilities
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -19,25 +19,38 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
+#ifndef __UTILITIES_DEF_H__
+#define __UTILITIES_DEF_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32wlxx_hal.h"
-
-#include "stm32wlxx_nucleo.h"
-#include <stdio.h>
-
-/* Private includes ----------------------------------------------------------*/
+#include <stddef.h>
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
+/******************************************************************************
+  * LOW POWER MANAGER
+  ******************************************************************************/
+/**
+  * Supported requester to the MCU Low Power Manager - can be increased up  to 32
+  * It lists a bit mapping of all user of the Low Power Manager
+  */
+typedef enum
+{
+  /* USER CODE BEGIN CFG_LPM_Id_t_0 */
+
+  /* USER CODE END CFG_LPM_Id_t_0 */
+  CFG_LPM_APPLI_Id,
+  CFG_LPM_UART_TX_Id,
+  /* USER CODE BEGIN CFG_LPM_Id_t */
+
+  /* USER CODE END CFG_LPM_Id_t */
+} CFG_LPM_Id_t;
 /* USER CODE BEGIN ET */
 
 /* USER CODE END ET */
@@ -47,36 +60,23 @@ extern "C" {
 
 /* USER CODE END EC */
 
+/* External variables --------------------------------------------------------*/
+/* USER CODE BEGIN EV */
+
+/* USER CODE END EV */
+
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
-
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
-
-/* Private defines -----------------------------------------------------------*/
-#define RTC_N_PREDIV_S 10
-#define RTC_PREDIV_S ((1<<RTC_N_PREDIV_S)-1)
-#define RCC_OSC32_IN_Pin GPIO_PIN_14
-#define RCC_OSC32_IN_GPIO_Port GPIOC
-#define RCC_OSC32_OUT_Pin GPIO_PIN_15
-#define RCC_OSC32_OUT_GPIO_Port GPIOC
-#define ENABLE_LDO1_Pin GPIO_PIN_13
-#define ENABLE_LDO1_GPIO_Port GPIOC
-#define GPS_RESET_N_Pin GPIO_PIN_0
-#define GPS_RESET_N_GPIO_Port GPIOC
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MAIN_H */
+#endif /* __UTILITIES_DEF_H__ */
