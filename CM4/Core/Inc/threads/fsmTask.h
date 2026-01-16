@@ -171,7 +171,7 @@ void sendPosition(uint8_t msgId, ModuleId_t dest, Cow& cow);
 HAL_StatusTypeDef loraTxResponse(EmbeddedMessage_t *msgReceived);
 HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence);
 void updateFence(Fence& fence);
-HAL_StatusTypeDef isInFence(Cow& cow);
+HAL_StatusTypeDef isInGreenZone(Cow& cow);
 HAL_StatusTypeDef updateDistAndZone(EmbeddedMessage_t *msgReceived, Cow& cow);
 HAL_StatusTypeDef updateAcceleration(EmbeddedMessage_t *msgReceived, Cow& cow);
 void updateState(Cow& cow);

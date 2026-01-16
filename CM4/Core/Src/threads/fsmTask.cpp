@@ -196,7 +196,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             
         case STARTUP_ROUTINE_END:
             *state = STARTUP_ROUTINE_BEGIN;
-            if (isInFence(cow) == HAL_OK) {
+            if (isInGreenZone(cow) == HAL_OK) {
                 mainFSM = MainFSM_t::NORMAL_OPERATION;
                 RTOS_LOG_INFO("[FSM] Startup complete - entering NORMAL_OPERATION\n");
             } else {
@@ -282,7 +282,7 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
             
         case INITIALIZE_END:
             initializeState = INITIALIZE_BEGIN;
-            if (isInFence(cow) == HAL_OK) {
+            if (isInGreenZone(cow) == HAL_OK) {
                 normalOpFSM = NormalOpFSM_t::GREEN_ZONE;
                 sendZoneToStimulus(cow.getCurrentZone(), MODULE_STIMULUS);
             } else {
@@ -681,7 +681,7 @@ void updateFence(Fence& fence) {
     RTOS_LOG_DEBUG("[FSM] Fence limits updated\n");
 }
 
-HAL_StatusTypeDef isInFence(Cow& cow) {
+HAL_StatusTypeDef isInGreenZone(Cow& cow) {
     return (cow.getCurrentZone() == GREEN_ZONE) ? HAL_OK : HAL_ERROR;
 }
 

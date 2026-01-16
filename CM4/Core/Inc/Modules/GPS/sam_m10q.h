@@ -114,6 +114,7 @@ public:
 
 private:
 	void configure_gps();
+	void configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads);
 
 	// Armado de mensajes UBX usando arrays estáticos (embedded friendly)
 	uint16_t build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* payload_data, size_t payload_len, uint8_t* buffer, uint16_t buffer_size);
