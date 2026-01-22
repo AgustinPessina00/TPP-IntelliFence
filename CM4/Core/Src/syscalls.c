@@ -29,6 +29,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <sys/times.h>
+#include "usart.h"
 
 
 /* Variables */
@@ -87,6 +88,13 @@ __attribute__((weak)) int _write(int file, char *ptr, int len)
     __io_putchar(*ptr++);
   }
   return len;
+}
+
+/* Redirect printf to USART2 */
+int __io_putchar(int ch)
+{
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
 }
 
 int _close(int file)

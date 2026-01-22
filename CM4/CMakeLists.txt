@@ -89,15 +89,13 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     # Embedded Message System Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/EmbeddedMessage.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/MessageTest.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/MessageTest.c
     # RTOS Printf (Thread-Safe Logging)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtos_printf.c
-    # FreeRTOS Heap Configuration
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/heap_config.c
     # GPS Module Sources (Original)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/sam_m10q_KEYID.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/gps_test_wrapper.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/GPS/gps_test_wrapper.cpp
 
     # I2C Thread-Safe Sources  
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/I2C/I2CBus.cpp
@@ -107,21 +105,21 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/UART/UARTManager.cpp
     # INA226 Current/Power Sensor Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/ina226.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/ina226_test_wrapper.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/INA/ina226_test_wrapper.cpp
     # LSM6DSO IMU Sensor Sources (Thread-Safe)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso_test_wrapper.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/IMU/lsm6dso_test_wrapper.cpp
     # Buzzer Module Sources (PWM Control)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_example.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_example.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm_example.c
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm_example.c
     # Data Model Sources (Cow, Fence, and Zone definitions)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/cow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/fence.cpp
     # Test Sources (Validation and Unit Tests)
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/cow_fence_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/fence_test.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/cow_fence_test.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/fence_test.cpp
     # Helper Functions
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/getZone.cpp
     # Thread Sources (FreeRTOS Tasks)
@@ -150,9 +148,9 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Enable printf/scanf with floating point support
 # DISABLED to save ROM space (~8-10KB)
-#target_link_options(${CMAKE_PROJECT_NAME} PRIVATE
-#    -u_printf_float
-#)
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE
+   -u_printf_float
+)
 
 # Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
@@ -162,12 +160,14 @@ if((CMAKE_C_STANDARD EQUAL 90) OR (CMAKE_C_STANDARD EQUAL 99))
     message(ERROR "Generated code requires C11 or higher")
 endif()
 
-# Debug configuration - No optimization for better debugging
-# -O0: No optimization
-# -g3: Full debug information (macros, etc.)
-set(CMAKE_C_FLAGS_DEBUG "-O0 -g3" CACHE STRING "C Debug flags" FORCE)
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3" CACHE STRING "C++ Debug flags" FORCE)
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-O0 -g3" CACHE STRING "Linker Debug flags" FORCE)
+# Debug configuration - Aggressive size optimization
+# -Os: Optimize for size 
+# -flto: Link Time Optimization (further size reduction)
+# -g1: Minimal debug info (saves ROM)
+# -ffunction-sections -fdata-sections: Enable dead code elimination
+set(CMAKE_C_FLAGS_DEBUG "-Os -flto -g3 -ffunction-sections -fdata-sections" CACHE STRING "C Debug flags" FORCE)
+set(CMAKE_CXX_FLAGS_DEBUG "-Os -flto -g3 -ffunction-sections -fdata-sections -fno-rtti -fno-exceptions" CACHE STRING "C++ Debug flags" FORCE)
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "-Os -flto -g3 -Wl,--gc-sections" CACHE STRING "Linker Debug flags" FORCE)
 
 
 

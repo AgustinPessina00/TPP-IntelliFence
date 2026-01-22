@@ -4,8 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 set(MX_Defines_Syms 
 	CORE_CM4 
 	USE_HAL_DRIVER 
-	STM32WL55xx 
-	USE_NUCLEO_64
+	STM32WL55xx
     $<$<CONFIG:Debug>:DEBUG>
 )
 # STM32CubeMX generated include paths
@@ -14,6 +13,7 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/App
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/Target
     ${CMAKE_CURRENT_SOURCE_DIR}/MbMux
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Board
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/System
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/MbMux
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Inc
@@ -25,7 +25,7 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/RTOS2/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/Device/ST/STM32WLxx/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Mac/Region
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Mac
@@ -33,6 +33,7 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/SubGHz_Phy
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo
 )
 # STM32CubeMX generated application sources
 set(MX_Application_Src
@@ -57,6 +58,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sys_sensors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/timer_if.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/adc_if.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/usart_if.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/usart.c
@@ -99,9 +101,6 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rtc_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_uart.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_uart_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_usart.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_usart_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo.c
 )
 
 # Drivers Midllewares
@@ -124,7 +123,7 @@ set(FreeRTOS_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/tasks.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/timers.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_5.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3/port.c
 )
 # Link directories setup
@@ -135,7 +134,9 @@ set(MX_LINK_DIRS
 set (MX_LINK_LIBS 
     STM32_Drivers
     ${TOOLCHAIN_LINK_LIBRARIES}
-    Utilities	FreeRTOS	
+    Utilities
+	FreeRTOS
+	
 )
 # Interface library for includes and symbols
 add_library(stm32cubemx INTERFACE)

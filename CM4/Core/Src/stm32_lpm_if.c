@@ -22,7 +22,7 @@
 #include "platform.h"
 #include "stm32_lpm.h"
 #include "stm32_lpm_if.h"
-// #include "usart_if.h"  // File does not exist
+#include "usart_if.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -120,7 +120,7 @@ void PWR_ExitStopMode(void)
     SRAM ctrls, DMAx, DMAMux, AES, RNG, HSEM  */
 
   /* Resume not retained USARTx and DMA */
-  // vcom_Resume();  // Function not available
+  vcom_Resume();
   /* USER CODE BEGIN ExitStopMode_2 */
 
   /* USER CODE END ExitStopMode_2 */

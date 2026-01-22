@@ -21,12 +21,14 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "main.h"
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
+#include "FreeRTOS.h"
 
 #include "app_lorawan.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "rtos_printf.h"
 #include "EmbeddedMessage.h"
 
@@ -114,41 +116,81 @@ const osMessageQueueAttr_t loraTxQueue_attributes = {
 
 // Thread dispatcher - rutea mensajes entre módulos
 osThreadId_t dispatcher_TaskHandle;
+
+// Buffers estáticos en RAM1 para dispatcher
+__attribute__((section(".RAM1_region"))) static StaticTask_t dispatcher_TaskBuffer;
+__attribute__((section(".RAM1_region"))) static StackType_t dispatcher_TaskStack[192];  // 768 bytes / 4 bytes per word
+
 const osThreadAttr_t dispatcher_Task_attributes = {
   .name = "dispatcher_Task",
   .stack_size = 256 * 3,  // 768 bytes dispatcher
   .priority = (osPriority_t) osPriorityNormal,
+  .cb_mem = &dispatcher_TaskBuffer,
+  .cb_size = sizeof(dispatcher_TaskBuffer),
+  .stack_mem = dispatcher_TaskStack,
 };
 
 // Thread FSM - máquina de estados principal
 osThreadId_t fsm_TaskHandle;
+
+// Buffers estáticos en RAM1 para FSM
+__attribute__((section(".RAM1_region"))) static StaticTask_t fsm_TaskBuffer;
+__attribute__((section(".RAM1_region"))) static StackType_t fsm_TaskStack[256];  // 1024 bytes / 4 bytes per word
+
 const osThreadAttr_t fsm_Task_attributes = {
   .name = "fsm_Task",
   .stack_size = 256 * 4,  // 1024 bytes FSM
   .priority = (osPriority_t) osPriorityNormal,
+  .cb_mem = &fsm_TaskBuffer,
+  .cb_size = sizeof(fsm_TaskBuffer),
+  .stack_mem = fsm_TaskStack,
 };
 
 osThreadId_t stimulus_TaskHandle;
+
+// Buffers estáticos en RAM1 para stimulus
+__attribute__((section(".RAM1_region"))) static StaticTask_t stimulus_TaskBuffer;
+__attribute__((section(".RAM1_region"))) static StackType_t stimulus_TaskStack[128];  // 512 bytes / 4 bytes per word
+
 const osThreadAttr_t stimulus_Task_attributes = {
   .name = "stimulus_Task",
   .stack_size = 128 * 4,  // 512 bytes stimulus
   .priority = (osPriority_t) osPriorityNormal,
+  .cb_mem = &stimulus_TaskBuffer,
+  .cb_size = sizeof(stimulus_TaskBuffer),
+  .stack_mem = stimulus_TaskStack,
 };
 
 // Thread sensor acquisition - adquisición de datos de sensores
 osThreadId_t sensorAcq_TaskHandle;
+
+// Buffers estáticos en RAM1 para sensorAcq
+__attribute__((section(".RAM1_region"))) static StaticTask_t sensorAcq_TaskBuffer;
+__attribute__((section(".RAM1_region"))) static StackType_t sensorAcq_TaskStack[256];  // 1024 bytes / 4 bytes per word
+
 const osThreadAttr_t sensorAcq_Task_attributes = {
   .name = "sensorAcq_Task",
   .stack_size = 256 * 4,  // 1024 bytes sensorAcq
   .priority = (osPriority_t) osPriorityNormal,
+  .cb_mem = &sensorAcq_TaskBuffer,
+  .cb_size = sizeof(sensorAcq_TaskBuffer),
+  .stack_mem = sensorAcq_TaskStack,
 };
 
 // Thread LoRa TX - transmisión LoRa
 osThreadId_t lora_TaskHandle;
+
+// Buffers estáticos en RAM1 para lora
+__attribute__((section(".RAM1_region"))) static StaticTask_t lora_TaskBuffer;
+__attribute__((section(".RAM1_region"))) static StackType_t lora_TaskStack[192];  // 768 bytes / 4 bytes per word
+
 const osThreadAttr_t lora_Task_attributes = {
   .name = "lora_Task",
   .stack_size = 256 * 3,  // 768 bytes LoRa
   .priority = (osPriority_t) osPriorityNormal,
+  .cb_mem = &lora_TaskBuffer,
+  .cb_size = sizeof(lora_TaskBuffer),
+  .stack_mem = lora_TaskStack,
 };
 /* USER CODE END Variables */
 /* Definitions for defaultTask */

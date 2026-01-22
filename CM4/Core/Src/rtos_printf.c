@@ -9,6 +9,7 @@
 
 #include "rtos_printf.h"
 #include "cmsis_os.h"
+#include "usart.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -60,9 +61,9 @@ static volatile uint8_t scheduler_running = 0;
  */
 __attribute__((weak)) int _rtos_printf_write(const char *str, size_t len)
 {
-    // Default implementation: use standard printf
-    // This will use the retarget implementation (typically UART)
-    return fwrite(str, 1, len, stdout);
+    // Use shorter timeout to avoid WWDG issues during UART transmission
+    HAL_StatusTypeDef status = HAL_UART_Transmit(&huart2, (uint8_t*)str, len, 100); // 100ms timeout instead of HAL_MAX_DELAY
+    return (status == HAL_OK) ? len : 0;
 }
 
 /* ============================================================================

@@ -24,7 +24,7 @@
 #include "mbmuxif_sys.h"
 #include "sys_app.h"
 #include "stm32_mem.h"
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
 #include "LoRaMac.h"
 #include "LmHandler_mbwrapper.h"
 #include "utilities_def.h"

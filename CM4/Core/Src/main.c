@@ -18,10 +18,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
+#include "FreeRTOS.h"
 #include "dma.h"
 #include "i2c.h"
-#include "ipcc.h"
+#include "app_lorawan.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -85,8 +86,6 @@ extern void buzzer_run_all_examples();
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-
-COM_InitTypeDef BspCOMInit;
 
 /* USER CODE BEGIN PV */
 
@@ -227,15 +226,12 @@ int main(void)
   /* USER CODE BEGIN Init */
   
   /* Configure FreeRTOS heap to use RAM2 before any RTOS calls */
-  vApplicationSetupHeap();
+  // vApplicationSetupHeap(); // Commented out - osKernelInitialize() will handle heap setup
 
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
-
-  /* IPCC initialisation */
-  MX_IPCC_Init();
 
   /* USER CODE BEGIN SysInit */
   /* Initialize C++ managers (I2C, UART) before peripheral usage */
@@ -249,6 +245,7 @@ int main(void)
   MX_I2C2_Init();
   MX_USART1_UART_Init();
   MX_TIM1_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   if (initialize_cpp_managers() != 0) {
     printf("[MAIN] CRITICAL ERROR - Failed to initialize C++ managers\n");
@@ -257,40 +254,16 @@ int main(void)
   /* USER CODE END 2 */
 
   /* Init scheduler */
-  osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Initialize leds */
-  BSP_LED_Init(LED_BLUE);
-  BSP_LED_Init(LED_GREEN);
-  BSP_LED_Init(LED_RED);
-
-  /* Initialize USER push-button, will be used to trigger an interrupt each time it's pressed.*/
-  BSP_PB_Init(BUTTON_SW1, BUTTON_MODE_EXTI);
-  BSP_PB_Init(BUTTON_SW2, BUTTON_MODE_EXTI);
-  BSP_PB_Init(BUTTON_SW3, BUTTON_MODE_EXTI);
-
-  /* Initialize COM1 port (115200, 8 bits (7-bit data + 1 stop bit), no parity */
-  BspCOMInit.BaudRate   = 115200;
-  BspCOMInit.WordLength = COM_WORDLENGTH_8B;
-  BspCOMInit.StopBits   = COM_STOPBITS_1;
-  BspCOMInit.Parity     = COM_PARITY_NONE;
-  BspCOMInit.HwFlowCtl  = COM_HWCONTROL_NONE;
-  if (BSP_COM_Init(COM1, &BspCOMInit) != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-
-  ///* Run comprehensive module tests before starting RTOS */
-  //run_comprehensive_module_tests();
+  //osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
+  //MX_FREERTOS_Init();
 
   /* Start scheduler */
-  osKernelStart();
+  //osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
   /* Boot CPU2 */
-  //HAL_PWREx_ReleaseCore(PWR_CORE_CPU2);
-  //gps_init_and_test();
+  HAL_PWREx_ReleaseCore(PWR_CORE_CPU2);
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -302,7 +275,7 @@ int main(void)
     printf("INFO - Check FreeRTOS configuration and task creation\n");
     
     // Parpadear LED de error
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5); // LED_RED
+    // HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5); // LED_RED
     HAL_Delay(1000);
     /* USER CODE END WHILE */
 

@@ -36,8 +36,9 @@ extern "C" {
 /**
  * @brief Maximum length of a single printf message
  * @note Adjust based on your application needs and available RAM
+ * @note Reduced from 512 to 256 bytes to save RAM
  */
-#define RTOS_PRINTF_BUFFER_SIZE     512
+#define RTOS_PRINTF_BUFFER_SIZE     256
 
 /**
  * @brief Mutex timeout in milliseconds

@@ -5,7 +5,7 @@
   ******************************************************************************
   * @attention
   *
-  * This file configures FreeRTOS heap_5 to use RAM2 (backup SRAM)
+  * This file configures FreeRTOS heap_4 to use RAM2 (backup SRAM)
   * for better memory management in STM32WL55JC dual-core system.
   *
   ******************************************************************************
@@ -14,20 +14,21 @@
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "portable.h"
-#include <stdio.h>
 
 /* Private defines -----------------------------------------------------------*/
 #define RAM2_START_ADDRESS   0x20008000U
 #define RAM2_TOTAL_SIZE      (16 * 1024U)     /* 16KB total RAM2 */
-#define RAM2_HEAP_SIZE       (8 * 1024U)      /* 8KB for FreeRTOS heap */
-#define RAM2_REMAINING_START (RAM2_START_ADDRESS + RAM2_HEAP_SIZE)
-#define RAM2_REMAINING_SIZE  (RAM2_TOTAL_SIZE - RAM2_HEAP_SIZE)
+#define RAM2_HEAP_SIZE       (8 * 1024U)      /* 8KB for FreeRTOS heap in RAM2 */
 
 /* Private variables ---------------------------------------------------------*/
 
-/* Heap regions definition for heap_5 */
-static const HeapRegion_t xHeapRegions[] = {
-    /* Primary heap region in RAM2 - must be first (lowest address) */
+/* Define the heap array in RAM2 section */
+__attribute__((section(".RAM2_region")))
+static uint8_t ucHeap[configTOTAL_HEAP_SIZE];
+
+/* Required by heap_4.c - Define heap start and size */
+uint8_t * const pucStartOfHeap = ucHeap;
+const size_t xTotalHeapSize = configTOTAL_HEAP_SIZE;
     { 
         .pucStartAddress = (uint8_t*)RAM2_START_ADDRESS, 
         .xSizeInBytes = RAM2_HEAP_SIZE 

@@ -13,7 +13,7 @@
 #include "Modules/Buzzer/buzzer_alarm.h"
 #include "Modules/Messages/EmbeddedMessage.h"
 #include "projdefs.h"
-#include "stm32wlxx_nucleo.h"
+#include "main.h"
 
 /* External handles ----------------------------------------------------------*/
 extern osMessageQueueId_t stimulusQueueHandle;
@@ -47,7 +47,9 @@ static void initializeBuzzer(void) {
         
         if (Buzzer_Init(&config) == BUZZER_OK) {
             buzzerInitialized = true;
-            BSP_LED_Init(LED_BLUE);
+            // LED_BLUE is already initialized in MX_GPIO_Init() as output
+            // Start with LED off
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             
             // Initialize RTOS alarm system
             if (BuzzerAlarm_Init()) {
@@ -81,7 +83,7 @@ static void handleZoneChange(zone_t newZone) {
         switch (newZone) {
             case GREEN_ZONE:
                 Buzzer_Off();
-                BSP_LED_Off(LED_BLUE);
+                HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
                 break;
             default:
                 Buzzer_SetParams(4000, 50);
@@ -96,32 +98,32 @@ static void handleZoneChange(zone_t newZone) {
         case GREEN_ZONE:
             // Safe zone - stop all alarms
             BuzzerAlarm_Stop();
-            BSP_LED_Off(LED_BLUE);
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case LIGHT_BLUE_ZONE:
             // Warning zone 1 - slow pulse (500ms on/off)
             BuzzerAlarm_StartZone(LIGHT_BLUE_ZONE);
-            BSP_LED_Off(LED_BLUE);
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case BLUE_ZONE:
             // Warning zone 2 - warning pattern (100ms on, 1s off)
             BuzzerAlarm_StartZone(BLUE_ZONE);
-            BSP_LED_Off(LED_BLUE);
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case DARK_BLUE_ZONE:
             // Warning zone 3 - fast pulse (200ms on/off)
             BuzzerAlarm_StartZone(DARK_BLUE_ZONE);
-            BSP_LED_Off(LED_BLUE);
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case YELLOW_ZONE:
             // Alert zone - alert pattern (80ms on, 200ms off)
             BuzzerAlarm_StartZone(YELLOW_ZONE);
-            //BSP_LED_Toggle(LED_BLUE);
-            BSP_LED_Off(LED_BLUE);
+            //HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case RED_ZONE:
@@ -139,21 +141,21 @@ static void handleZoneChange(zone_t newZone) {
                 BuzzerAlarm_StartCustom(&redAlarm);
                 waitingForRedZoneAlarm = true;
                 redZoneAlarmStartTime = osKernelGetTickCount();
-                BSP_LED_Off(LED_BLUE);  // LED off during alarm
+                HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);  // LED off during alarm
             }
             break;
             
         case BLACK_ZONE:
             // Escape zone - silent mode (all off)
             BuzzerAlarm_Stop();
-            BSP_LED_Off(LED_BLUE);
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             // TODO: Send escape alert via LoRa
             break;
             
         default:
             // Unknown zone - stop everything
             BuzzerAlarm_Stop();
-            BSP_LED_Off(LED_BLUE);
+            HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
     }
     
@@ -197,7 +199,7 @@ void stimulusTask(void *argument) {
         if (waitingForRedZoneAlarm) {
             if (!BuzzerAlarm_IsActive()) {
                 // Alarm finished - turn on LED and play 2kHz continuous tone
-                BSP_LED_On(LED_BLUE);
+                HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_SET);
                 // Create custom alarm: 2kHz continuous for 1 second
                 AlarmConfig_t finalTone = {
                     .pattern = ALARM_CUSTOM,
@@ -214,7 +216,7 @@ void stimulusTask(void *argument) {
                 uint32_t elapsed = osKernelGetTickCount() - redZoneAlarmStartTime;
                 if (elapsed > 2000) {
                     BuzzerAlarm_Stop();
-                    BSP_LED_On(LED_BLUE);
+                    HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_SET);
                     AlarmConfig_t finalTone = {
                         .pattern = ALARM_CUSTOM,
                         .frequency_hz = 2000,

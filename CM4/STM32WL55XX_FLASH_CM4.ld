@@ -16,7 +16,7 @@ MEMORY
   RAM2   (xrw)   : ORIGIN = 0x20008000, LENGTH = 16K    /* Backup SRAM2 dedicated to CM4 */
 }
 /* Highest address of the user mode stack */
-_estack = ORIGIN(RAM1) + LENGTH(RAM1); /* end of "SRAM1" Ram type memory */
+_estack = ORIGIN(RAM2) + LENGTH(RAM2); /* end of "SRAM2" Ram type memory */
 
 _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x400; /* required amount of stack */
@@ -168,16 +168,28 @@ SECTIONS
   .bss (NOLOAD) : ALIGN(4)
   {
     /* This is used by the startup in order to initialize the .bss section */
+    /* Small variables and system variables go to RAM1 */
+    *(.bss.small*)
+    *(.bss.sys*)
+    *(.bss.rtos*) 
+
+    . = ALIGN(8);
+      . = ALIGN(4);
+  } >RAM1
+  
+  .bss2 (NOLOAD) : ALIGN(4)
+  {
+    /* Large buffers and heap go to RAM2 */
     *(.bss)
     *(.bss*)
     *(COMMON)
-
+    
     . = ALIGN(8);
       . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
       PROVIDE( __bss_end = .);
-  } >RAM1
+  } >RAM2
   PROVIDE( __non_tls_bss_start = ADDR(.bss) );
 
   PROVIDE( __bss_start = __tbss_start );
@@ -206,7 +218,7 @@ SECTIONS
     _eRAM2_region = .;         /* define a global symbol at section end */
   } >RAM2
 
-  /* User_heap_stack section, used to check that there is enough "SRAM1" Ram  type memory left */
+  /* User_heap_stack section, used to check that there is enough "SRAM2" Ram  type memory left */
   ._user_heap_stack (NOLOAD) :
   {
     . = ALIGN(8);
@@ -215,7 +227,7 @@ SECTIONS
     . = . + _Min_Heap_Size;
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
-  } >RAM1
+  } >RAM2
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

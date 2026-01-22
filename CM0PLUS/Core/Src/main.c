@@ -20,10 +20,11 @@
 #include "main.h"
 #include "dma.h"
 #include "app_lorawan.h"
+#include "rtc.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,14 +44,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-COM_InitTypeDef BspCOMInit;
-
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
+
 
 /* USER CODE END PFP */
 
@@ -85,7 +85,13 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_DMA_Init();
+  MX_GPIO_Init();
+  MX_RTC_Init();
+  MX_KMS_Init();
   /* USER CODE BEGIN 2 */
+  MX_LoRaWAN_Init();
+
+  // LED initialization removed - no LEDs configured in CM0PLUS
 
   /* USER CODE END 2 */
 
@@ -94,9 +100,11 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    MX_LoRaWAN_Process();
+    //MX_LoRaWAN_Process();
 
     /* USER CODE BEGIN 3 */
+    HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+    HAL_Delay(500);  // 500ms delay for visible toggling
   }
   /* USER CODE END 3 */
 }

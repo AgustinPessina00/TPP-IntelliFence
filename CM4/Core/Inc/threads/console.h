@@ -26,7 +26,7 @@ void consoleTask(void *argument);
 #define OP_WRITE  0x01
 
 // Buffer sizes
-#define UART_RX_BUFFER_SIZE 256
+#define UART_RX_BUFFER_SIZE 128  // Reduced from 256 to save RAM
 #define COMMAND_LINE_SIZE   128
 #define RESPONSE_SIZE       256
 #define MAX_DATA_LEN        16

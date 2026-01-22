@@ -66,22 +66,6 @@ static void MBMUXIF_IsrTraceNotifRcvCb(void *ComObj);
 
 /* USER CODE END PFP */
 
-/* Private typedef -----------------------------------------------------------*/
-/**
-  * @brief Trace driver definition for CM4
-  */
-const UTIL_ADV_TRACE_Driver_s UTIL_TraceDriver =
-{
-  NULL,  /* Init   */
-  NULL,  /* DeInit */
-  NULL,  /* StartRx */
-  NULL   /* Send   */
-};
-
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
 /* Exported functions --------------------------------------------------------*/
 int8_t MBMUXIF_TraceInit(void)
 {

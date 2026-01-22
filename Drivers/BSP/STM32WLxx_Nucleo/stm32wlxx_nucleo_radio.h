@@ -25,8 +25,10 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdint.h>
 #include "stm32wlxx_nucleo_errno.h"
-#include "stm32wlxx_nucleo_conf.h"
+#include "stm32wlxx_hal.h"
+//#include "stm32wlxx_nucleo_conf.h"
 
    
 /** @addtogroup BSP

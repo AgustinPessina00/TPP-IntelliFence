@@ -26,7 +26,7 @@ const Vertex TEST_FENCE_VERTICES[TEST_FENCE_VERTEX_COUNT] = {
 // DATOS DE GPS - 26 POSICIONES DEL RECORRIDO REAL EN FLORES
 // ============================================================================
 
-const TestGPSData_t TEST_GPS_DATA[TEST_GPS_DATA_COUNT] = {
+const TestGPSData_t TEST_GPS_DATA[TEST_GPS_DATA_COUNT] __attribute__((section(".RAM2_region"))) = {
     // Puntos 1-4: Zona Segura (>85m)
     {{-34.563363f, -58.461126f}, GREEN_ZONE, 97.9f, "GREEN: Zona segura - 97.9m"},
     {{-34.563248f, -58.461244f}, GREEN_ZONE, 96.2f, "GREEN: Zona segura - 96.2m"},
@@ -84,7 +84,7 @@ const TestGPSData_t TEST_GPS_DATA[TEST_GPS_DATA_COUNT] = {
 // DATOS DE IMU - 30 MUESTRAS DE ACELERACIÓN
 // ============================================================================
 
-const TestIMUData_t TEST_IMU_DATA[TEST_IMU_DATA_COUNT] = {
+const TestIMUData_t TEST_IMU_DATA[TEST_IMU_DATA_COUNT] __attribute__((section(".RAM2_region"))) = {
     // ESCENARIO 1: STARTUP - Vaca quieta al inicio
     {{0.02, -0.01, 9.81}, CowState::SLEEP, "STARTUP: Vaca en reposo"},
     

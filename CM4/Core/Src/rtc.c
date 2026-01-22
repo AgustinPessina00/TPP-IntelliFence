@@ -21,7 +21,7 @@
 #include "rtc.h"
 
 /* USER CODE BEGIN 0 */
-#define RTC_PREDIV_A          ((1<<(15-RTC_N_PREDIV_S))-1)
+
 /* USER CODE END 0 */
 
 RTC_HandleTypeDef hrtc;

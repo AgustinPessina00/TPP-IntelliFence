@@ -5,15 +5,18 @@ set(MX_Defines_Syms
 	CORE_CM0PLUS 
 	USE_HAL_DRIVER 
 	STM32WL55xx 
-	USE_NUCLEO_64
+	KMS_ENABLED 
+	MBEDTLS_CONFIG_FILE=<mbedtls_config.h>
     $<$<CONFIG:Debug>:DEBUG>
 )
 # STM32CubeMX generated include paths
 set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc
+    ${CMAKE_CURRENT_SOURCE_DIR}/KMS/App
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/App
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/Target
     ${CMAKE_CURRENT_SOURCE_DIR}/MbMux
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Common/Board
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/System
     ${CMAKE_CURRENT_SOURCE_DIR}/../Common/MbMux
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/trace/adv_trace
@@ -24,8 +27,19 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/timer
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/lpm/tiny_lpm
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/LmHandler/Packages
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/Device/ST/STM32WLxx/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/HAL
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/MBED
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ST
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/niKMS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/mbed-crypto/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/mbed-crypto/include/mbedtls
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/mbed-crypto/include/psa
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/mbed-crypto/library
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Crypto
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Mac/Region
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Mac
@@ -34,6 +48,7 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/SubGHz_Phy
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/SubGHz_Phy/stm32_radio_driver
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/Include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo
 )
 # STM32CubeMX generated application sources
 set(MX_Application_Src
@@ -48,8 +63,12 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/MbMux/mbmuxif_trace.c
     ${CMAKE_CURRENT_SOURCE_DIR}/MbMux/radio_mbwrapper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/dma.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ipcc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/kms_low_level.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/nvms_low_level.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ca_low_level.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/ipcc_if.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32_lpm_if.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sys_app.c
@@ -60,6 +79,7 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/stm32wlxx_hal_msp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/sysmem.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/syscalls.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/KMS/App/app_kms.c
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/Target/radio_board_if.c
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/App/app_lorawan.c
     ${CMAKE_CURRENT_SOURCE_DIR}/LoRaWAN/App/lora_app.c
@@ -84,16 +104,57 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_ipcc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rtc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_rtc_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_uart.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_uart_ex.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_usart.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_usart_ex.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_subghz.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo_radio.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_cryp.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_cryp_ex.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/STM32WLxx_HAL_Driver/Src/stm32wlxx_hal_pka.c
 )
 
 # Drivers Midllewares
 
+set(KMS_Src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core/kms_der_x962.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core/kms_ecc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core/kms_entry.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core/kms_init.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core/kms_mem.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core/kms_objects.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Core/kms_platf_objects.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_counter.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_digest.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_dyn_obj.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_enc_dec.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_key_mgt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_nvm_storage.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_sign_verify.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Modules/kms_vm_storage.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/niKMS/kms_interface.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/niKMS/tkms.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ca_aes.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ca_core.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ca_ecc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ca_hash.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ca_if_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ca_rng.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/ca_rsa.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/HAL/ca_aes_hal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/HAL/ca_ecc_hal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/HAL/ca_rsa_hal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/HAL/mac_stm32hal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/HAL/rsa_stm32hal.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/MBED/ca_aes_mbed.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/MBED/ca_ecc_mbed.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/MBED/ca_hash_mbed.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/MBED/ca_rng_mbed.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/ST/STM32_Key_Management_Services/Interface/CryptoApi/MBED/ca_rsa_mbed.c
+)
+set(mbed-crypto_Src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/mbed-crypto/library/sha1.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/mbed-crypto/library/sha256.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/mbed-crypto/library/platform_util.c
+)
 set(Utilities_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/trace/adv_trace/stm32_adv_trace.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Utilities/misc/stm32_mem.c
@@ -152,7 +213,12 @@ set(MX_LINK_DIRS
 set (MX_LINK_LIBS 
     STM32_Drivers
     ${TOOLCHAIN_LINK_LIBRARIES}
-    Utilities	LoRaWAN	SubGHz_Phy	
+    KMS
+	mbed-crypto
+	Utilities
+	LoRaWAN
+	SubGHz_Phy
+	
 )
 # Interface library for includes and symbols
 add_library(stm32cubemx INTERFACE)
@@ -163,6 +229,16 @@ target_compile_definitions(stm32cubemx INTERFACE ${MX_Defines_Syms})
 add_library(STM32_Drivers OBJECT)
 target_sources(STM32_Drivers PRIVATE ${STM32_Drivers_Src})
 target_link_libraries(STM32_Drivers PUBLIC stm32cubemx)
+
+# Create KMS static library
+add_library(KMS OBJECT)
+target_sources(KMS PRIVATE ${KMS_Src})
+target_link_libraries(KMS PUBLIC stm32cubemx)
+
+# Create mbed-crypto static library
+add_library(mbed-crypto OBJECT)
+target_sources(mbed-crypto PRIVATE ${mbed-crypto_Src})
+target_link_libraries(mbed-crypto PUBLIC stm32cubemx)
 
 # Create Utilities static library
 add_library(Utilities OBJECT)

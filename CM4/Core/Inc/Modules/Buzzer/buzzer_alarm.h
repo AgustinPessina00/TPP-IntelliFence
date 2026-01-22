@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "buzzer.h"
 #include "zone.h"
