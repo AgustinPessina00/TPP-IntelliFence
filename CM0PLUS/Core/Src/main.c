@@ -87,7 +87,7 @@ int main(void)
   //MX_DMA_Init();
   /* USER CODE BEGIN 2 */
   MX_LoRaWAN_Init();
-
+  HAL_GPIO_WritePin(GPIOB, LED_BLUE_Pin, GPIO_PIN_SET);
   // LED initialization removed - no LEDs configured in CM0PLUS
 
   /* USER CODE END 2 */

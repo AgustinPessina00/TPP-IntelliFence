@@ -52,6 +52,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 static MBMUX_ComParam_t *LoraComObj;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */

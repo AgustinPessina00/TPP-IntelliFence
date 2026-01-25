@@ -32,8 +32,9 @@
 #include "sys_sensors.h"
 #include "flash_if.h"
 #include "mbmuxif_sys.h"
-
+#define RTOS_PRINTF_AUTO
 /* USER CODE BEGIN Includes */
+#include "rtos_printf.h"
 
 /* USER CODE END Includes */
 
@@ -86,7 +87,7 @@ typedef enum TxEventType_e
 #define LORAWAN_NVM_BASE_ADDRESS                    ((void *)0x0801F000UL)
 
 /* USER CODE BEGIN PD */
-
+static const char *slotStrings[] = { "1", "2", "C", "C_MC", "P", "P_MC" };
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -215,6 +216,24 @@ static void OnSystemReset(void);
 
 /* USER CODE BEGIN PFP */
 
+/**
+  * @brief  LED Tx timer callback function
+  * @param  context ptr of LED context
+  */
+static void OnTxTimerLedEvent(void *context);
+
+/**
+  * @brief  LED Rx timer callback function
+  * @param  context ptr of LED context
+  */
+static void OnRxTimerLedEvent(void *context);
+
+/**
+  * @brief  LED Join timer callback function
+  * @param  context ptr of LED context
+  */
+static void OnJoinTimerLedEvent(void *context);
+
 /* USER CODE END PFP */
 
 /* Private variables ---------------------------------------------------------*/
@@ -329,6 +348,36 @@ const osThreadAttr_t Thd_LoraStopJoin_attr =
 static void Thd_LoraStopJoin(void *argument);
 
 /* USER CODE BEGIN PV */
+/**
+  * @brief User application buffer
+  */
+static uint8_t AppDataBuffer[LORAWAN_APP_DATA_BUFFER_MAX_SIZE];
+
+/**
+  * @brief User application data structure
+  */
+static LmHandlerAppData_t AppData = { 0, 0, AppDataBuffer };
+
+/**
+  * @brief Timer to handle the application Tx Led to toggle
+  */
+static UTIL_TIMER_Object_t TxLedTimer;
+
+/**
+  * @brief Timer to handle the application Rx Led to toggle
+  */
+static UTIL_TIMER_Object_t RxLedTimer;
+
+/**
+  * @brief Timer to handle the application Join Led to toggle
+  */
+static UTIL_TIMER_Object_t JoinLedTimer;
+
+/**
+  * Temp buffer to store a FLASH page in RAM when partial replacement is needed
+  */
+static uint8_t FLASH_RAM_buffer[FLASH_IF_BUFFER_SIZE];
+
 /* USER CODE END PV */
 
 /* Exported functions ---------------------------------------------------------*/
@@ -343,6 +392,57 @@ void LoRaWAN_Init(void)
   /* USER CODE END LoRaWAN_Init_LV */
 
   /* USER CODE BEGIN LoRaWAN_Init_1 */
+  /* USER CODE BEGIN LoRaWAN_Init_LV */
+  FEAT_INFO_Param_t *p_cm0plus_specific_features_info;
+  uint32_t feature_version = 0UL;
+  /* USER CODE END LoRaWAN_Init_LV */
+
+  /* USER CODE BEGIN LoRaWAN_Init_1 */
+
+  /* Get CM4 LoRaWAN APP version*/
+  rtos_printf("M4_APP_VERSION:      V%X.%X.%X\r\n",
+          (uint8_t)(APP_VERSION_MAIN),
+          (uint8_t)(APP_VERSION_SUB1),
+          (uint8_t)(APP_VERSION_SUB2));
+
+  /* Get CM0 LoRaWAN APP version*/
+  p_cm0plus_specific_features_info = MBMUXIF_SystemGetFeatCapabInfoPtr(FEAT_INFO_SYSTEM_ID);
+  feature_version = p_cm0plus_specific_features_info->Feat_Info_Feature_Version;
+  rtos_printf("M0PLUS_APP_VERSION:  V%X.%X.%X\r\n",
+          (uint8_t)(feature_version >> 24),
+          (uint8_t)(feature_version >> 16),
+          (uint8_t)(feature_version >> 8));
+
+  /* Get MW LoRaWAN info */
+  p_cm0plus_specific_features_info = MBMUXIF_SystemGetFeatCapabInfoPtr(FEAT_INFO_LORAWAN_ID);
+  feature_version = p_cm0plus_specific_features_info->Feat_Info_Feature_Version;
+  rtos_printf("MW_LORAWAN_VERSION:  V%X.%X.%X\r\n",
+          (uint8_t)(feature_version >> 24),
+          (uint8_t)(feature_version >> 16),
+          (uint8_t)(feature_version >> 8));
+
+  /* Get MW SubGhz_Phy info */
+  p_cm0plus_specific_features_info = MBMUXIF_SystemGetFeatCapabInfoPtr(FEAT_INFO_RADIO_ID);
+  feature_version = p_cm0plus_specific_features_info->Feat_Info_Feature_Version;
+  rtos_printf("MW_RADIO_VERSION:    V%X.%X.%X\r\n",
+          (uint8_t)(feature_version >> 24),
+          (uint8_t)(feature_version >> 16),
+          (uint8_t)(feature_version >> 8));
+
+  /* Get LoRaWAN Link Layer info */
+  LmHandlerGetVersion(LORAMAC_HANDLER_L2_VERSION, &feature_version);
+  rtos_printf("L2_SPEC_VERSION:     V%X.%X.%X\r\n",
+          (uint8_t)(feature_version >> 24),
+          (uint8_t)(feature_version >> 16),
+          (uint8_t)(feature_version >> 8));
+
+  /* Get LoRaWAN Regional Parameters info */
+  LmHandlerGetVersion(LORAMAC_HANDLER_REGION_VERSION, &feature_version);
+  rtos_printf("RP_SPEC_VERSION:     V%X-%X.%X.%X\r\n",
+          (uint8_t)(feature_version >> 24),
+          (uint8_t)(feature_version >> 16),
+          (uint8_t)(feature_version >> 8),
+          (uint8_t)(feature_version));
 
   /* USER CODE END LoRaWAN_Init_1 */
 
@@ -370,6 +470,14 @@ void LoRaWAN_Init(void)
   LmHandlerConfigure(&LmHandlerParams);
 
   /* USER CODE BEGIN LoRaWAN_Init_2 */
+  UTIL_TIMER_Create(&TxLedTimer, LED_PERIOD_TIME, UTIL_TIMER_ONESHOT, OnTxTimerLedEvent, NULL);
+  UTIL_TIMER_Create(&RxLedTimer, LED_PERIOD_TIME, UTIL_TIMER_ONESHOT, OnRxTimerLedEvent, NULL);
+  UTIL_TIMER_Create(&JoinLedTimer, LED_PERIOD_TIME, UTIL_TIMER_PERIODIC, OnJoinTimerLedEvent, NULL);
+
+  if (FLASH_IF_Init(FLASH_RAM_buffer) != FLASH_IF_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE END LoRaWAN_Init_2 */
 
   LmHandlerJoin(ActivationType, ForceRejoin);
@@ -479,12 +587,304 @@ static void Thd_LoraStopJoin(void *argument)
 static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 {
   /* USER CODE BEGIN OnRxData_1 */
+  uint8_t RxPort = 0;
+  
+  // ⚠️ DEBUG: Parpadear LED ROJO para confirmar que la función se llama
+  for (uint8_t i = 0; i < 5; i++)
+  {
+    HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET);
+    HAL_Delay(50);
+    HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+    HAL_Delay(50);
+  }
+  
+  // ⚠️ DEBUG: Confirmar que la función se llama
+  rtos_printf("\r\n*** OnRxData CALLED ***\r\n");
+
+  if (params != NULL)
+  {
+    rtos_printf("params != NULL: YES\r\n");
+    rtos_printf("IsMcpsIndication: %d\r\n", params->IsMcpsIndication);
+    
+    HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
+
+    UTIL_TIMER_Start(&RxLedTimer);
+
+    if (params->IsMcpsIndication)
+    {
+      if (appData != NULL)
+      {
+        rtos_printf("appData != NULL: YES\r\n");
+        RxPort = appData->Port;
+        
+        // ⚠️ DEBUG: Mostrar información del downlink recibido
+        rtos_printf("\r\n>>> DOWNLINK RECEIVED <<<\r\n");
+        rtos_printf("Port: %d | Size: %d bytes\r\n", RxPort, appData->BufferSize);
+        
+        // Mostrar payload en hex
+        if (appData->Buffer != NULL && appData->BufferSize > 0)
+        {
+          rtos_printf("Payload (hex): ");
+          for (uint8_t i = 0; i < appData->BufferSize; i++)
+          {
+            rtos_printf("%02X ", appData->Buffer[i]);
+          }
+          rtos_printf("\r\n");
+        }
+        
+        if (appData->Buffer != NULL)
+        {
+          switch (appData->Port)
+          {
+            case LORAWAN_USER_APP_PORT:  // Puerto 2
+              
+              // RECEPCIÓN DE HASTA 10 POSICIONES GPS
+              if (appData->BufferSize >= 1)
+              {
+                // Primer byte: número de posiciones
+                uint8_t num_positions = appData->Buffer[0];
+                
+                // Validar número de posiciones
+                if (num_positions > 10)
+                {
+                  rtos_printf("ERROR: Invalid number of positions: %d (max 10)\r\n", num_positions);
+                  break;
+                }
+                
+                // Validar tamaño del mensaje
+                uint8_t expected_size = 1 + (num_positions * 8);  // 1 byte contador + 8 bytes por posición (4+4 floats)
+                if (appData->BufferSize != expected_size)
+                {
+                  rtos_printf("ERROR: Expected %d bytes for %d positions, received %d bytes\r\n", 
+                          expected_size, num_positions, appData->BufferSize);
+                  break;
+                }
+                
+                // MOSTRAR ENCABEZADO COMPACTO
+                rtos_printf("\r\n>>> GPS RECV: %d positions\r\n", num_positions);
+                
+                // PROCESAR Y MOSTRAR CADA POSICIÓN
+                for (uint8_t i = 0; i < num_positions; i++)
+                {
+                  uint16_t offset = 1 + (i * 8);  // Offset en el buffer: 8 bytes por posición
+                  
+                  // Decodificar latitud como float (4 bytes)
+                  union {
+                    float f;
+                    uint8_t bytes[4];
+                  } lat_union;
+                  
+                  lat_union.bytes[0] = appData->Buffer[offset + 0];
+                  lat_union.bytes[1] = appData->Buffer[offset + 1];
+                  lat_union.bytes[2] = appData->Buffer[offset + 2];
+                  lat_union.bytes[3] = appData->Buffer[offset + 3];
+                  
+                  // Decodificar longitud como float (4 bytes)
+                  union {
+                    float f;
+                    uint8_t bytes[4];
+                  } lon_union;
+                  
+                  lon_union.bytes[0] = appData->Buffer[offset + 4];
+                  lon_union.bytes[1] = appData->Buffer[offset + 5];
+                  lon_union.bytes[2] = appData->Buffer[offset + 6];
+                  lon_union.bytes[3] = appData->Buffer[offset + 7];
+                  
+                  float latitude = lat_union.f;
+                  float longitude = lon_union.f;
+                  
+                  // Convertir a enteros para display
+                  int32_t lat_e6 = (int32_t)(latitude * 1000000);
+                  int32_t lon_e6 = (int32_t)(longitude * 1000000);
+                  
+                  int32_t lat_int = lat_e6 / 1000000;
+                  int32_t lat_dec = lat_e6 - (lat_int * 1000000);
+                  if (lat_dec < 0) lat_dec = -lat_dec;
+                  
+                  int32_t lon_int = lon_e6 / 1000000;
+                  int32_t lon_dec = lon_e6 - (lon_int * 1000000);
+                  if (lon_dec < 0) lon_dec = -lon_dec;
+                  
+                  // MOSTRAR FORMATO COMPACTO
+                  rtos_printf("[%d] Lat:%d.%06d Lon:%d.%06d\r\n", 
+                          i + 1, lat_int, lat_dec, lon_int, lon_dec);
+                  
+                  // Delay para dar tiempo al UART (5ms por posición)
+                  HAL_Delay(5);
+                }
+                
+                rtos_printf("DR%d | RX%s | DL#%lu | RSSI:%d SNR:%d\r\n\r\n", 
+                        params->Datarate, slotStrings[params->RxSlot], 
+                        params->DownlinkCounter, params->Rssi, params->Snr);
+                
+                // Parpadear LED para indicar recepción exitosa (LED ROJO)
+                for (uint8_t blink = 0; blink < 3; blink++)
+                {
+                  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET);
+                  HAL_Delay(100);
+                  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+                  HAL_Delay(100);
+                }
+              }
+              else
+              {
+                rtos_printf("ERROR: Empty payload received\r\n");
+              }
+              break;
+
+            /* Comentado - no se usa cambio de clase (solo Clase A) */
+            /* case LORAWAN_SWITCH_CLASS_PORT:
+              if (appData->BufferSize == 1)
+              {
+                switch (appData->Buffer[0])
+                {
+                  case 0:
+                  {
+                    LmHandlerRequestClass(CLASS_A);
+                    break;
+                  }
+                  case 1:
+                  {
+                    LmHandlerRequestClass(CLASS_B);
+                    break;
+                  }
+                  case 2:
+                  {
+                    LmHandlerRequestClass(CLASS_C);
+                    break;
+                  }
+                  default:
+                    break;
+                }
+              }
+              break; */
+
+            // RED LED CONTROL (EXAMPLE)
+            // case LORAWAN_USER_APP_PORT:
+            //   if (appData->BufferSize == 1)
+            //   {
+            //     AppLedStateOn = appData->Buffer[0] & 0x01;
+            //     if (AppLedStateOn == RESET)
+            //     {
+            //       APP_LOG(TS_OFF, VLEVEL_H, "LED OFF\r\n");
+            //       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); /* LED_RED */
+            //     }
+            //     else
+            //     {
+            //       APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
+            //       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); /* LED_RED */
+            //     }
+            //   }
+            //   break;
+
+            default:
+              APP_LOG(TS_OFF, VLEVEL_H, "WARNING: Downlink received on unhandled port %d\r\n", RxPort);
+              break;
+          }
+        }
+        else
+        {
+          APP_LOG(TS_OFF, VLEVEL_H, "WARNING: appData->Buffer is NULL\r\n");
+        }
+      }
+      else
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "WARNING: appData is NULL\r\n");
+      }
+    }
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "INFO: Not a McpsIndication (IsMcpsIndication = %d)\r\n", params->IsMcpsIndication);
+    }
+    
+    if (params->RxSlot < RX_SLOT_NONE)
+    {
+      APP_LOG(TS_OFF, VLEVEL_H, "###### D/L FRAME:%04d | PORT:%d | DR:%d | SLOT:%s | RSSI:%d | SNR:%d\r\n",
+              params->DownlinkCounter, RxPort, params->Datarate, slotStrings[params->RxSlot],
+              params->Rssi, params->Snr);
+    }
+  }
+  else
+  {
+    APP_LOG(TS_OFF, VLEVEL_H, "ERROR: params is NULL in OnRxData\r\n");
+  }
   /* USER CODE END OnRxData_1 */
 }
 
 static void SendTxData(void)
 {
   /* USER CODE BEGIN SendTxData_1 */
+  LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
+  //uint8_t batteryLevel = GetBatteryLevel();
+  //sensor_t sensor_data;
+  UTIL_TIMER_Time_t nextTxIn = 0;
+
+  if (LmHandlerIsBusy() == false) {
+    float latitude = -34.603722f;   // Ejemplo: Buenos Aires
+    float longitude = -58.381592f;
+
+    uint32_t i = 0;
+    AppData.Port = LORAWAN_USER_APP_PORT;  // Puerto 2
+
+    // Serializar floats a bytes (4 bytes cada uno)
+    // Método 1: Union (más directo)
+    union {
+      float f;
+      uint8_t bytes[4]; // 4 bytes para representar el float
+    } lat_union, lon_union;
+    
+    lat_union.f = latitude;
+    lon_union.f = longitude;
+
+    // Copiar bytes de latitud (4 bytes)
+    AppData.Buffer[i++] = lat_union.bytes[0];
+    AppData.Buffer[i++] = lat_union.bytes[1];
+    AppData.Buffer[i++] = lat_union.bytes[2];
+    AppData.Buffer[i++] = lat_union.bytes[3];
+    
+    // Copiar bytes de longitud (4 bytes)
+    AppData.Buffer[i++] = lon_union.bytes[0];
+    AppData.Buffer[i++] = lon_union.bytes[1];
+    AppData.Buffer[i++] = lon_union.bytes[2];
+    AppData.Buffer[i++] = lon_union.bytes[3];
+
+    AppData.BufferSize = i;  // Total: 8 bytes
+
+    APP_LOG(TS_OFF, VLEVEL_H, "Sending GPS: Lat=%.6f, Lon=%.6f\r\n", latitude, longitude);
+
+    // Detiene LED de Join si ya está conectado
+    if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)) {
+      UTIL_TIMER_Stop(&JoinLedTimer);
+      HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+    }
+
+    // ENVÍA EL MENSAJE
+    status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
+    
+    if (LORAMAC_HANDLER_SUCCESS == status) {
+      APP_LOG(TS_OFF, VLEVEL_H, "SEND REQUEST\r\n");
+    }
+    else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status) {
+      nextTxIn = LmHandlerGetDutyCycleWaitTime();
+      if (nextTxIn > 0)
+      {
+        APP_LOG(TS_OFF, VLEVEL_H, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
+      }
+    }
+  }
+  
+  // Reinicia timer para próximo envío
+  if (EventType == TX_ON_TIMER) {
+    UTIL_TIMER_Stop(&TxTimer);
+    UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
+    UTIL_TIMER_Start(&TxTimer);
+  }
+
+  /* Estructura del mensaje enviado:
+    Byte 0-3: Latitud (float, little-endian)
+    Byte 4-7: Longitud (float, little-endian)
+    Total: 8 bytes
+  */
 
   /* USER CODE END SendTxData_1 */
 }
@@ -510,21 +910,96 @@ static void OnTxTimerEvent(void *context)
 static void OnTxData(LmHandlerTxParams_t *params)
 {
   /* USER CODE BEGIN OnTxData_1 */
+  if ((params != NULL))
+  {
+    /* Process Tx event only if its a mcps response to prevent some internal events (mlme) */
+    if (params->IsMcpsConfirm != 0)
+    {
+      HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_SET); /* LED_GREEN */
+      UTIL_TIMER_Start(&TxLedTimer);
+
+      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### ========== MCPS-Confirm =============\r\n");
+      APP_LOG(TS_OFF, VLEVEL_M, "###### U/L FRAME:%04d | PORT:%d | DR:%d | PWR:%d", params->UplinkCounter,
+              params->AppData.Port, params->Datarate, params->TxPower);
+
+      APP_LOG(TS_OFF, VLEVEL_M, " | MSG TYPE:");
+      if (params->MsgType == LORAMAC_HANDLER_CONFIRMED_MSG)
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "CONFIRMED [%s]\r\n", (params->AckReceived != 0) ? "ACK" : "NACK");
+      }
+      else
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "UNCONFIRMED\r\n");
+      }
+      APP_LOG(TS_OFF, VLEVEL_M, "\r\n");
+    }
+  }
   /* USER CODE END OnTxData_1 */
 }
-
 static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 {
   /* USER CODE BEGIN OnJoinRequest_1 */
+  if (joinParams != NULL)
+  {
+    if (joinParams->Status == LORAMAC_HANDLER_SUCCESS)
+    {
+      UTIL_TIMER_Stop(&JoinLedTimer);
+      HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
+
+      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOINED = ");
+      if (joinParams->Mode == ACTIVATION_TYPE_ABP)
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "ABP ======================\r\n");
+      }
+      else
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "OTAA =====================\r\n");
+      }
+    }
+    else
+    {
+      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOIN FAILED\r\n");
+    }
+
+    APP_LOG(TS_OFF, VLEVEL_H, "###### U/L FRAME:JOIN | DR:%d | PWR:%d\r\n", joinParams->Datarate, joinParams->TxPower);
+  }
   /* USER CODE END OnJoinRequest_1 */
 }
 
 static void OnBeaconStatusChange(LmHandlerBeaconParams_t *params)
 {
   /* USER CODE BEGIN OnBeaconStatusChange_1 */
+  if (params != NULL)
+  {
+    switch (params->State)
+    {
+      default:
+      case LORAMAC_HANDLER_BEACON_LOST:
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON LOST\r\n");
+        break;
+      }
+      case LORAMAC_HANDLER_BEACON_RX:
+      {
+        APP_LOG(TS_OFF, VLEVEL_M,
+                "\r\n###### BEACON RECEIVED | DR:%d | RSSI:%d | SNR:%d | FQ:%d | TIME:%d | DESC:%d | "
+                "INFO:02X%02X%02X %02X%02X%02X\r\n",
+                params->Info.Datarate, params->Info.Rssi, params->Info.Snr, params->Info.Frequency,
+                params->Info.Time.Seconds, params->Info.GwSpecific.InfoDesc,
+                params->Info.GwSpecific.Info[0], params->Info.GwSpecific.Info[1],
+                params->Info.GwSpecific.Info[2], params->Info.GwSpecific.Info[3],
+                params->Info.GwSpecific.Info[4], params->Info.GwSpecific.Info[5]);
+        break;
+      }
+      case LORAMAC_HANDLER_BEACON_NRX:
+      {
+        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON NOT RECEIVED\r\n");
+        break;
+      }
+    }
+  }
   /* USER CODE END OnBeaconStatusChange_1 */
 }
-
 static void OnSysTimeUpdate(void)
 {
   /* USER CODE BEGIN OnSysTimeUpdate_1 */
@@ -535,8 +1010,10 @@ static void OnSysTimeUpdate(void)
 static void OnClassChange(DeviceClass_t deviceClass)
 {
   /* USER CODE BEGIN OnClassChange_1 */
+  APP_LOG(TS_OFF, VLEVEL_M, "Switch to Class %c done\r\n", "ABC"[deviceClass]);
   /* USER CODE END OnClassChange_1 */
 }
+
 
 static void OnMacProcessNotify(void)
 {
@@ -606,7 +1083,9 @@ static void OnSystemReset(void)
 static void StopJoin(void)
 {
   /* USER CODE BEGIN StopJoin_1 */
-
+  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
+  HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_SET); /* LED_GREEN */
+  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET); /* LED_RED */
   /* USER CODE END StopJoin_1 */
 
   UTIL_TIMER_Stop(&TxTimer);
@@ -648,9 +1127,12 @@ static void OnStopJoinTimerEvent(void *context)
     osThreadFlagsSet(Thd_LoraStopJoinId, 1);
   }
   /* USER CODE BEGIN OnStopJoinTimerEvent_Last */
-
+  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET); /* LED_BLUE */
+  HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET); /* LED_GREEN */
+  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
   /* USER CODE END OnStopJoinTimerEvent_Last */
 }
+
 
 static void StoreContext(void)
 {
@@ -697,11 +1179,8 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
   /* USER CODE BEGIN OnStoreContextRequest_1 */
 
   /* USER CODE END OnStoreContextRequest_1 */
-  /* store nvm in flash */
-  if (FLASH_IF_Erase(LORAWAN_NVM_BASE_ADDRESS, FLASH_PAGE_SIZE) == FLASH_IF_OK)
-  {
-    FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
-  }
+  FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
+
   /* USER CODE BEGIN OnStoreContextRequest_Last */
 
   /* USER CODE END OnStoreContextRequest_Last */
@@ -718,3 +1197,20 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
   /* USER CODE END OnRestoreContextRequest_Last */
 }
 
+
+
+/* USER CODE BEGIN PrFD_LedEvents */
+static void OnTxTimerLedEvent(void *context)
+{
+  HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET); /* LED_GREEN */
+}
+
+static void OnRxTimerLedEvent(void *context)
+{
+  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET); /* LED_BLUE */
+}
+
+static void OnJoinTimerLedEvent(void *context)
+{
+  HAL_GPIO_TogglePin(LED3_GPIO_PORT, LED3_PIN); /* LED_RED */
+}

@@ -25,7 +25,6 @@
 #include "sys_app.h" /* APP_PRINTF */
 #include "platform.h" /* Needed for Error_Handler */
 #include "features_info.h"
-#include "gpio.h"
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -186,14 +185,11 @@ void StoreValueInFeatureListTable(void)
     {
       
       p_feature = i + p_MBMUX_Cm0plusFeatureList->Feat_Info_TableAddress;
-      HAL_GPIO_WritePin(GPIOB, LED_BLUE_Pin, GPIO_PIN_SET);
       if (p_feature->Feat_Info_Feature_Id == FEAT_INFO_LORAWAN_ID)
       {
-        HAL_GPIO_WritePin(GPIOB, LED_RED_Pin, GPIO_PIN_SET);
         found = 1;
         break;
       }
-      HAL_GPIO_WritePin(GPIOB, LED_GREEN_Pin, GPIO_PIN_SET);
       
     }
   }

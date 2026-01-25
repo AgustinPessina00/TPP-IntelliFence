@@ -50,7 +50,7 @@ typedef enum
 } FLASH_IF_StatusTypedef;
 
 /* USER CODE BEGIN ET */
-
+#define FLASH_IF_BUFFER_SIZE       0x00000800U /*!< FLASH Page Size, 2 KBytes */
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

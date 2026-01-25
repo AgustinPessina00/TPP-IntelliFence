@@ -58,7 +58,6 @@
 static MBMUX_ComParam_t *LoraComObj;
 static osSemaphoreId_t Sem_MbLoRaRespRcv;
 osThreadId_t Thd_LoraNotifRcvProcessId;
-
 /**
   * @brief LoRa cmd buffer to exchange data between CM4 and CM0+
   */

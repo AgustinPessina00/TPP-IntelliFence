@@ -60,9 +60,9 @@ void HAL_IPCC_MspInit(IPCC_HandleTypeDef* ipccHandle)
     __HAL_RCC_IPCC_CLK_ENABLE();
 
     /* IPCC interrupt Init */
-    HAL_NVIC_SetPriority(IPCC_C1_RX_IRQn, 3, 0);
+    HAL_NVIC_SetPriority(IPCC_C1_RX_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(IPCC_C1_RX_IRQn);
-    HAL_NVIC_SetPriority(IPCC_C1_TX_IRQn, 3, 0);
+    HAL_NVIC_SetPriority(IPCC_C1_TX_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(IPCC_C1_TX_IRQn);
   /* USER CODE BEGIN IPCC_MspInit 1 */
 

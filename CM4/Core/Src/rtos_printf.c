@@ -61,8 +61,34 @@ static volatile uint8_t scheduler_running = 0;
  */
 __attribute__((weak)) int _rtos_printf_write(const char *str, size_t len)
 {
-    // Use shorter timeout to avoid WWDG issues during UART transmission
-    HAL_StatusTypeDef status = HAL_UART_Transmit(&huart2, (uint8_t*)str, len, 100); // 100ms timeout instead of HAL_MAX_DELAY
+    HAL_StatusTypeDef status;
+    uint32_t retry_count = 0;
+    const uint32_t max_retries = 10;
+    
+    // Retry if UART is busy
+    do {
+        status = HAL_UART_Transmit(&huart2, (uint8_t*)str, len, 100);
+        
+        if (status == HAL_OK) {
+            return len;
+        }
+        
+        // If busy, wait a bit and retry
+        if (status == HAL_BUSY) {
+            // Check if we're in an ISR or if RTOS is running
+            if (osKernelGetState() == osKernelRunning) {
+                osDelay(1); // Wait 1ms
+            } else {
+                // Busy wait before RTOS starts
+                for (volatile uint32_t i = 0; i < 10000; i++);
+            }
+            retry_count++;
+        } else {
+            // Other error, abort
+            break;
+        }
+    } while (retry_count < max_retries);
+    
     return (status == HAL_OK) ? len : 0;
 }
 
