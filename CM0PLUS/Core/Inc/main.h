@@ -29,8 +29,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32wlxx_hal.h"
 
-#include "app_kms.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -43,7 +41,12 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+#define LED_GREEN_Pin GPIO_PIN_9
+#define LED_GREEN_GPIO_Port GPIOB
+#define LED_BLUE_Pin GPIO_PIN_15
+#define LED_BLUE_GPIO_Port GPIOB
+#define LED_RED_Pin GPIO_PIN_11
+#define LED_RED_GPIO_Port GPIOB
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -66,8 +69,6 @@ void Error_Handler(void);
 #define RCC_OSC32_IN_GPIO_Port GPIOC
 #define RCC_OSC32_OUT_Pin GPIO_PIN_15
 #define RCC_OSC32_OUT_GPIO_Port GPIOC
-#define LED_RED_Pin GPIO_PIN_11
-#define LED_RED_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

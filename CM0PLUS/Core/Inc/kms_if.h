@@ -27,11 +27,6 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-
-#include "kms.h"
-#include "tkms.h"
-#include "kms_interface.h"
-
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */

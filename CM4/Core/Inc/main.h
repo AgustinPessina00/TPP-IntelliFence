@@ -70,18 +70,10 @@ void Error_Handler(void);
 #define RCC_OSC32_OUT_GPIO_Port GPIOC
 #define ENABLE_LDO1_Pin GPIO_PIN_13
 #define ENABLE_LDO1_GPIO_Port GPIOC
-#define BUT1_Pin GPIO_PIN_0
-#define BUT1_GPIO_Port GPIOA
 #define GPS_RESET_N_Pin GPIO_PIN_0
 #define GPS_RESET_N_GPIO_Port GPIOC
-#define BUT3_Pin GPIO_PIN_6
-#define BUT3_GPIO_Port GPIOC
-#define BUT2_Pin GPIO_PIN_1
-#define BUT2_GPIO_Port GPIOA
-#define USARTx_TX_Pin GPIO_PIN_3
-#define USARTx_TX_GPIO_Port GPIOA
-#define USARTx_RX_Pin GPIO_PIN_2
-#define USARTx_RX_GPIO_Port GPIOA
+#define LED_RED_Pin GPIO_PIN_11
+#define LED_RED_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

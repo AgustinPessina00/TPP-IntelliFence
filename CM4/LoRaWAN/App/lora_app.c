@@ -22,7 +22,7 @@
 #include "platform.h"
 #include "sys_app.h"
 #include "lora_app.h"
-#include "cmsis_os2.h"
+#include "cmsis_os.h"
 #include "stm32_timer.h"
 #include "utilities_def.h"
 #include "app_version.h"
@@ -697,8 +697,11 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
   /* USER CODE BEGIN OnStoreContextRequest_1 */
 
   /* USER CODE END OnStoreContextRequest_1 */
-  FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
-
+  /* store nvm in flash */
+  if (FLASH_IF_Erase(LORAWAN_NVM_BASE_ADDRESS, FLASH_PAGE_SIZE) == FLASH_IF_OK)
+  {
+    FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
+  }
   /* USER CODE BEGIN OnStoreContextRequest_Last */
 
   /* USER CODE END OnStoreContextRequest_Last */

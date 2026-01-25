@@ -22,7 +22,7 @@
 #include "platform.h"
 #include "mbmuxif_sys.h"
 #include "stm32_mem.h"
-#include "cmsis_os2.h"
+#include "cmsis_os.h"
 #include "stm32_timer.h"
 #include "sys_app.h"
 #include "msg_id.h"

@@ -53,20 +53,12 @@ extern "C" {
 
 /*!
  * @brief LoRaWAN version definition
- * @note  0x01000400: Link Layer TS001-1.0.4 + Regional Parameters RP002-1.0.1
+ * @note  possible values:
+ *        - 0x01000300: Link Layer(L2) v1.0.3 + Regional Parameters(RP) v1.0.3
+ *        - 0x01000400: Link Layer TS001-1.0.4 + Regional Parameters RP002-1.0.1
+ *        - 0x01010100: soon available ...
  */
 #define LORAMAC_SPECIFICATION_VERSION                   0x01000400
-
-/*!
- * @brief LoRaWAN Keys integrated in KMS Middleware
- * @note  To configure LoRaWAN to use the KMS Middleware, following files in the DualCore example project must be completed:
- *  - CM0PLUS/Core/Inc/kms_platf_objects_config.h : Add all LoRaWAN keys as kms_object_keyhead_32_t structures.
- *  - CM0PLUS/Core/Inc/kms_platf_objects_interface.h : Add all LoRaWAN key indexes
- *  - CM0PLUS/Core/Inc/nvms_low_level.h : Enable the NVMS (Non Volatile Memory) to store the session keys
- *  - CM0PLUS/Core/Src/nvms_low_level.c : Implement the Flash read/write functions to manage the NVMS items
- *  Then LORAWAN_KMS flag can be set to 1
- */
-#define LORAWAN_KMS                                     1
 
 /*!
  * @brief Enable the additional LoRaWAN packages
@@ -102,10 +94,10 @@ extern "C" {
 /*#define REGION_CN470*/
 /*#define REGION_CN779*/
 /*#define REGION_EU433*/
-/*#define REGION_EU868*/
+#define REGION_EU868
 /*#define REGION_KR920*/
 /*#define REGION_IN865*/
-/*#define REGION_US915*/
+#define REGION_US915
 /*#define REGION_RU864*/
 
 /*!
@@ -116,9 +108,6 @@ extern "C" {
  *        - CHANNEL_PLAN_GROUP_AS923_3    (Freq offset = -6.60 MHz / Freq range = 915-928MHz)
  *        - CHANNEL_PLAN_GROUP_AS923_4    (Freq offset = -5.90 MHz / Freq range = 917-920MHz)
  *        - CHANNEL_PLAN_GROUP_AS923_1_JP (Freq offset = 0.0 MHz   / Freq range = 920.6-923.4MHz)
- *        - CHANNEL_PLAN_GROUP_AS923_1_JP_CH24_CH38_LBT 	(RP02-1.0.3)
- *        - CHANNEL_PLAN_GROUP_AS923_1_JP_CH24_CH38_DC 		(RP02-1.0.3)
- *        - CHANNEL_PLAN_GROUP_AS923_1_JP_CH33_CH61_LBT_DC 	(RP02-1.0.3)
  */
 #define REGION_AS923_DEFAULT_CHANNEL_PLAN              CHANNEL_PLAN_GROUP_AS923_1
 

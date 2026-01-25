@@ -107,7 +107,7 @@ void MX_USART2_UART_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_EnableFifoMode(&huart2) != HAL_OK)
+  if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -179,7 +179,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     PA3     ------> USART2_RX
     PA2     ------> USART2_TX
     */
-    GPIO_InitStruct.Pin = USARTx_TX_Pin|USARTx_RX_Pin;
+    GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -209,9 +209,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
 
-    /* USART2 interrupt Init */
-    HAL_NVIC_SetPriority(USART2_IRQn, 7, 0);
-    HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
 
   /* USER CODE END USART2_MspInit 1 */
@@ -251,13 +248,10 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     PA3     ------> USART2_RX
     PA2     ------> USART2_TX
     */
-    HAL_GPIO_DeInit(GPIOA, USARTx_TX_Pin|USARTx_RX_Pin);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_3|GPIO_PIN_2);
 
     /* USART2 DMA DeInit */
     HAL_DMA_DeInit(uartHandle->hdmatx);
-
-    /* USART2 interrupt Deinit */
-    HAL_NVIC_DisableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspDeInit 1 */
 
   /* USER CODE END USART2_MspDeInit 1 */

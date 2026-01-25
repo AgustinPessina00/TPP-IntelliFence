@@ -21,8 +21,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "main.h"
-#include "cmsis_os2.h"
-#include "FreeRTOS.h"
+#include "cmsis_os.h"
 
 #include "app_lorawan.h"
 
@@ -115,83 +114,83 @@ const osMessageQueueAttr_t loraTxQueue_attributes = {
 // };
 
 // Thread dispatcher - rutea mensajes entre módulos
-osThreadId_t dispatcher_TaskHandle;
+// osThreadId_t dispatcher_TaskHandle;
 
 // Buffers estáticos en RAM1 para dispatcher
-__attribute__((section(".RAM1_region"))) static StaticTask_t dispatcher_TaskBuffer;
-__attribute__((section(".RAM1_region"))) static StackType_t dispatcher_TaskStack[192];  // 768 bytes / 4 bytes per word
+// __attribute__((section(".RAM1_region"))) static StaticTask_t dispatcher_TaskBuffer;
+// __attribute__((section(".RAM1_region"))) static StackType_t dispatcher_TaskStack[192];  // 768 bytes / 4 bytes per word
 
-const osThreadAttr_t dispatcher_Task_attributes = {
-  .name = "dispatcher_Task",
-  .stack_size = 256 * 3,  // 768 bytes dispatcher
-  .priority = (osPriority_t) osPriorityNormal,
-  .cb_mem = &dispatcher_TaskBuffer,
-  .cb_size = sizeof(dispatcher_TaskBuffer),
-  .stack_mem = dispatcher_TaskStack,
-};
+// const osThreadAttr_t dispatcher_Task_attributes = {
+//   .name = "dispatcher_Task",
+//   .stack_size = 256 * 3,  // 768 bytes dispatcher
+//   .priority = (osPriority_t) osPriorityNormal,
+//   .cb_mem = &dispatcher_TaskBuffer,
+//   .cb_size = sizeof(dispatcher_TaskBuffer),
+//   .stack_mem = dispatcher_TaskStack,
+// };
 
 // Thread FSM - máquina de estados principal
-osThreadId_t fsm_TaskHandle;
+// osThreadId_t fsm_TaskHandle;
 
-// Buffers estáticos en RAM1 para FSM
-__attribute__((section(".RAM1_region"))) static StaticTask_t fsm_TaskBuffer;
-__attribute__((section(".RAM1_region"))) static StackType_t fsm_TaskStack[256];  // 1024 bytes / 4 bytes per word
+// // Buffers estáticos en RAM1 para FSM
+// __attribute__((section(".RAM1_region"))) static StaticTask_t fsm_TaskBuffer;
+// __attribute__((section(".RAM1_region"))) static StackType_t fsm_TaskStack[256];  // 1024 bytes / 4 bytes per word
 
-const osThreadAttr_t fsm_Task_attributes = {
-  .name = "fsm_Task",
-  .stack_size = 256 * 4,  // 1024 bytes FSM
-  .priority = (osPriority_t) osPriorityNormal,
-  .cb_mem = &fsm_TaskBuffer,
-  .cb_size = sizeof(fsm_TaskBuffer),
-  .stack_mem = fsm_TaskStack,
-};
+// const osThreadAttr_t fsm_Task_attributes = {
+//   .name = "fsm_Task",
+//   .stack_size = 256 * 4,  // 1024 bytes FSM
+//   .priority = (osPriority_t) osPriorityNormal,
+//   .cb_mem = &fsm_TaskBuffer,
+//   .cb_size = sizeof(fsm_TaskBuffer),
+//   .stack_mem = fsm_TaskStack,
+// };
 
-osThreadId_t stimulus_TaskHandle;
+// osThreadId_t stimulus_TaskHandle;
 
 // Buffers estáticos en RAM1 para stimulus
-__attribute__((section(".RAM1_region"))) static StaticTask_t stimulus_TaskBuffer;
-__attribute__((section(".RAM1_region"))) static StackType_t stimulus_TaskStack[128];  // 512 bytes / 4 bytes per word
+// __attribute__((section(".RAM1_region"))) static StaticTask_t stimulus_TaskBuffer;
+// __attribute__((section(".RAM1_region"))) static StackType_t stimulus_TaskStack[128];  // 512 bytes / 4 bytes per word
 
-const osThreadAttr_t stimulus_Task_attributes = {
-  .name = "stimulus_Task",
-  .stack_size = 128 * 4,  // 512 bytes stimulus
-  .priority = (osPriority_t) osPriorityNormal,
-  .cb_mem = &stimulus_TaskBuffer,
-  .cb_size = sizeof(stimulus_TaskBuffer),
-  .stack_mem = stimulus_TaskStack,
-};
+// const osThreadAttr_t stimulus_Task_attributes = {
+//   .name = "stimulus_Task",
+//   .stack_size = 128 * 4,  // 512 bytes stimulus
+//   .priority = (osPriority_t) osPriorityNormal,
+//   .cb_mem = &stimulus_TaskBuffer,
+//   .cb_size = sizeof(stimulus_TaskBuffer),
+//   .stack_mem = stimulus_TaskStack,
+// };
 
 // Thread sensor acquisition - adquisición de datos de sensores
-osThreadId_t sensorAcq_TaskHandle;
+// osThreadId_t sensorAcq_TaskHandle;
 
-// Buffers estáticos en RAM1 para sensorAcq
-__attribute__((section(".RAM1_region"))) static StaticTask_t sensorAcq_TaskBuffer;
-__attribute__((section(".RAM1_region"))) static StackType_t sensorAcq_TaskStack[256];  // 1024 bytes / 4 bytes per word
+// // Buffers estáticos en RAM1 para sensorAcq
+// __attribute__((section(".RAM1_region"))) static StaticTask_t sensorAcq_TaskBuffer;
+// __attribute__((section(".RAM1_region"))) static StackType_t sensorAcq_TaskStack[256];  // 1024 bytes / 4 bytes per word
 
-const osThreadAttr_t sensorAcq_Task_attributes = {
-  .name = "sensorAcq_Task",
-  .stack_size = 256 * 4,  // 1024 bytes sensorAcq
-  .priority = (osPriority_t) osPriorityNormal,
-  .cb_mem = &sensorAcq_TaskBuffer,
-  .cb_size = sizeof(sensorAcq_TaskBuffer),
-  .stack_mem = sensorAcq_TaskStack,
-};
+// const osThreadAttr_t sensorAcq_Task_attributes = {
+//   .name = "sensorAcq_Task",
+//   .stack_size = 256 * 4,  // 1024 bytes sensorAcq
+//   .priority = (osPriority_t) osPriorityNormal,
+//   .cb_mem = &sensorAcq_TaskBuffer,
+//   .cb_size = sizeof(sensorAcq_TaskBuffer),
+//   .stack_mem = sensorAcq_TaskStack,
+// };
 
 // Thread LoRa TX - transmisión LoRa
-osThreadId_t lora_TaskHandle;
+// osThreadId_t lora_TaskHandle;
 
-// Buffers estáticos en RAM1 para lora
-__attribute__((section(".RAM1_region"))) static StaticTask_t lora_TaskBuffer;
-__attribute__((section(".RAM1_region"))) static StackType_t lora_TaskStack[192];  // 768 bytes / 4 bytes per word
+// // Buffers estáticos en RAM1 para lora
+// __attribute__((section(".RAM1_region"))) static StaticTask_t lora_TaskBuffer;
+// __attribute__((section(".RAM1_region"))) static StackType_t lora_TaskStack[192];  // 768 bytes / 4 bytes per word
 
-const osThreadAttr_t lora_Task_attributes = {
-  .name = "lora_Task",
-  .stack_size = 256 * 3,  // 768 bytes LoRa
-  .priority = (osPriority_t) osPriorityNormal,
-  .cb_mem = &lora_TaskBuffer,
-  .cb_size = sizeof(lora_TaskBuffer),
-  .stack_mem = lora_TaskStack,
-};
+// const osThreadAttr_t lora_Task_attributes = {
+//   .name = "lora_Task",
+//   .stack_size = 256 * 3,  // 768 bytes LoRa
+//   .priority = (osPriority_t) osPriorityNormal,
+//   .cb_mem = &lora_TaskBuffer,
+//   .cb_size = sizeof(lora_TaskBuffer),
+//   .stack_mem = lora_TaskStack,
+// };
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -225,22 +224,26 @@ void initialize_message_queues(void) {
     }
     
     // Cola para adquisición de sensores
-    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
-    if (sensorAcqQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
-        Error_Handler();
-    }
+    // sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
+    // if (sensorAcqQueueHandle == NULL) {
+    //     printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
+    //     Error_Handler();
+    // }
 
     // Cola para estímulos
-    stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
-    if (stimulusQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
-        Error_Handler();
-    }
+    // stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
+    // if (stimulusQueueHandle == NULL) {
+    //     printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
+    //     Error_Handler();
+    // }
     
     // Colas adicionales (tamaños más pequeños para funciones futuras)
     //gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
-    loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
+    // loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
+    // if (loraTxQueueHandle == NULL) {
+    //     printf("[QUEUES] ERROR - Fallo creación loraTxQueue\n");
+    //     Error_Handler();
+    // }
     //loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
     //distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
     //fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
@@ -262,25 +265,25 @@ void initialize_system_threads(void) {
     printf("[THREADS] Inicializando threads del sistema FreeRTOS...\n");
     
     // Thread dispatcher - alta prioridad (ruteo de mensajes crítico)
-    dispatcher_TaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcher_Task_attributes);
-    if (dispatcher_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación dispatcher_Task\n");
-        Error_Handler();
-    }
+    // dispatcher_TaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcher_Task_attributes);
+    // if (dispatcher_TaskHandle == NULL) {
+    //     printf("[THREADS] ERROR - Fallo creación dispatcher_Task\n");
+    //     Error_Handler();
+    // }
     
     //Thread FSM - prioridad normal (lógica de aplicación)
-    fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
-    if (fsm_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
-        Error_Handler();
-    }
+    // fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
+    // if (fsm_TaskHandle == NULL) {
+    //     printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
+    //     Error_Handler();
+    // }
 
     //Thread FSM - prioridad normal (lógica de aplicación)
-    stimulus_TaskHandle = osThreadNew(stimulusTask, NULL, &stimulus_Task_attributes);
-    if (stimulus_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación stimulus_Task\n");
-        Error_Handler();
-    }
+    // stimulus_TaskHandle = osThreadNew(stimulusTask, NULL, &stimulus_Task_attributes);
+    // if (stimulus_TaskHandle == NULL) {
+    //     printf("[THREADS] ERROR - Fallo creación stimulus_Task\n");
+    //     Error_Handler();
+    // }
 
     
 
@@ -291,19 +294,19 @@ void initialize_system_threads(void) {
     printf("[THREADS] ** TEST MODE ** - Using mock sensor task\n");
 #else
     // PRODUCTION MODE: Usar tarea real con sensores de hardware
-    sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
+    //sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
 #endif
-    if (sensorAcq_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
-        Error_Handler();
-    }
+    // if (sensorAcq_TaskHandle == NULL) {
+    //     printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
+    //     Error_Handler();
+    // }
 
     //Thread LoRa TX - prioridad normal (transmisión LoRa)
-    lora_TaskHandle = osThreadNew(loraTask, NULL, &lora_Task_attributes);
-    if (lora_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación lora_Task\n");
-        Error_Handler();
-    }
+    // lora_TaskHandle = osThreadNew(loraTask, NULL, &lora_Task_attributes);
+    // if (lora_TaskHandle == NULL) {
+    //     printf("[THREADS] ERROR - Fallo creación lora_Task\n");
+    //     Error_Handler();
+    // }
 
     printf("[THREADS] OK - Todos los threads creados exitosamente\n");
     printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 768B\n");
@@ -362,7 +365,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  initialize_message_queues();
+  //initialize_message_queues();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -371,7 +374,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  initialize_system_threads();
+  //initialize_system_threads();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -392,11 +395,11 @@ void StartDefaultTask(void *argument)
   /* init code for LoRaWAN */
   MX_LoRaWAN_Init();
   /* USER CODE BEGIN StartDefaultTask */
-//   /* Infinite loop */
-//   for(;;)
-//   {
-//     osDelay(1);
-//   }
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1000);
+  }
   /* USER CODE END StartDefaultTask */
 }
 

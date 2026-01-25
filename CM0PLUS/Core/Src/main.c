@@ -20,9 +20,7 @@
 #include "main.h"
 #include "dma.h"
 #include "app_lorawan.h"
-#include "rtc.h"
 #include "gpio.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -63,8 +61,20 @@
   * @brief  The application entry point.
   * @retval int
   */
+
+  __attribute__((optimize("O0")))
+static void wait_debugger_cm0p(void)
+{
+  volatile uint32_t i = 0;
+  // Bucle infinito fácil de enganchar con attach
+  while (i == 0) {
+    __NOP();
+  }
+}
 int main(void)
 {
+
+  wait_debugger_cm0p();
 
   /* USER CODE BEGIN 1 */
 
@@ -76,7 +86,8 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+    /*Configure GPIO pins : LED_BLUE_Pin LED_GREEN_Pin LED_RED_Pin */
+  MX_GPIO_Init();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN SysInit */
@@ -84,10 +95,7 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_DMA_Init();
-  MX_GPIO_Init();
-  MX_RTC_Init();
-  MX_KMS_Init();
+  //MX_DMA_Init();
   /* USER CODE BEGIN 2 */
   MX_LoRaWAN_Init();
 
@@ -100,11 +108,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    //MX_LoRaWAN_Process();
+    MX_LoRaWAN_Process();
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-    HAL_Delay(500);  // 500ms delay for visible toggling
   }
   /* USER CODE END 3 */
 }
