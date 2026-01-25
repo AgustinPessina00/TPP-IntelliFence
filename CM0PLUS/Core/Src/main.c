@@ -62,19 +62,8 @@
   * @retval int
   */
 
-  __attribute__((optimize("O0")))
-static void wait_debugger_cm0p(void)
-{
-  volatile uint32_t i = 0;
-  // Bucle infinito fácil de enganchar con attach
-  while (i == 0) {
-    __NOP();
-  }
-}
 int main(void)
 {
-
-  wait_debugger_cm0p();
 
   /* USER CODE BEGIN 1 */
 
