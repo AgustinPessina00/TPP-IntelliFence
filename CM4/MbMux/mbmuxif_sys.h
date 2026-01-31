@@ -31,7 +31,7 @@ extern "C" {
 #include "mbmux.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "cmsis_os2.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -48,7 +48,7 @@ extern "C" {
 #define CFG_MB_LORA_PROCESS_CB_SIZE                (0)
 #define CFG_MB_LORA_PROCESS_STACK_MEM              (0)
 #define CFG_MB_LORA_PROCESS_PRIORITY               osPriorityNone
-#define CFG_MB_LORA_PROCESS_STACK_SIZE             (128 * 10)
+#define CFG_MB_LORA_PROCESS_STACK_SIZE             (128 * 5)
 
 /*Mailbox Radio*/
 #define CFG_MB_RADIO_PROCESS_NAME                  "MB_RADIO_PROCESS"
@@ -57,7 +57,7 @@ extern "C" {
 #define CFG_MB_RADIO_PROCESS_CB_SIZE               (0)
 #define CFG_MB_RADIO_PROCESS_STACK_MEM             (0)
 #define CFG_MB_RADIO_PROCESS_PRIORITY              osPriorityNone
-#define CFG_MB_RADIO_PROCESS_STACK_SIZE            (128 * 10)
+#define CFG_MB_RADIO_PROCESS_STACK_SIZE            (128 * 5)
 
 /*Mailbox Sys*/
 #define CFG_MB_SYS_PROCESS_NAME                    "MB_SYS_PROCESS"
@@ -66,7 +66,7 @@ extern "C" {
 #define CFG_MB_SYS_PROCESS_CB_SIZE                 (0)
 #define CFG_MB_SYS_PROCESS_STACK_MEM               (0)
 #define CFG_MB_SYS_PROCESS_PRIORITY                osPriorityNone
-#define CFG_MB_SYS_PROCESS_STACK_SIZE              (128 * 10)
+#define CFG_MB_SYS_PROCESS_STACK_SIZE              (128 * 5)
 
 /*Mailbox Kms*/
 #define CFG_MB_KMS_PROCESS_NAME                    "MB_KMS_PROCESS"
@@ -75,7 +75,7 @@ extern "C" {
 #define CFG_MB_KMS_PROCESS_CB_SIZE                 (0)
 #define CFG_MB_KMS_PROCESS_STACK_MEM               (0)
 #define CFG_MB_KMS_PROCESS_PRIORITY                osPriorityNone
-#define CFG_MB_KMS_PROCESS_STACK_SIZE              (128 * 10)
+#define CFG_MB_KMS_PROCESS_STACK_SIZE              (128 * 5)
 
 /*Send*/
 #define CFG_APP_LORA_PROCESS_NAME                  "LORA_SEND_PROCESS"
@@ -84,7 +84,7 @@ extern "C" {
 #define CFG_APP_LORA_PROCESS_CB_SIZE               (0)
 #define CFG_APP_LORA_PROCESS_STACK_MEM             (0)
 #define CFG_APP_LORA_PROCESS_PRIORITY              osPriorityNone
-#define CFG_APP_LORA_PROCESS_STACK_SIZE            (128 * 10)
+#define CFG_APP_LORA_PROCESS_STACK_SIZE            (128 * 5)
 
 /*Store Context*/
 #define CFG_APP_LORA_STORE_CONTEXT_NAME            "LORA_STORE_CONTEXT"
@@ -93,7 +93,7 @@ extern "C" {
 #define CFG_APP_LORA_STORE_CONTEXT_CB_SIZE         (0)
 #define CFG_APP_LORA_STORE_CONTEXT_STACK_MEM       (0)
 #define CFG_APP_LORA_STORE_CONTEXT_PRIORITY        osPriorityNone
-#define CFG_APP_LORA_STORE_CONTEXT_STACK_SIZE      (128 * 10)
+#define CFG_APP_LORA_STORE_CONTEXT_STACK_SIZE      (128 * 5)
 
 /*Stop Join*/
 #define CFG_APP_LORA_STOP_JOIN_NAME                "LORA_STOP_JOIN"
@@ -102,7 +102,7 @@ extern "C" {
 #define CFG_APP_LORA_STOP_JOIN_CB_SIZE             (0)
 #define CFG_APP_LORA_STOP_JOIN_STACK_MEM           (0)
 #define CFG_APP_LORA_STOP_JOIN_PRIORITY            osPriorityNone
-#define CFG_APP_LORA_STOP_JOIN_STACK_SIZE          (128 * 10)
+#define CFG_APP_LORA_STOP_JOIN_STACK_SIZE          (128 * 5)
 
 /* USER CODE BEGIN EC */
 

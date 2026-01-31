@@ -51,11 +51,6 @@ build.ninja
 
 # ===== IDE AND EDITOR FILES =====
 # Visual Studio Code
-.vscode/
-!.vscode/settings.json
-!.vscode/launch.json
-!.vscode/tasks.json
-!.vscode/extensions.json
 
 # STM32CubeIDE/Eclipse
 .metadata/

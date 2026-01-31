@@ -5,7 +5,6 @@ set(MX_Defines_Syms
 	CORE_CM4 
 	USE_HAL_DRIVER 
 	STM32WL55xx
-	USE_BSP_DRIVER
     $<$<CONFIG:Debug>:DEBUG>
 )
 # STM32CubeMX generated include paths
@@ -26,14 +25,17 @@ set(MX_Include_Dirs
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/include
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/RTOS2/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/Device/ST/STM32WLxx/Include
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Mac/Region
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Mac
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/LmHandler
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/Utilities
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/mbed-crypto/mbedtls
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/mbed-crypto/psa
+    ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/LoRaWAN/mbed-crypto/library
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/SubGHz_Phy
     ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/CMSIS/Include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo
 )
 # STM32CubeMX generated application sources
 set(MX_Application_Src
@@ -125,10 +127,6 @@ set(FreeRTOS_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_5.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM3/port.c
 )
-set(BSP_Src
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/BSP/STM32WLxx_Nucleo/stm32wlxx_nucleo_radio.c
-)
 # Link directories setup
 set(MX_LINK_DIRS
 
@@ -139,7 +137,6 @@ set (MX_LINK_LIBS
     ${TOOLCHAIN_LINK_LIBRARIES}
     Utilities
 	FreeRTOS
-	BSP
 	
 )
 # Interface library for includes and symbols
@@ -161,11 +158,6 @@ target_link_libraries(Utilities PUBLIC stm32cubemx)
 add_library(FreeRTOS OBJECT)
 target_sources(FreeRTOS PRIVATE ${FreeRTOS_Src})
 target_link_libraries(FreeRTOS PUBLIC stm32cubemx)
-
-# Create BSP static library
-add_library(BSP OBJECT)
-target_sources(BSP PRIVATE ${BSP_Src})
-target_link_libraries(BSP PUBLIC stm32cubemx)
 
 
 # Add STM32CubeMX generated application sources to the project

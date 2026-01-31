@@ -115,7 +115,7 @@ Reset_Handler:
 /* Zero fill the MB_MEM2 segments. */
   INIT_BSS _sMB_MEM2, _eMB_MEM2
 
-/* Zero fill the MB_MEM2 segments. */
+/* Zero fill the MB_MEM3 segments. */
   INIT_BSS _sMB_MEM3, _eMB_MEM3
 
 /* Copy the data segment initializers from flash to SRAM */

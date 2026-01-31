@@ -20,9 +20,10 @@
 #include "main.h"
 #include "dma.h"
 #include "app_lorawan.h"
-#include "gpio.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "gpio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,7 +62,6 @@
   * @brief  The application entry point.
   * @retval int
   */
-
 int main(void)
 {
 
@@ -84,10 +84,12 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  //MX_DMA_Init();
+  MX_DMA_Init();
+  MX_KMS_Init();
+
   /* USER CODE BEGIN 2 */
-  MX_LoRaWAN_Init();
-  HAL_GPIO_WritePin(GPIOB, LED_BLUE_Pin, GPIO_PIN_SET);
+  
+  MX_LoRaWAN_Init();  
   // LED initialization removed - no LEDs configured in CM0PLUS
 
   /* USER CODE END 2 */

@@ -25,6 +25,7 @@
 #include "sys_app.h" /* APP_PRINTF */
 #include "platform.h" /* Needed for Error_Handler */
 #include "features_info.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -115,7 +116,6 @@ void LoraInfo_Init(void)
   if (loraInfo.Region == 0)
   {
     APP_PRINTF("error: At least one region shall be defined in the MW: check lorawan_conf.h \r\n");
-    
     while (1 != UTIL_ADV_TRACE_IsBufferEmpty())
     {
       /* Wait that all printfs are completed*/
@@ -125,7 +125,6 @@ void LoraInfo_Init(void)
 
 #if ( LORAMAC_CLASSB_ENABLED == 1 )
   loraInfo.ClassB = 1;
-  
 #elif !defined (LORAMAC_CLASSB_ENABLED)
 #error LORAMAC_CLASSB_ENABLED not defined ( shall be <0 or 1> )
 #endif /* LORAMAC_CLASSB_ENABLED */
@@ -178,31 +177,26 @@ void StoreValueInFeatureListTable(void)
 
   if (p_MBMUX_Cm0plusFeatureList != NULL)
   {
-    
     cm0plus_nr_of_supported_features = p_MBMUX_Cm0plusFeatureList->Feat_Info_Cnt;
 
     for (i = 0; i < cm0plus_nr_of_supported_features;  i++)
     {
-      
       p_feature = i + p_MBMUX_Cm0plusFeatureList->Feat_Info_TableAddress;
       if (p_feature->Feat_Info_Feature_Id == FEAT_INFO_LORAWAN_ID)
       {
         found = 1;
         break;
       }
-      
     }
   }
-  
+
   if (found)
   {
     p_feature->Feat_Info_Config_Size = sizeof(LoraInfo_t) / sizeof(uint32_t);
     p_feature->Feat_Info_Config_Ptr = &loraInfo;
-    
   }
   else
   {
-    
     Error_Handler();
   }
 

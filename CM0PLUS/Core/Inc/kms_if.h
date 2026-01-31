@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2026 STMicroelectronics.
+  * Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -27,6 +27,11 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+
+#include "kms.h"
+#include "tkms.h"
+#include "kms_interface.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -38,8 +43,6 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-/* LoRaWAN KMS key object handles */
-#include "kms_platf_objects_config.h"
 
 /* USER CODE END EC */
 

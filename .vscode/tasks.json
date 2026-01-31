@@ -1,0 +1,188 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Flash CM0PLUS and CM4",
+            "type": "shell",
+            "command": "STM32_Programmer_CLI.exe",
+            "args": [
+                "-c", "port=SWD",
+                "-w", "${workspaceFolder}/CM0PLUS/build/TPP-Intellifence_CM0PLUS.elf",
+                "-w", "${workspaceFolder}/CM4/build/TPP-Intellifence_CM4.elf",
+                "-rst"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PATH": "C:/ST/STM32CubeCLT_1.19.0/STM32CubeProgrammer/bin;${env:PATH}"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "Build All (CM0PLUS + CM4)",
+            "type": "shell",
+            "command": "cube-cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build/Debug",
+                "--"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": ["$gcc"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build and Flash Both Cores",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build All (CM0PLUS + CM4)",
+                "Flash CM0PLUS and CM4"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Configure CMake TEST MODE",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-DENABLE_TEST_MODE=ON",
+                "-S",
+                "${workspaceFolder}/CM4",
+                "-B",
+                "${workspaceFolder}/CM4/build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/CM4"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "Build CM4 TEST MODE",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/CM4/build",
+                "--",
+                "-j4"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/CM4"
+            },
+            "problemMatcher": ["$gcc"],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "Build All TEST MODE",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Configure CMake TEST MODE",
+                "Build CM4 TEST MODE"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Show Test Instructions",
+            "type": "shell",
+            "command": "echo",
+            "args": [
+                "🧪 TEST MODE ACTIVO - Debugging con datos mock\\n✓ 30 muestras GPS predefinidas\\n✓ 30 muestras IMU predefinidas\\n✓ Sin hardware GPS/IMU necesario\\n\\n📊 Monitorear logs con rtos_printf\\n🔍 Verificar transiciones FSM\\n📝 Ver CM4/Core/Src/Test/README_COMPILE.md para más info"
+            ],
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "Flash CM4 Only",
+            "type": "shell",
+            "command": "STM32_Programmer_CLI.exe",
+            "args": [
+                "-c", "port=SWD",
+                "-w", "${workspaceFolder}/CM4/build/TPP-Intellifence_CM4.elf",
+                "-rst"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PATH": "C:/ST/STM32CubeCLT_1.19.0/STM32CubeProgrammer/bin;${env:PATH}"
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "type": "cppbuild",
+            "label": "C/C++: gcc.exe build active file",
+            "command": "C:\\Strawberry\\c\\bin\\gcc.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-g",
+                "${file}",
+                "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
+            "detail": "Task generated by Debugger."
+        }
+    ]
+}

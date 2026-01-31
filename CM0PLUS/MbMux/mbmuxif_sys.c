@@ -387,7 +387,7 @@ static int8_t MBMUXIF_FeatureCm0plusRegistrationCmd(uint32_t *pBuf)
 
     case FEAT_INFO_RADIO_ID:
       ret = MBMUXIF_RadioInit();
-      /* APP_LOG(TS_OFF, VLEVEL_L, "CM0PLUS : Radio registration done\r\n"); */
+      APP_LOG(TS_OFF, VLEVEL_L, "CM0PLUS : Radio registration done\r\n");
       break;
 
     case FEAT_INFO_LORAWAN_ID:
@@ -395,14 +395,14 @@ static int8_t MBMUXIF_FeatureCm0plusRegistrationCmd(uint32_t *pBuf)
 
       /* USER CODE END FEAT_INFO_LORAWAN_ID */
       ret = MBMUXIF_LoraInit();
-      /* APP_LOG(TS_OFF, VLEVEL_L, "CM0PLUS : Lora registration done\r\n"); */
+      APP_LOG(TS_OFF, VLEVEL_L, "CM0PLUS : Lora registration done\r\n");
       break;
 
     case FEAT_INFO_SIGFOX_ID:
       /* USER CODE BEGIN FEAT_INFO_SIGFOX_ID */
 
       /* USER CODE END FEAT_INFO_SIGFOX_ID */
-      /* APP_LOG(TS_OFF, VLEVEL_L, "CM0PLUS : Sigfox not supported\r\n"); */
+      APP_LOG(TS_OFF, VLEVEL_L, "CM0PLUS : Sigfox not supported\r\n");
       break;
 
     /* USER CODE BEGIN MBMUXIF_FeatureCm0plusRegistrationCmd_Switch */

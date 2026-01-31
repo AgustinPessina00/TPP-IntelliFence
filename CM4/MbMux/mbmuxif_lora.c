@@ -24,7 +24,7 @@
 #include "mbmuxif_sys.h"
 #include "sys_app.h"
 #include "stm32_mem.h"
-#include "cmsis_os.h"
+#include "cmsis_os2.h"
 #include "LoRaMac.h"
 #include "LmHandler_mbwrapper.h"
 #include "utilities_def.h"
@@ -58,6 +58,7 @@
 static MBMUX_ComParam_t *LoraComObj;
 static osSemaphoreId_t Sem_MbLoRaRespRcv;
 osThreadId_t Thd_LoraNotifRcvProcessId;
+
 /**
   * @brief LoRa cmd buffer to exchange data between CM4 and CM0+
   */
@@ -219,6 +220,7 @@ void MBMUXIF_LoraSendAck(void)
 /* USER CODE END EFD */
 
 /* Private functions ---------------------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
 static void MBMUXIF_IsrLoraRespRcvCb(void *ComObj)
 {
   /* USER CODE BEGIN MBMUXIF_IsrLoraRespRcvCb_1 */
@@ -270,7 +272,6 @@ static void Thd_LoraNotifRcvProcess(void *argument)
 
   /* USER CODE END Thd_LoraNotifRcvProcess_Last */
 }
-
 /* USER CODE BEGIN PrFD */
 
 /* USER CODE END PrFD */

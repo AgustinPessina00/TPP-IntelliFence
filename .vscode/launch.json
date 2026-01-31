@@ -1,0 +1,55 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CM4_Debug",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/CM4/build/TPP-Intellifence_CM4.elf",
+            "servertype": "stlink",
+            "device": "STM32WL55JC",
+            "interface": "swd",
+            "serialNumber": "",
+            "runToEntryPoint": "main",
+            "svdFile": "C:/ST/STM32CubeCLT_1.19.0/STMicroelectronics_CMSIS_SVD/STM32WL5x_CM4.svd",
+            "preLaunchTask": "Build and Flash Both Cores"
+        },
+        {
+            "name": "CM4_Debug_TEST_MODE",
+            "type": "cortex-debug",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/CM4/build/Debug/TPP-Intellifence_CM4.elf",
+            "servertype": "stlink",
+            "device": "STM32WL55JC",
+            "interface": "swd",
+            "serialNumber": "",
+            "runToEntryPoint": "main",
+            "svdFile": "C:/ST/STM32CubeCLT_1.19.0/STMicroelectronics_CMSIS_SVD/STM32WL5x_CM4.svd",
+            "preLaunchTask": "Build All TEST MODE",
+            "postDebugTask": "Show Test Instructions",
+            "showDevDebugOutput": "parsed",
+            "swoConfig": {
+                "enabled": true,
+                "cpuFrequency": 48000000,
+                "swoFrequency": 2000000,
+                "source": "probe",
+                "decoders": [
+                    {
+                        "port": 0,
+                        "type": "console",
+                        "label": "ITM Port 0",
+                        "encoding": "utf8"
+                    }
+                ]
+            },
+            "breakAfterReset": false,
+            "postStartSessionCommands": [
+                "monitor arm semihosting enable"
+            ],
+            "numberOfProcessors": 1,
+            "targetProcessor": 1
+        }
+    ]
+}

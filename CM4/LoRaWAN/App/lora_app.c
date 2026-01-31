@@ -35,7 +35,7 @@
 #define RTOS_PRINTF_AUTO
 /* USER CODE BEGIN Includes */
 #include "rtos_printf.h"
-
+#include "gpio.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/

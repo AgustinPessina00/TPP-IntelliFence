@@ -34,7 +34,6 @@
 #include "mbmuxif_radio.h"
 #include "features_info.h"
 #include "mbmuxif_lora.h"
-#include "gpio.h"
 #ifdef ALLOW_KMS_VIA_MBMUX /* currently not supported */
 /* #include "mbmuxif_kms.h" */
 #endif /* ALLOW_KMS_VIA_MBMUX */
@@ -98,8 +97,6 @@ void SystemApp_Init(void)
   /* RTC_Init: normally already executed by overloading HAL_InitTick(), but need to be sure before notify Cm4 */
   /*Initialize timer and RTC*/
   UTIL_TIMER_Init();
-
-  
   SYS_TimerInitialisedFlag = 1;
 
   /*Init low power manager*/
@@ -107,21 +104,18 @@ void SystemApp_Init(void)
   /* Disable Stand-by mode */
   UTIL_LPM_SetOffMode((1 << CFG_LPM_APPLI_Id), UTIL_LPM_DISABLE);
 
-  
 #if defined (LOW_POWER_DISABLE) && (LOW_POWER_DISABLE == 1)
   /* Disable Stop Mode */
   UTIL_LPM_SetStopMode((1 << CFG_LPM_APPLI_Id), UTIL_LPM_DISABLE);
-  
 #elif !defined (LOW_POWER_DISABLE)
 #error LOW_POWER_DISABLE not defined
 #endif /* LOW_POWER_DISABLE */
+
   /* Init Feat_Info table */
   FEAT_INFO_Init();
-  
 
   /* Note: the trace is initialized in the context of MBMUXIF because it uses the MB on Cm0 side */
   init_status = MBMUXIF_SystemInit();
-  
   if (init_status < 0)
   {
     Error_Handler();
@@ -155,15 +149,15 @@ void Process_Kms_Cmd(MBMUX_ComParam_t *ComObj)
   /* USER CODE END Process_Kms_Cmd_1 */
   uint32_t *com_buffer = MBMUX_SEC_VerifySramBufferPtr(ComObj->ParamBuf, ComObj->BufSize);
 
-  /* APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(KMS)\r\n"); */
+  APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(KMS)\r\n");
 
   /* process Command */
   switch (ComObj->MsgId)
   {
     case KMS_CRYPTO_HMAC_SHA256_MSG_ID:
-      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Cmd rcv : KMS_CRYPTO_HMAC_SHA256_MSG_ID\r\n"); */
-      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey length %d\r\n", com_buffer[1]); */
-      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey string %s\r\n", (char *) com_buffer[0]); */
+      APP_LOG(TS_ON, VLEVEL_L, " * CM0 Cmd rcv : KMS_CRYPTO_HMAC_SHA256_MSG_ID\r\n");
+      APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey length %d\r\n", com_buffer[1]);
+      APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey string %s\r\n", (char *) com_buffer[0]);
       /* prepare response buffer */
       ComObj->ParamCnt = 0;
       ComObj->ReturnVal = (uint32_t) -5; /* dummy value for test */
@@ -174,7 +168,7 @@ void Process_Kms_Cmd(MBMUX_ComParam_t *ComObj)
   }
 
   /* send Response */
-  /* APP_LOG(TS_ON, VLEVEL_L, "<CM0PLUS(KMS)\r\n"); */
+  APP_LOG(TS_ON, VLEVEL_L, "<CM0PLUS(KMS)\r\n");
   MBMUX_ResponseSnd(FEAT_INFO_KMS_ID);
 
   /* USER CODE BEGIN Process_Kms_Cmd_2 */
@@ -188,7 +182,7 @@ void Process_Sys_Cmd(MBMUX_ComParam_t *ComObj)
   /* USER CODE BEGIN Process_Sys_Cmd_1 */
 
   /* USER CODE END Process_Sys_Cmd_1 */
-  /* APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(System)\r\n"); */
+  APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(System)\r\n");
 
   /* process Command */
   switch (ComObj->MsgId)
@@ -211,7 +205,7 @@ void Process_Sys_Cmd(MBMUX_ComParam_t *ComObj)
   }
 
   /* send Response */
-  /* APP_LOG(TS_ON, VLEVEL_M, "<CM0PLUS(System)\r\n"); */
+  APP_LOG(TS_ON, VLEVEL_M, "<CM0PLUS(System)\r\n");
   MBMUX_ResponseSnd(FEAT_INFO_SYSTEM_ID);
   /* USER CODE BEGIN Process_Sys_Cmd_2 */
 
