@@ -820,8 +820,8 @@ static void SendTxData(void)
   UTIL_TIMER_Time_t nextTxIn = 0;
 
   if (LmHandlerIsBusy() == false) {
-    float latitude = -34.603722f;   // Ejemplo: Buenos Aires
-    float longitude = -58.381592f;
+    float latitude = -34.570440f;   // Ejemplo: Nacho
+    float longitude = -58.444157f;
 
     uint32_t i = 0;
     AppData.Port = LORAWAN_USER_APP_PORT;  // Puerto 2
@@ -946,22 +946,13 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       UTIL_TIMER_Stop(&JoinLedTimer);
       HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
 
-      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOINED = ");
-      if (joinParams->Mode == ACTIVATION_TYPE_ABP)
-      {
-        APP_LOG(TS_OFF, VLEVEL_M, "ABP ======================\r\n");
-      }
-      else
-      {
-        APP_LOG(TS_OFF, VLEVEL_M, "OTAA =====================\r\n");
-      }
+      rtos_printf("\r\n###### = JOINED = %s\r\n",
+              (joinParams->Mode == ACTIVATION_TYPE_ABP) ? "ABP" : "OTAA");
     }
     else
     {
-      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### = JOIN FAILED\r\n");
+      rtos_printf("\r\n###### = JOIN FAILED\r\n");
     }
-
-    APP_LOG(TS_OFF, VLEVEL_H, "###### U/L FRAME:JOIN | DR:%d | PWR:%d\r\n", joinParams->Datarate, joinParams->TxPower);
   }
   /* USER CODE END OnJoinRequest_1 */
 }
