@@ -478,6 +478,9 @@ void LoRaWAN_Init(void)
   {
     Error_Handler();
   }
+  
+  rtos_printf("\r\n[CONFIG] ForceRejoin=%s, ActivationType=%d\r\n", 
+              ForceRejoin ? "TRUE" : "FALSE", ActivationType);
   /* USER CODE END LoRaWAN_Init_2 */
 
   LmHandlerJoin(ActivationType, ForceRejoin);
@@ -1154,11 +1157,11 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
   /* USER CODE END OnNvmDataChange_1 */
   if (state == LORAMAC_HANDLER_NVM_STORE)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORED\r\n");
+    rtos_printf("[NVM] Data change detected - STORE\r\n");
   }
   else
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA RESTORED\r\n");
+    rtos_printf("[NVM] Data change detected - RESTORE\r\n");
   }
   /* USER CODE BEGIN OnNvmDataChange_Last */
 
@@ -1168,9 +1171,11 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
 static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 {
   /* USER CODE BEGIN OnStoreContextRequest_1 */
-
+  rtos_printf("\r\n>>> [NVM STORE] Writing %lu bytes to Flash @ 0x%08lX <<<\r\n", 
+              nvm_size, (uint32_t)LORAWAN_NVM_BASE_ADDRESS);
   /* USER CODE END OnStoreContextRequest_1 */
   FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
+  rtos_printf(">>> [NVM STORE] COMPLETE <<<\r\n");
 
   /* USER CODE BEGIN OnStoreContextRequest_Last */
 
@@ -1180,9 +1185,11 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 {
   /* USER CODE BEGIN OnRestoreContextRequest_1 */
-
+  rtos_printf("\r\n>>> [NVM RESTORE] Reading %lu bytes from Flash @ 0x%08lX <<<\r\n", 
+              nvm_size, (uint32_t)LORAWAN_NVM_BASE_ADDRESS);
   /* USER CODE END OnRestoreContextRequest_1 */
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);
+  rtos_printf(">>> [NVM RESTORE] COMPLETE <<<\r\n");
   /* USER CODE BEGIN OnRestoreContextRequest_Last */
 
   /* USER CODE END OnRestoreContextRequest_Last */

@@ -395,6 +395,7 @@ void StartDefaultTask(void *argument)
   /* init code for LoRaWAN */
   MX_LoRaWAN_Init();
   /* USER CODE BEGIN StartDefaultTask */
+  osThreadTerminate (defaultTaskHandle);
   /* Infinite loop */
   for(;;)
   {
