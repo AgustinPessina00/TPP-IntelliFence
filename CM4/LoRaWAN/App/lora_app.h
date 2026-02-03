@@ -102,8 +102,12 @@ extern "C" {
 /*!
  * LoRaWAN force rejoin even if the NVM context is restored
  * @note useful only when context management is enabled by CONTEXT_MANAGEMENT_ENABLED
+ * 
+ * ⚠️ IMPORTANTE: Configurado en TRUE para evitar problemas de frame counter reset
+ * Con TRUE: cada reset hace nuevo join OTAA (rápido, usa DevNonce persistido)
+ * Con FALSE: reutiliza sesión pero puede causar errores de frame counter en el servidor
  */
-#define LORAWAN_FORCE_REJOIN_AT_BOOT                false
+#define LORAWAN_FORCE_REJOIN_AT_BOOT                true
 
 /*!
  * User application data buffer size

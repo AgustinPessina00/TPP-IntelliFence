@@ -481,9 +481,19 @@ void LoRaWAN_Init(void)
   
   rtos_printf("\r\n[CONFIG] ForceRejoin=%s, ActivationType=%d\r\n", 
               ForceRejoin ? "TRUE" : "FALSE", ActivationType);
+  
+  // Debug: Verificar si ya tenemos una sesión válida antes de llamar Join
+  LmHandlerFlagStatus_t joinStatus = LmHandlerJoinStatus();
+  rtos_printf("[DEBUG] Join status BEFORE LmHandlerJoin(): %d (0=NOT_JOINED, 1=JOINED)\r\n", joinStatus);
   /* USER CODE END LoRaWAN_Init_2 */
 
   LmHandlerJoin(ActivationType, ForceRejoin);
+  
+  /* USER CODE BEGIN LoRaWAN_Init_2b */
+  // Debug: Verificar estado después del Join
+  joinStatus = LmHandlerJoinStatus();
+  rtos_printf("[DEBUG] Join status AFTER LmHandlerJoin(): %d\r\n", joinStatus);
+  /* USER CODE END LoRaWAN_Init_2b */
 
   if (EventType == TX_ON_TIMER)
   {
@@ -697,9 +707,18 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                   float longitude = lon_union.f;
                   
                   // Convertir a enteros para display
-                  int32_t lat_e6 = (int32_t)(latitude * 1000000);
-                  int32_t lon_e6 = (int32_t)(longitude * 1000000);
+                  //int32_t lat_e6 = (int32_t)(latitude * 1000000);
+                  //int32_t lon_e6 = (int32_t)(longitude * 1000000);
                   
+                  //Cambiar TRUNCADO por REDONDEO
+                  float lat_tmp = latitude  * 1000000.0f;
+                  float lon_tmp = longitude * 1000000.0f;
+
+                  int32_t lat_e6 = (int32_t)(lat_tmp + (lat_tmp >= 0 ? 0.5f : -0.5f));
+                  int32_t lon_e6 = (int32_t)(lon_tmp + (lon_tmp >= 0 ? 0.5f : -0.5f));
+
+
+
                   int32_t lat_int = lat_e6 / 1000000;
                   int32_t lat_dec = lat_e6 - (lat_int * 1000000);
                   if (lat_dec < 0) lat_dec = -lat_dec;
@@ -951,6 +970,13 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 
       rtos_printf("\r\n###### = JOINED = %s\r\n",
               (joinParams->Mode == ACTIVATION_TYPE_ABP) ? "ABP" : "OTAA");
+      
+      // ⚠️ WORKAROUND: El stack NO llama OnNvmDataChange automáticamente en dual-core
+      // Guardamos manualmente el contexto NVM después del join exitoso
+      rtos_printf(">>> [OnJoinRequest] Join exitoso! Guardando contexto NVM manualmente...\r\n");
+      
+      // Activar el thread de guardado
+      osThreadFlagsSet(Thd_LoraStoreContextId, 1);
     }
     else
     {
@@ -1133,17 +1159,25 @@ static void StoreContext(void)
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
 
   /* USER CODE BEGIN StoreContext_1 */
-
+  rtos_printf("\r\n>>> [StoreContext] Thread ejecutando, llamando LmHandlerNvmDataStore()...\r\n");
   /* USER CODE END StoreContext_1 */
   status = LmHandlerNvmDataStore();
 
-  if (status == LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE)
+  if (status == LORAMAC_HANDLER_SUCCESS)
+  {
+    rtos_printf(">>> [StoreContext] NVM guardado exitosamente\r\n");
+  }
+  else if (status == LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE)
   {
     APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\n");
   }
   else if (status == LORAMAC_HANDLER_ERROR)
   {
     APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\n");
+  }
+  else
+  {
+    rtos_printf(">>> [StoreContext] Status inesperado: %d\r\n", status);
   }
   /* USER CODE BEGIN StoreContext_Last */
 
@@ -1158,14 +1192,18 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
   if (state == LORAMAC_HANDLER_NVM_STORE)
   {
     rtos_printf("[NVM] Data change detected - STORE\r\n");
+    /* USER CODE BEGIN OnNvmDataChange_Last */
+    // CRÍTICO: Activar el thread de guardado asíncrono
+    osThreadFlagsSet(Thd_LoraStoreContextId, 1);
+    /* USER CODE END OnNvmDataChange_Last */
   }
   else
   {
     rtos_printf("[NVM] Data change detected - RESTORE\r\n");
-  }
   /* USER CODE BEGIN OnNvmDataChange_Last */
 
   /* USER CODE END OnNvmDataChange_Last */
+  }
 }
 
 static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
@@ -1175,10 +1213,8 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
               nvm_size, (uint32_t)LORAWAN_NVM_BASE_ADDRESS);
   /* USER CODE END OnStoreContextRequest_1 */
   FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
-  rtos_printf(">>> [NVM STORE] COMPLETE <<<\r\n");
-
   /* USER CODE BEGIN OnStoreContextRequest_Last */
-
+  rtos_printf(">>> [NVM STORE] COMPLETE <<<\r\n");
   /* USER CODE END OnStoreContextRequest_Last */
 }
 
@@ -1187,11 +1223,26 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
   /* USER CODE BEGIN OnRestoreContextRequest_1 */
   rtos_printf("\r\n>>> [NVM RESTORE] Reading %lu bytes from Flash @ 0x%08lX <<<\r\n", 
               nvm_size, (uint32_t)LORAWAN_NVM_BASE_ADDRESS);
+  
+  // Debug: Mostrar primeros bytes ANTES de leer
+  uint8_t *flash_ptr = (uint8_t*)LORAWAN_NVM_BASE_ADDRESS;
+  rtos_printf("[DEBUG] Flash first 16 bytes BEFORE read: ");
+  for (int i = 0; i < 16; i++) {
+    rtos_printf("%02X ", flash_ptr[i]);
+  }
+  rtos_printf("\r\n");
   /* USER CODE END OnRestoreContextRequest_1 */
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);
-  rtos_printf(">>> [NVM RESTORE] COMPLETE <<<\r\n");
   /* USER CODE BEGIN OnRestoreContextRequest_Last */
-
+  rtos_printf(">>> [NVM RESTORE] COMPLETE <<<\r\n");
+  
+  // Debug: Mostrar primeros bytes DESPUÉS de copiar al buffer
+  uint8_t *buf = (uint8_t*)nvm;
+  rtos_printf("[DEBUG] Buffer first 16 bytes AFTER read: ");
+  for (int i = 0; i < 16; i++) {
+    rtos_printf("%02X ", buf[i]);
+  }
+  rtos_printf("\r\n");
   /* USER CODE END OnRestoreContextRequest_Last */
 }
 
