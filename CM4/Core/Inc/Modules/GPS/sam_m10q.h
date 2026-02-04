@@ -131,8 +131,8 @@ private:
     bool verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen);
 
 public:
-	double latitude = 0;
-	double longitude = 0;
+	float latitude = 0;
+	float longitude = 0;
 	uint32_t fechaUTC = 0; //yymmdd	//TODO: Chequear uint32_t
 	uint32_t horaUTC = 0; //hhmmss	//TODO: Chequear uint32_t
 
