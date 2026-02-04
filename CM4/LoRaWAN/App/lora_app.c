@@ -35,7 +35,8 @@
 #define RTOS_PRINTF_AUTO
 /* USER CODE BEGIN Includes */
 #include "rtos_printf.h"
-
+#include "EmbeddedMessage.h"
+#include "messages_id.h"
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -377,6 +378,10 @@ static UTIL_TIMER_Object_t JoinLedTimer;
   * Temp buffer to store a FLASH page in RAM when partial replacement is needed
   */
 static uint8_t FLASH_RAM_buffer[FLASH_IF_BUFFER_SIZE];
+
+// COLA DE LORA
+extern osMessageQueueId_t loraTxQueueHandle;
+extern osMessageQueueId_t dispatcherQueueHandle;
 
 /* USER CODE END PV */
 
@@ -799,6 +804,117 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
             //   }
             //   break;
 
+            case LORAWAN_FENCE_PORT:  // Puerto 4 - Recepción de vértices del cerco
+              // RECEPCIÓN DE VÉRTICES DEL FENCE
+              // Formato: [num_vertices][lat1][lon1][lat2][lon2]...
+              if (appData->BufferSize >= 9)  // Mínimo: 1 byte contador + 1 vértice (8 bytes)
+              {
+                // Primer byte: número de vértices
+                uint8_t numVertices = appData->Buffer[0];
+                
+                // Validar tamaño del mensaje
+                const uint8_t VERTEX_SIZE = 2 * sizeof(float);  // 8 bytes por vértice (lat + lon)
+                uint8_t expected_size = 1 + (numVertices * VERTEX_SIZE);
+                
+                if (appData->BufferSize != expected_size)
+                {
+                  rtos_printf("ERROR: Expected %d bytes for %d vertices, received %d bytes\r\n", 
+                          expected_size, numVertices, appData->BufferSize);
+                  break;
+                }
+                
+                rtos_printf("\r\n>>> FENCE RECV: %d vertices (%d bytes)\r\n", 
+                        numVertices, appData->BufferSize);
+                
+                // Fragmentar y enviar a FSM (máximo 4 vértices por mensaje)
+                const uint8_t HEADER_SIZE = 3;  // fragment_num, total_fragments, vertices_count
+                const uint8_t MAX_VERTICES_PER_MSG = (MAX_MESSAGE_PAYLOAD_SIZE - HEADER_SIZE) / VERTEX_SIZE;
+                
+                uint8_t totalFragments = (numVertices + MAX_VERTICES_PER_MSG - 1) / MAX_VERTICES_PER_MSG;
+                
+                for (uint8_t fragment = 0; fragment < totalFragments; fragment++)
+                {
+                  EmbeddedMessage_t *msgToFSM = MessagePool_Allocate();
+                  if (msgToFSM != NULL)
+                  {
+                    uint8_t startVertex = fragment * MAX_VERTICES_PER_MSG;
+                    uint8_t verticesInFragment = MAX_VERTICES_PER_MSG;
+                    
+                    // Último fragmento puede tener menos vértices
+                    if (startVertex + verticesInFragment > numVertices)
+                    {
+                      verticesInFragment = numVertices - startVertex;
+                    }
+                    
+                    // Construir payload: [fragment_num][total_fragments][vertices_count][vertex_data...]
+                    uint8_t payloadOffset = 0;
+                    msgToFSM->payload[payloadOffset++] = fragment;
+                    msgToFSM->payload[payloadOffset++] = totalFragments;
+                    msgToFSM->payload[payloadOffset++] = verticesInFragment;
+                    
+                    // Copiar vértices de este fragmento desde appData->Buffer (offset +1 por el contador)
+                    uint16_t sourceOffset = 1 + (startVertex * VERTEX_SIZE);
+                    uint16_t copySize = verticesInFragment * VERTEX_SIZE;
+                    memcpy(&msgToFSM->payload[payloadOffset], 
+                           &appData->Buffer[sourceOffset], 
+                           copySize);
+                    payloadOffset += copySize;
+                    
+                    msgToFSM->id = MSG_ID_LORA_VERTEXES_RECEIVED;
+                    msgToFSM->sender = MODULE_LORA_RX;
+                    msgToFSM->receiver = MODULE_FSM;
+                    msgToFSM->length = payloadOffset;
+                    
+                    osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
+                                                         &msgToFSM, 0, 100);
+                    if (status == osOK)
+                    {
+                      rtos_printf("[LORA_RX] Fragment %d/%d sent to FSM (%d vertices)\r\n", 
+                              fragment + 1, totalFragments, verticesInFragment);
+                      
+                      // Mostrar primer vértice del primer fragmento para debug
+                      if (fragment == 0 && verticesInFragment > 0)
+                      {
+                        float latitude, longitude;
+                        memcpy(&latitude, &appData->Buffer[1], sizeof(float));
+                        memcpy(&longitude, &appData->Buffer[1 + sizeof(float)], sizeof(float));
+                        
+                        rtos_printf("  First vertex: {%.6ff, %.6ff}\r\n", latitude, longitude);
+                      }
+                    }
+                    else
+                    {
+                      rtos_printf("ERROR: Failed to send fragment %d to FSM (status=%d)\r\n", 
+                              fragment, status);
+                      MessagePool_Free(msgToFSM);
+                    }
+                    msgToFSM = NULL;
+                    
+                    // Pequeño delay entre fragmentos para no saturar la cola
+                    osDelay(50);
+                  }
+                  else
+                  {
+                    rtos_printf("ERROR: Failed to allocate message for fragment %d\r\n", fragment);
+                    break;
+                  }
+                }
+                
+                // Parpadear LED AZUL para indicar recepción exitosa de fence
+                for (uint8_t blink = 0; blink < 2; blink++)
+                {
+                  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET);
+                  HAL_Delay(50);
+                  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET);
+                  HAL_Delay(50);
+                }
+              }
+              else
+              {
+                rtos_printf("ERROR: Fence payload too small (%d bytes, min 9)\r\n", appData->BufferSize);
+              }
+              break;
+
             default:
               APP_LOG(TS_OFF, VLEVEL_H, "WARNING: Downlink received on unhandled port %d\r\n", RxPort);
               break;
@@ -837,76 +953,78 @@ static void SendTxData(void)
 {
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
-  //uint8_t batteryLevel = GetBatteryLevel();
-  //sensor_t sensor_data;
   UTIL_TIMER_Time_t nextTxIn = 0;
+  bool shouldSend = false;
 
+  // Verificar condiciones y procesar mensaje
   if (LmHandlerIsBusy() == false) {
-    float latitude = -34.570440f;   // Ejemplo: Nacho
-    float longitude = -58.444157f;
+    EmbeddedMessage_t* msg = NULL;
+    if (osMessageQueueGet(loraTxQueueHandle, &msg, NULL, 0) == osOK) {
+      // Procesar mensaje según tipo - cada case solo configura AppData
+      switch(msg->id) {
+        case MSG_ID_LORA_SEND_POSITION:
+          // Copiar payload al buffer de LoRa
+          memcpy(AppData.Buffer, msg->payload, msg->length);
+          AppData.BufferSize = msg->length;
+          AppData.Port = LORAWAN_USER_APP_PORT;
+          shouldSend = true;
+          
+          // Debug: extraer y mostrar lat/lon
+          if (msg->length >= 8) {
+            float latitude, longitude;
+            memcpy(&latitude, &msg->payload[0], 4);
+            memcpy(&longitude, &msg->payload[4], 4);
+            APP_LOG(TS_OFF, VLEVEL_H, "Sending GPS: Lat=%.6f, Lon=%.6f\r\n", latitude, longitude);
+          }
+          break;
+        //AGREGAR ACA SI HAY QUE MANDAR MAS MENSAJES DE LORA.
+        //UNICAMENTE HACE FALTA TOCAR EL AppBuffer y el flag shouldSend = true;
+        default:
+          APP_LOG(TS_OFF, VLEVEL_H, "WARNING: Unknown message ID %d\r\n", msg->id);
+          break;
+      }
 
-    uint32_t i = 0;
-    AppData.Port = LORAWAN_USER_APP_PORT;  // Puerto 2
+      // Detener LED de Join si ya está conectado
+      if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)) {
+        UTIL_TIMER_Stop(&JoinLedTimer);
+        HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+      }
 
-    // Serializar floats a bytes (4 bytes cada uno)
-    // Método 1: Union (más directo)
-    union {
-      float f;
-      uint8_t bytes[4]; // 4 bytes para representar el float
-    } lat_union, lon_union;
-    
-    lat_union.f = latitude;
-    lon_union.f = longitude;
-
-    // Copiar bytes de latitud (4 bytes)
-    AppData.Buffer[i++] = lat_union.bytes[0];
-    AppData.Buffer[i++] = lat_union.bytes[1];
-    AppData.Buffer[i++] = lat_union.bytes[2];
-    AppData.Buffer[i++] = lat_union.bytes[3];
-    
-    // Copiar bytes de longitud (4 bytes)
-    AppData.Buffer[i++] = lon_union.bytes[0];
-    AppData.Buffer[i++] = lon_union.bytes[1];
-    AppData.Buffer[i++] = lon_union.bytes[2];
-    AppData.Buffer[i++] = lon_union.bytes[3];
-
-    AppData.BufferSize = i;  // Total: 8 bytes
-
-    APP_LOG(TS_OFF, VLEVEL_H, "Sending GPS: Lat=%.6f, Lon=%.6f\r\n", latitude, longitude);
-
-    // Detiene LED de Join si ya está conectado
-    if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)) {
-      UTIL_TIMER_Stop(&JoinLedTimer);
-      HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
-    }
-
-    // ENVÍA EL MENSAJE
-    status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
-    
-    if (LORAMAC_HANDLER_SUCCESS == status) {
-      APP_LOG(TS_OFF, VLEVEL_H, "SEND REQUEST\r\n");
-    }
-    else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status) {
-      nextTxIn = LmHandlerGetDutyCycleWaitTime();
-      if (nextTxIn > 0)
-      {
-        APP_LOG(TS_OFF, VLEVEL_H, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
+      // Código común de envío (solo si shouldSend == true)
+      if (shouldSend) {
+        // ENVIAR mensaje LoRaWAN
+        status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
+        
+        if (LORAMAC_HANDLER_SUCCESS == status) {
+          APP_LOG(TS_OFF, VLEVEL_H, "SEND REQUEST\r\n");
+          
+          // Enviar feedback a FSM si es MSG_ID_LORA_SEND_POSITION
+          if (msg->id == MSG_ID_LORA_SEND_POSITION) {
+            EmbeddedMessage_t *msgFeedback = MessagePool_Allocate();
+            if (msgFeedback != NULL) {
+              EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, MODULE_FSM);
+              osMessageQueuePut(dispatcherQueueHandle, &msgFeedback, 0, 100);
+            } else {
+              APP_LOG(TS_OFF, VLEVEL_H, "ERROR: Failed to allocate feedback message\r\n");
+            }
+          }
+        }
+        else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status) {
+          nextTxIn = LmHandlerGetDutyCycleWaitTime();
+          if (nextTxIn > 0) {
+            APP_LOG(TS_OFF, VLEVEL_H, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
+          }
+        }
       }
     }
   }
-  
-  // Reinicia timer para próximo envío
+
+  // Reiniciar timer para próximo envío (siempre)
   if (EventType == TX_ON_TIMER) {
     UTIL_TIMER_Stop(&TxTimer);
     UTIL_TIMER_SetPeriod(&TxTimer, MAX(nextTxIn, TxPeriodicity));
     UTIL_TIMER_Start(&TxTimer);
   }
-
-  /* Estructura del mensaje enviado:
-    Byte 0-3: Latitud (float, little-endian)
-    Byte 4-7: Longitud (float, little-endian)
-    Total: 8 bytes
-  */
 
   /* USER CODE END SendTxData_1 */
 }

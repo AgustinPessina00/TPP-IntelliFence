@@ -60,6 +60,12 @@ extern "C" {
 #define LORAWAN_USER_APP_PORT                       2
 
 /*!
+ * LoRaWAN Fence vertices port
+ * @note do not use 224. It is reserved for certification
+ */
+#define LORAWAN_FENCE_PORT                          4
+
+/*!
  * LoRaWAN Switch class application port
  * @note do not use 224. It is reserved for certification
  */

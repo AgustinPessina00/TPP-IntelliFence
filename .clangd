@@ -2,7 +2,7 @@ CompileFlags:
   Add:
   - '-ferror-limit=0'
   - '-Wno-implicit-int'
-  CompilationDatabase: CM4/build
+  CompilationDatabase: CM4/build/Debug
 Diagnostics:
   Suppress:
   - unused-includes

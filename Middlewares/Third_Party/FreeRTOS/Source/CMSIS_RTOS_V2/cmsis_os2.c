@@ -2162,7 +2162,7 @@ osStatus_t osMessageQueuePut (osMessageQueueId_t mq_id, const void *msg_ptr, uin
   QueueHandle_t hQueue = (QueueHandle_t)mq_id;
   osStatus_t stat;
   BaseType_t yield;
-
+P
   (void)msg_prio; /* Message priority is ignored */
 
   stat = osOK;
