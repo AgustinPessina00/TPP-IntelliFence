@@ -239,11 +239,11 @@ void initialize_message_queues(void) {
     
     // Colas adicionales (tamaños más pequeños para funciones futuras)
     //gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
-    // loraTxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraTxQueue_attributes);
-    // if (loraTxQueueHandle == NULL) {
-    //     printf("[QUEUES] ERROR - Fallo creación loraTxQueue\n");
-    //     Error_Handler();
-    // }
+    loraTxQueueHandle = osMessageQueueNew(16, sizeof(void*), &loraTxQueue_attributes);
+    if (loraTxQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación loraTxQueue\n");
+        Error_Handler();
+    }
     //loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
     //distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
     //fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
@@ -365,7 +365,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  //initialize_message_queues();
+  initialize_message_queues();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */

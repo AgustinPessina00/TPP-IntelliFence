@@ -951,6 +951,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 
 static void SendTxData(void)
 {
+  rtos_printf("SendTxData called\r\n");
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
   UTIL_TIMER_Time_t nextTxIn = 0;
@@ -959,6 +960,27 @@ static void SendTxData(void)
   // Verificar condiciones y procesar mensaje
   if (LmHandlerIsBusy() == false) {
     EmbeddedMessage_t* msg = NULL;
+
+
+    EmbeddedMessage_t *msgSend = MessagePool_Allocate();
+    if (msgSend != NULL) {
+        float latitude_aux = -34.570440f;   // Ejemplo: Nacho
+        float longitude_aux = -58.444157f;
+        
+        uint8_t data[2 * sizeof(float)];
+        memcpy(data, &latitude_aux, sizeof(float));
+        memcpy(data + sizeof(float), &longitude_aux, sizeof(float));
+        
+        EmbeddedMessage_CreateWithPayload(msgSend, MSG_ID_LORA_SEND_POSITION, MODULE_FSM, MODULE_LORA_TX, data, 2 * sizeof(float));
+        if (osMessageQueuePut(loraTxQueueHandle, &msgSend, 0, 100) == osOK){
+          rtos_printf("Message queue to loraTxQueue\r\n");
+        }
+        else {
+          rtos_printf("ERROR: Failed to send to LORATX \r\n");
+          MessagePool_Free(msgSend);
+        }
+    }
+
     if (osMessageQueueGet(loraTxQueueHandle, &msg, NULL, 0) == osOK) {
       // Procesar mensaje según tipo - cada case solo configura AppData
       switch(msg->id) {
@@ -974,13 +996,13 @@ static void SendTxData(void)
             float latitude, longitude;
             memcpy(&latitude, &msg->payload[0], 4);
             memcpy(&longitude, &msg->payload[4], 4);
-            APP_LOG(TS_OFF, VLEVEL_H, "Sending GPS: Lat=%.6f, Lon=%.6f\r\n", latitude, longitude);
+            rtos_printf("[LORA_TX] GPS: Lat=%.6f Lon=%.6f\r\n", latitude, longitude);
           }
           break;
         //AGREGAR ACA SI HAY QUE MANDAR MAS MENSAJES DE LORA.
         //UNICAMENTE HACE FALTA TOCAR EL AppBuffer y el flag shouldSend = true;
         default:
-          APP_LOG(TS_OFF, VLEVEL_H, "WARNING: Unknown message ID %d\r\n", msg->id);
+          rtos_printf("WARNING: Unknown message ID %d\r\n", msg->id);
           break;
       }
 
@@ -996,26 +1018,35 @@ static void SendTxData(void)
         status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
         
         if (LORAMAC_HANDLER_SUCCESS == status) {
-          APP_LOG(TS_OFF, VLEVEL_H, "SEND REQUEST\r\n");
+          rtos_printf("[LORA_TX] Uplink sent successfully\r\n");
           
           // Enviar feedback a FSM si es MSG_ID_LORA_SEND_POSITION
           if (msg->id == MSG_ID_LORA_SEND_POSITION) {
             EmbeddedMessage_t *msgFeedback = MessagePool_Allocate();
             if (msgFeedback != NULL) {
               EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, MODULE_FSM);
-              osMessageQueuePut(dispatcherQueueHandle, &msgFeedback, 0, 100);
+              osStatus_t feedbackStatus = osMessageQueuePut(dispatcherQueueHandle, &msgFeedback, 0, 100);
+              if (feedbackStatus != osOK) {
+                rtos_printf("[LORA_TX] WARNING: Feedback queue full (status=%d)\r\n", feedbackStatus);
+                MessagePool_Free(msgFeedback);
+              }
             } else {
-              APP_LOG(TS_OFF, VLEVEL_H, "ERROR: Failed to allocate feedback message\r\n");
+              rtos_printf("[LORA_TX] WARNING: MessagePool exhausted, no feedback sent\r\n");
             }
           }
         }
         else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status) {
           nextTxIn = LmHandlerGetDutyCycleWaitTime();
           if (nextTxIn > 0) {
-            APP_LOG(TS_OFF, VLEVEL_H, "Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
+            rtos_printf("Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
           }
         }
       }
+      
+      // CRÍTICO: Liberar el mensaje después de procesarlo
+      MessagePool_Free(msg);
+      msg = NULL;
+      msgSend = NULL;
     }
   }
 
