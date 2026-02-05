@@ -114,20 +114,18 @@ const osMessageQueueAttr_t loraTxQueue_attributes = {
 // };
 
 // Thread dispatcher - rutea mensajes entre módulos
-// osThreadId_t dispatcher_TaskHandle;
+osThreadId_t dispatcher_TaskHandle;
 
 // Buffers estáticos en RAM1 para dispatcher
 // __attribute__((section(".RAM1_region"))) static StaticTask_t dispatcher_TaskBuffer;
 // __attribute__((section(".RAM1_region"))) static StackType_t dispatcher_TaskStack[192];  // 768 bytes / 4 bytes per word
 
-// const osThreadAttr_t dispatcher_Task_attributes = {
-//   .name = "dispatcher_Task",
-//   .stack_size = 256 * 3,  // 768 bytes dispatcher
-//   .priority = (osPriority_t) osPriorityNormal,
-//   .cb_mem = &dispatcher_TaskBuffer,
-//   .cb_size = sizeof(dispatcher_TaskBuffer),
-//   .stack_mem = dispatcher_TaskStack,
-// };
+const osThreadAttr_t dispatcher_Task_attributes = {
+  .name = "dispatcher_Task",
+  .stack_size = 256 * 3,  // 768 bytes dispatcher
+  .priority = (osPriority_t) osPriorityNormal,
+
+};
 
 // Thread FSM - máquina de estados principal
 // osThreadId_t fsm_TaskHandle;
@@ -264,12 +262,12 @@ void initialize_message_queues(void) {
 void initialize_system_threads(void) {
     printf("[THREADS] Inicializando threads del sistema FreeRTOS...\n");
     
-    // Thread dispatcher - alta prioridad (ruteo de mensajes crítico)
-    // dispatcher_TaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcher_Task_attributes);
-    // if (dispatcher_TaskHandle == NULL) {
-    //     printf("[THREADS] ERROR - Fallo creación dispatcher_Task\n");
-    //     Error_Handler();
-    // }
+    //Thread dispatcher - alta prioridad (ruteo de mensajes crítico)
+    dispatcher_TaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcher_Task_attributes);
+    if (dispatcher_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación dispatcher_Task\n");
+        Error_Handler();
+    }
     
     //Thread FSM - prioridad normal (lógica de aplicación)
     // fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
@@ -374,7 +372,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  //initialize_system_threads();
+  initialize_system_threads();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
