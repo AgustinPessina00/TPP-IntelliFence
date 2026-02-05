@@ -23,7 +23,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* Define the heap array in RAM2 section */
-__attribute__((section(".RAM2_region")))
+__attribute__((section(".RAM1_region")))
 static uint8_t ucHeap[configTOTAL_HEAP_SIZE];
 
 /* Required by heap_4.c - Define heap start and size */

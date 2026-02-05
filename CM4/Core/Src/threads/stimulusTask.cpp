@@ -14,6 +14,10 @@
 #include "Modules/Messages/EmbeddedMessage.h"
 #include "projdefs.h"
 #include "main.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#define RTOS_PRINTF_AUTO
+#include "rtos_printf.h"
 
 /* External handles ----------------------------------------------------------*/
 extern osMessageQueueId_t stimulusQueueHandle;
@@ -172,7 +176,16 @@ void stimulusTask(void *argument) {
     // Initialize buzzer module
     initializeBuzzer();
     
+    static uint32_t stackMonitorCounter = 0;
     while (1) {
+        // Monitorear stack cada ~10 segundos (cada 100 iteraciones × 100ms delay)
+        if (++stackMonitorCounter >= 100) {
+            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+            RTOS_LOG_INFO("[STIMULUS] Stack libre: %u words (%u bytes)\n", 
+                         stackLeft, stackLeft * 4);
+            stackMonitorCounter = 0;
+        }
+        
         // Check for zone change messages
         if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
             if (msg != NULL && msg->id == MSG_ID_ZONE_CHANGE) {

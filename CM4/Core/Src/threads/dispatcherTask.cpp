@@ -20,7 +20,15 @@ void dispatcherTask(void *argument) {
     // Ahora SÍ podemos usar printf thread-safe
     RTOS_LOG_INFO("[DISPATCHER] Task initialized successfully\n");
 
+    static uint32_t stackMonitorCounter = 0;
     while(1) {
+        // Monitorear stack cada ~10 segundos (cada 100 iteraciones × 100ms delay)
+        if (++stackMonitorCounter >= 100) {
+            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+            RTOS_LOG_INFO("[DISPATCHER] Stack libre: %u words (%u bytes)\n", 
+                         stackLeft, stackLeft * 4);
+            stackMonitorCounter = 0;
+        }
         
         if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, 0) == osOK) {
             // Ahora podemos hacer logging thread-safe

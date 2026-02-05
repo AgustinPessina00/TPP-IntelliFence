@@ -44,7 +44,15 @@ void fsmTask(void *argument) {
     
     RTOS_LOG_INFO("[FSM] Task initialized successfully\n");
 
+    static uint32_t stackMonitorCounter = 0;
     while(1) {
+        // Monitorear stack cada ~10 segundos (cada 20 iteraciones × 500ms delay)
+        if (++stackMonitorCounter >= 20) {
+            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+            RTOS_LOG_INFO("[FSM] Stack libre: %u words (%u bytes)\n", 
+                         stackLeft, stackLeft * 4);
+            stackMonitorCounter = 0;
+        }
 
         //test para el stimulus
         // for(int i = GREEN_ZONE; i <= BLACK_ZONE; i++) {

@@ -98,104 +98,106 @@ const osMessageQueueAttr_t loraTxQueue_attributes = {
   .name = "loraTxQueue"
 };
 
-// osMessageQueueId_t loraRxQueueHandle;
-// const osMessageQueueAttr_t loraRxQueue_attributes = {
-//   .name = "loraRxQueue"
-// };
+osMessageQueueId_t loraRxQueueHandle;
+const osMessageQueueAttr_t loraRxQueue_attributes = {
+  .name = "loraRxQueue"
+};
 
-// osMessageQueueId_t distanceToLimitQueueHandle;
-// const osMessageQueueAttr_t distanceToLimitQueue_attributes = {
-//   .name = "distanceToLimitQueue"
-// };
+osMessageQueueId_t distanceToLimitQueueHandle;
+const osMessageQueueAttr_t distanceToLimitQueue_attributes = {
+  .name = "distanceToLimitQueue"
+};
 
-// osMessageQueueId_t fenceUpdateQueueHandle;
-// const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
-//   .name = "fenceUpdateQueue"
-// };
+osMessageQueueId_t fenceUpdateQueueHandle;
+const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
+  .name = "fenceUpdateQueue"
+};
 
 // Thread dispatcher - rutea mensajes entre módulos
 osThreadId_t dispatcher_TaskHandle;
 
-// Buffers estáticos en RAM1 para dispatcher
+// Buffers estáticos en RAM1 para dispatcher (COMENTADO - ahora usa heap dinámico)
 // __attribute__((section(".RAM1_region"))) static StaticTask_t dispatcher_TaskBuffer;
 // __attribute__((section(".RAM1_region"))) static StackType_t dispatcher_TaskStack[192];  // 768 bytes / 4 bytes per word
 
 const osThreadAttr_t dispatcher_Task_attributes = {
   .name = "dispatcher_Task",
-  .stack_size = 256 * 3,  // 768 bytes dispatcher
+  .stack_size = 128 * 4,  // 512 bytes - ruteo simple
   .priority = (osPriority_t) osPriorityNormal,
-
+  // .cb_mem = &dispatcher_TaskBuffer,
+  // .cb_size = sizeof(dispatcher_TaskBuffer),
+  // .stack_mem = dispatcher_TaskStack,
 };
 
 // Thread FSM - máquina de estados principal
-// osThreadId_t fsm_TaskHandle;
+osThreadId_t fsm_TaskHandle;
 
-// // Buffers estáticos en RAM1 para FSM
+// Buffers estáticos en RAM1 para FSM (COMENTADO - ahora usa heap dinámico)
 // __attribute__((section(".RAM1_region"))) static StaticTask_t fsm_TaskBuffer;
 // __attribute__((section(".RAM1_region"))) static StackType_t fsm_TaskStack[256];  // 1024 bytes / 4 bytes per word
 
-// const osThreadAttr_t fsm_Task_attributes = {
-//   .name = "fsm_Task",
-//   .stack_size = 256 * 4,  // 1024 bytes FSM
-//   .priority = (osPriority_t) osPriorityNormal,
-//   .cb_mem = &fsm_TaskBuffer,
-//   .cb_size = sizeof(fsm_TaskBuffer),
-//   .stack_mem = fsm_TaskStack,
-// };
+const osThreadAttr_t fsm_Task_attributes = {
+  .name = "fsm_Task",
+  .stack_size = 512 * 4,  // 2048 bytes - FSMs complejas anidadas
+  .priority = (osPriority_t) osPriorityNormal,
+  // .cb_mem = &fsm_TaskBuffer,
+  // .cb_size = sizeof(fsm_TaskBuffer),
+  // .stack_mem = fsm_TaskStack,
+};
 
-// osThreadId_t stimulus_TaskHandle;
+osThreadId_t stimulus_TaskHandle;
 
-// Buffers estáticos en RAM1 para stimulus
+// Buffers estáticos en RAM1 para stimulus (COMENTADO - ahora usa heap dinámico)
 // __attribute__((section(".RAM1_region"))) static StaticTask_t stimulus_TaskBuffer;
 // __attribute__((section(".RAM1_region"))) static StackType_t stimulus_TaskStack[128];  // 512 bytes / 4 bytes per word
 
-// const osThreadAttr_t stimulus_Task_attributes = {
-//   .name = "stimulus_Task",
-//   .stack_size = 128 * 4,  // 512 bytes stimulus
-//   .priority = (osPriority_t) osPriorityNormal,
-//   .cb_mem = &stimulus_TaskBuffer,
-//   .cb_size = sizeof(stimulus_TaskBuffer),
-//   .stack_mem = stimulus_TaskStack,
-// };
+const osThreadAttr_t stimulus_Task_attributes = {
+  .name = "stimulus_Task",
+  .stack_size = 128 * 4,  // 512 bytes stimulus
+  .priority = (osPriority_t) osPriorityNormal,
+  // .cb_mem = &stimulus_TaskBuffer,
+  // .cb_size = sizeof(stimulus_TaskBuffer),
+  // .stack_mem = stimulus_TaskStack,
+};
 
 // Thread sensor acquisition - adquisición de datos de sensores
-// osThreadId_t sensorAcq_TaskHandle;
+osThreadId_t sensorAcq_TaskHandle;
 
-// // Buffers estáticos en RAM1 para sensorAcq
+// Buffers estáticos en RAM1 para sensorAcq (COMENTADO - ahora usa heap dinámico)
 // __attribute__((section(".RAM1_region"))) static StaticTask_t sensorAcq_TaskBuffer;
 // __attribute__((section(".RAM1_region"))) static StackType_t sensorAcq_TaskStack[256];  // 1024 bytes / 4 bytes per word
 
-// const osThreadAttr_t sensorAcq_Task_attributes = {
-//   .name = "sensorAcq_Task",
-//   .stack_size = 256 * 4,  // 1024 bytes sensorAcq
-//   .priority = (osPriority_t) osPriorityNormal,
-//   .cb_mem = &sensorAcq_TaskBuffer,
-//   .cb_size = sizeof(sensorAcq_TaskBuffer),
-//   .stack_mem = sensorAcq_TaskStack,
-// };
+const osThreadAttr_t sensorAcq_Task_attributes = {
+  .name = "sensorAcq_Task",
+  .stack_size = 512 * 4,  // 2048 bytes - objetos C++ grandes (GPS, IMU, INA)
+  .priority = (osPriority_t) osPriorityNormal,
+  // .cb_mem = &sensorAcq_TaskBuffer,
+  // .cb_size = sizeof(sensorAcq_TaskBuffer),
+  // .stack_mem = sensorAcq_TaskStack,
+};
 
 // Thread LoRa TX - transmisión LoRa
-// osThreadId_t lora_TaskHandle;
+osThreadId_t lora_TaskHandle;
 
-// // Buffers estáticos en RAM1 para lora
+// Buffers estáticos en RAM1 para lora (COMENTADO - ahora usa heap dinámico)
 // __attribute__((section(".RAM1_region"))) static StaticTask_t lora_TaskBuffer;
 // __attribute__((section(".RAM1_region"))) static StackType_t lora_TaskStack[192];  // 768 bytes / 4 bytes per word
 
-// const osThreadAttr_t lora_Task_attributes = {
-//   .name = "lora_Task",
-//   .stack_size = 256 * 3,  // 768 bytes LoRa
-//   .priority = (osPriority_t) osPriorityNormal,
-//   .cb_mem = &lora_TaskBuffer,
-//   .cb_size = sizeof(lora_TaskBuffer),
-//   .stack_mem = lora_TaskStack,
-// };
+const osThreadAttr_t lora_Task_attributes = {
+  .name = "lora_Task",
+  .stack_size = 128 * 4,  // 512 bytes - Tx simple
+  .priority = (osPriority_t) osPriorityNormal,
+  // .cb_mem = &lora_TaskBuffer,
+  // .cb_size = sizeof(lora_TaskBuffer),
+  // .stack_mem = lora_TaskStack,
+};
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
   .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 512 * 4
+  .stack_size = 64  // 256 bytes - se termina inmediatamente
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -242,9 +244,24 @@ void initialize_message_queues(void) {
         printf("[QUEUES] ERROR - Fallo creación loraTxQueue\n");
         Error_Handler();
     }
-    //loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
-    //distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
-    //fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
+    
+    loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
+    if (loraRxQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación loraRxQueue\n");
+        Error_Handler();
+    }
+    
+    distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
+    if (distanceToLimitQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación distanceToLimitQueue\n");
+        Error_Handler();
+    }
+    
+    fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
+    if (fenceUpdateQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación fenceUpdateQueue\n");
+        Error_Handler();
+    }
     
     printf("[QUEUES] OK - Todas las colas creadas exitosamente\n");
     printf("[QUEUES] - DispatcherQueue: 32 slots\n");
@@ -270,20 +287,18 @@ void initialize_system_threads(void) {
     }
     
     //Thread FSM - prioridad normal (lógica de aplicación)
-    // fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
-    // if (fsm_TaskHandle == NULL) {
-    //     printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
-    //     Error_Handler();
-    // }
+    fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
+    if (fsm_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
+        Error_Handler();
+    }
 
-    //Thread FSM - prioridad normal (lógica de aplicación)
-    // stimulus_TaskHandle = osThreadNew(stimulusTask, NULL, &stimulus_Task_attributes);
-    // if (stimulus_TaskHandle == NULL) {
-    //     printf("[THREADS] ERROR - Fallo creación stimulus_Task\n");
-    //     Error_Handler();
-    // }
-
-    
+    //Thread stimulus - prioridad normal (lógica de aplicación)
+    stimulus_TaskHandle = osThreadNew(stimulusTask, NULL, &stimulus_Task_attributes);
+    if (stimulus_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación stimulus_Task\n");
+        Error_Handler();
+    }
 
     //Thread sensor acquisition - prioridad normal (adquisición periódica)
 #ifdef ENABLE_TEST_MODE
@@ -292,27 +307,27 @@ void initialize_system_threads(void) {
     printf("[THREADS] ** TEST MODE ** - Using mock sensor task\n");
 #else
     // PRODUCTION MODE: Usar tarea real con sensores de hardware
-    //sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
+    sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
 #endif
-    // if (sensorAcq_TaskHandle == NULL) {
-    //     printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
-    //     Error_Handler();
-    // }
+    if (sensorAcq_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
+        Error_Handler();
+    }
 
     //Thread LoRa TX - prioridad normal (transmisión LoRa)
-    // lora_TaskHandle = osThreadNew(loraTask, NULL, &lora_Task_attributes);
-    // if (lora_TaskHandle == NULL) {
-    //     printf("[THREADS] ERROR - Fallo creación lora_Task\n");
-    //     Error_Handler();
-    // }
+    lora_TaskHandle = osThreadNew(loraTask, NULL, &lora_Task_attributes);
+    if (lora_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación lora_Task\n");
+        Error_Handler();
+    }
 
     printf("[THREADS] OK - Todos los threads creados exitosamente\n");
-    printf("[THREADS] - dispatcher_Task: Prioridad ALTA, Stack 768B\n");
-    printf("[THREADS] - fsm_Task: Prioridad NORMAL, Stack 1KB\n");
-    printf("[THREADS] - stimulus_Task: Prioridad NORMAL, Stack 512B\n");
-    printf("[THREADS] - sensorAcq_Task: Prioridad NORMAL, Stack 1KB\n");
-    printf("[THREADS] - lora_Task: Prioridad NORMAL, Stack 768B\n");
-    printf("[THREADS] Total stack allocated: ~4KB\n");
+    printf("[THREADS] - dispatcher_Task: Stack 512B\n");
+    printf("[THREADS] - fsm_Task: Stack 2KB (FSMs complejas)\n");
+    printf("[THREADS] - stimulus_Task: Stack 512B\n");
+    printf("[THREADS] - sensorAcq_Task: Stack 2KB (objetos C++ grandes)\n");
+    printf("[THREADS] - lora_Task: Stack 512B\n");
+    printf("[THREADS] Total stack allocated: ~5.5KB\n");
 }
 /* USER CODE END FunctionPrototypes */
 
@@ -395,8 +410,16 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
   osThreadTerminate (defaultTaskHandle);
   /* Infinite loop */
+  static uint32_t stackMonitorCounter = 0;
   for(;;)
   {
+    // Monitorear stack cada 10 segundos
+    if (++stackMonitorCounter >= 10) {
+      UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+      rtos_printf("[DEFAULT] Stack libre: %u words (%u bytes)\n", 
+                 stackLeft, stackLeft * 4);
+      stackMonitorCounter = 0;
+    }
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */

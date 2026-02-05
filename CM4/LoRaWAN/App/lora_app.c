@@ -23,6 +23,8 @@
 #include "sys_app.h"
 #include "lora_app.h"
 #include "cmsis_os.h"
+#include "FreeRTOS.h"
+#include "task.h"
 #include "stm32_timer.h"
 #include "utilities_def.h"
 #include "app_version.h"
@@ -554,11 +556,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 static void Thd_LoraSendProcess(void *argument)
 {
   /* USER CODE BEGIN Thd_LoraSendProcess_1 */
-
+  static uint32_t stackMonitorCounter = 0;
   /* USER CODE END Thd_LoraSendProcess_1 */
   UNUSED(argument);
   for (;;)
   {
+    // Monitorear stack cada 10 ejecuciones
+    if (++stackMonitorCounter >= 10) {
+      UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+      APP_LOG(TS_ON, VLEVEL_M, "[LORA_SEND] Stack libre: %u words (%u bytes)\r\n", 
+             stackLeft, stackLeft * 4);
+      stackMonitorCounter = 0;
+    }
     osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
     SendTxData();  /*what you want to do*/
   }
@@ -571,11 +580,18 @@ static void Thd_LoraSendProcess(void *argument)
 static void Thd_LoraStoreContext(void *argument)
 {
   /* USER CODE BEGIN Thd_LoraStoreContext_1 */
-
+  static uint32_t stackMonitorCounter = 0;
   /* USER CODE END Thd_LoraStoreContext_1 */
   UNUSED(argument);
   for (;;)
   {
+    // Monitorear stack cada 10 ejecuciones
+    if (++stackMonitorCounter >= 10) {
+      UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+      APP_LOG(TS_ON, VLEVEL_M, "[LORA_STORE] Stack libre: %u words (%u bytes)\r\n", 
+             stackLeft, stackLeft * 4);
+      stackMonitorCounter = 0;
+    }
     osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
     StoreContext();  /*what you want to do*/
   }
@@ -588,11 +604,18 @@ static void Thd_LoraStoreContext(void *argument)
 static void Thd_LoraStopJoin(void *argument)
 {
   /* USER CODE BEGIN Thd_LoraStopJoin_1 */
-
+  static uint32_t stackMonitorCounter = 0;
   /* USER CODE END Thd_LoraStopJoin_1 */
   UNUSED(argument);
   for (;;)
   {
+    // Monitorear stack cada 10 ejecuciones
+    if (++stackMonitorCounter >= 10) {
+      UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+      APP_LOG(TS_ON, VLEVEL_M, "[LORA_STOP] Stack libre: %u words (%u bytes)\r\n", 
+             stackLeft, stackLeft * 4);
+      stackMonitorCounter = 0;
+    }
     osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
     StopJoin();  /*what you want to do*/
   }

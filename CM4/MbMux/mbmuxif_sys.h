@@ -84,7 +84,7 @@ extern "C" {
 #define CFG_APP_LORA_PROCESS_CB_SIZE               (0)
 #define CFG_APP_LORA_PROCESS_STACK_MEM             (0)
 #define CFG_APP_LORA_PROCESS_PRIORITY              osPriorityNone
-#define CFG_APP_LORA_PROCESS_STACK_SIZE            (128 * 10)
+#define CFG_APP_LORA_PROCESS_STACK_SIZE            (128 * 8)  // 1024 bytes optimizado
 
 /*Store Context*/
 #define CFG_APP_LORA_STORE_CONTEXT_NAME            "LORA_STORE_CONTEXT"
@@ -93,7 +93,7 @@ extern "C" {
 #define CFG_APP_LORA_STORE_CONTEXT_CB_SIZE         (0)
 #define CFG_APP_LORA_STORE_CONTEXT_STACK_MEM       (0)
 #define CFG_APP_LORA_STORE_CONTEXT_PRIORITY        osPriorityNone
-#define CFG_APP_LORA_STORE_CONTEXT_STACK_SIZE      (128 * 10)
+#define CFG_APP_LORA_STORE_CONTEXT_STACK_SIZE      (128 * 8)  // 1024 bytes optimizado
 
 /*Stop Join*/
 #define CFG_APP_LORA_STOP_JOIN_NAME                "LORA_STOP_JOIN"
@@ -102,7 +102,7 @@ extern "C" {
 #define CFG_APP_LORA_STOP_JOIN_CB_SIZE             (0)
 #define CFG_APP_LORA_STOP_JOIN_STACK_MEM           (0)
 #define CFG_APP_LORA_STOP_JOIN_PRIORITY            osPriorityNone
-#define CFG_APP_LORA_STOP_JOIN_STACK_SIZE          (128 * 10)
+#define CFG_APP_LORA_STOP_JOIN_STACK_SIZE          (128 * 8)  // 1024 bytes optimizado
 
 /* USER CODE BEGIN EC */
 

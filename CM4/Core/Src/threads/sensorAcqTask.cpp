@@ -62,7 +62,16 @@ void sensorAcqTask(void *argument) {
     double gpsData[2] = {0.0, 0.0};
     double imuData[3] = {0.0, 0.0, 0.0};
 
+    static uint32_t stackMonitorCounter = 0;
     while(1) {
+        // Monitorear stack cada ~10 segundos
+        if (++stackMonitorCounter >= 10) {
+            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+            RTOS_LOG_INFO("[SENSOR_ACQ] Stack libre: %u words (%u bytes)\n", 
+                         stackLeft, stackLeft * 4);
+            stackMonitorCounter = 0;
+        }
+        
         // Leer todos los sensores periódicamente
             gps.read_gps_position();
             gpsData[0] = gps.latitude;
