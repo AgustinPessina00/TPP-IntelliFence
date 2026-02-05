@@ -826,17 +826,27 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 rtos_printf("\r\n>>> FENCE RECV: %d vertices (%d bytes)\r\n", 
                         numVertices, appData->BufferSize);
                 
+                // DEBUG: Estado de MessagePool antes de fragmentar
+                rtos_printf("[DEBUG] MessagePool status before fragmentation\r\n");
+                
                 // Fragmentar y enviar a FSM (máximo 4 vértices por mensaje)
                 const uint8_t HEADER_SIZE = 3;  // fragment_num, total_fragments, vertices_count
                 const uint8_t MAX_VERTICES_PER_MSG = (MAX_MESSAGE_PAYLOAD_SIZE - HEADER_SIZE) / VERTEX_SIZE;
                 
                 uint8_t totalFragments = (numVertices + MAX_VERTICES_PER_MSG - 1) / MAX_VERTICES_PER_MSG;
                 
+                rtos_printf("[DEBUG] Will send %d fragments, %d vertices per fragment max\r\n", 
+                           totalFragments, MAX_VERTICES_PER_MSG);
+                
                 for (uint8_t fragment = 0; fragment < totalFragments; fragment++)
                 {
+                  rtos_printf("[DEBUG] Attempting to allocate message for fragment %d/%d\r\n", 
+                             fragment + 1, totalFragments);
+                  
                   EmbeddedMessage_t *msgToFSM = MessagePool_Allocate();
                   if (msgToFSM != NULL)
                   {
+                    rtos_printf("[DEBUG] Message allocated successfully for fragment %d\r\n", fragment + 1);
                     uint8_t startVertex = fragment * MAX_VERTICES_PER_MSG;
                     uint8_t verticesInFragment = MAX_VERTICES_PER_MSG;
                     
@@ -862,7 +872,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                     
                     msgToFSM->id = MSG_ID_LORA_VERTEXES_RECEIVED;
                     msgToFSM->sender = MODULE_LORA_RX;
-                    msgToFSM->receiver = MODULE_FSM;
+                    msgToFSM->receiver = 100;//MODULE_FSM;
                     msgToFSM->length = payloadOffset;
                     
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
@@ -895,7 +905,9 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                   }
                   else
                   {
-                    rtos_printf("ERROR: Failed to allocate message for fragment %d\r\n", fragment);
+                    rtos_printf("ERROR: Failed to allocate message for fragment %d (MessagePool exhausted)\r\n", fragment + 1);
+                    rtos_printf("[DEBUG] This means %d/%d fragments were sent successfully\r\n", 
+                               fragment, totalFragments);
                     break;
                   }
                 }
@@ -1024,7 +1036,7 @@ static void SendTxData(void)
           if (msg->id == MSG_ID_LORA_SEND_POSITION) {
             EmbeddedMessage_t *msgFeedback = MessagePool_Allocate();
             if (msgFeedback != NULL) {
-              EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, MODULE_FSM);
+              EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, 100);//MODULE_FSM);
               osStatus_t feedbackStatus = osMessageQueuePut(dispatcherQueueHandle, &msgFeedback, 0, 100);
               if (feedbackStatus != osOK) {
                 rtos_printf("[LORA_TX] WARNING: Feedback queue full (status=%d)\r\n", feedbackStatus);
@@ -1046,7 +1058,6 @@ static void SendTxData(void)
       // CRÍTICO: Liberar el mensaje después de procesarlo
       MessagePool_Free(msg);
       msg = NULL;
-      msgSend = NULL;
     }
   }
 
