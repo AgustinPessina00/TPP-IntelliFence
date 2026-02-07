@@ -22,8 +22,8 @@ void dispatcherTask(void *argument) {
 
     static uint32_t stackMonitorCounter = 0;
     while(1) {
-        // Monitorear stack cada ~10 segundos (cada 100 iteraciones × 100ms delay)
-        if (++stackMonitorCounter >= 100) {
+        // Monitorear stack cada ~10 segundos (cada 10 iteraciones × 1000ms delay)
+        if (++stackMonitorCounter >= 10) {
             UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
             RTOS_LOG_INFO("[DISPATCHER] Stack libre: %u words (%u bytes)\n", 
                          stackLeft, stackLeft * 4);
@@ -71,6 +71,6 @@ void dispatcherTask(void *argument) {
             }
         }
         
-        osDelay(100);
+        osDelay(1000);
     }
 }

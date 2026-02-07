@@ -244,6 +244,6 @@ void stimulusTask(void *argument) {
             }
         }
         
-        osDelay(100);
+        osDelay(1000);
     }
 }

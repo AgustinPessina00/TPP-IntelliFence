@@ -562,7 +562,7 @@ static void Thd_LoraSendProcess(void *argument)
   for (;;)
   {
     // Monitorear stack cada 10 ejecuciones
-    if (++stackMonitorCounter >= 10) {
+    if (++stackMonitorCounter >= 1) {
       UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
       APP_LOG(TS_ON, VLEVEL_M, "[LORA_SEND] Stack libre: %u words (%u bytes)\r\n", 
              stackLeft, stackLeft * 4);
@@ -586,7 +586,7 @@ static void Thd_LoraStoreContext(void *argument)
   for (;;)
   {
     // Monitorear stack cada 10 ejecuciones
-    if (++stackMonitorCounter >= 10) {
+    if (++stackMonitorCounter >= 1) {
       UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
       APP_LOG(TS_ON, VLEVEL_M, "[LORA_STORE] Stack libre: %u words (%u bytes)\r\n", 
              stackLeft, stackLeft * 4);
@@ -610,7 +610,7 @@ static void Thd_LoraStopJoin(void *argument)
   for (;;)
   {
     // Monitorear stack cada 10 ejecuciones
-    if (++stackMonitorCounter >= 10) {
+    if (++stackMonitorCounter >= 1) {
       UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
       APP_LOG(TS_ON, VLEVEL_M, "[LORA_STOP] Stack libre: %u words (%u bytes)\r\n", 
              stackLeft, stackLeft * 4);
@@ -895,7 +895,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                     
                     msgToFSM->id = MSG_ID_LORA_VERTEXES_RECEIVED;
                     msgToFSM->sender = MODULE_LORA_RX;
-                    msgToFSM->receiver = 100;//MODULE_FSM;
+                    msgToFSM->receiver = MODULE_FSM;
                     msgToFSM->length = payloadOffset;
                     
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
@@ -996,25 +996,25 @@ static void SendTxData(void)
   if (LmHandlerIsBusy() == false) {
     EmbeddedMessage_t* msg = NULL;
 
-
-    EmbeddedMessage_t *msgSend = MessagePool_Allocate();
-    if (msgSend != NULL) {
-        float latitude_aux = -34.570440f;   // Ejemplo: Nacho
-        float longitude_aux = -58.444157f;
+    // Mensaje Hardcodeado
+    // EmbeddedMessage_t *msgSend = MessagePool_Allocate();
+    // if (msgSend != NULL) {
+    //     float latitude_aux = -34.570440f;   // Ejemplo: Nacho
+    //     float longitude_aux = -58.444157f;
         
-        uint8_t data[2 * sizeof(float)];
-        memcpy(data, &latitude_aux, sizeof(float));
-        memcpy(data + sizeof(float), &longitude_aux, sizeof(float));
+    //     uint8_t data[2 * sizeof(float)];
+    //     memcpy(data, &latitude_aux, sizeof(float));
+    //     memcpy(data + sizeof(float), &longitude_aux, sizeof(float));
         
-        EmbeddedMessage_CreateWithPayload(msgSend, MSG_ID_LORA_SEND_POSITION, MODULE_FSM, MODULE_LORA_TX, data, 2 * sizeof(float));
-        if (osMessageQueuePut(loraTxQueueHandle, &msgSend, 0, 100) == osOK){
-          rtos_printf("Message queue to loraTxQueue\r\n");
-        }
-        else {
-          rtos_printf("ERROR: Failed to send to LORATX \r\n");
-          MessagePool_Free(msgSend);
-        }
-    }
+    //     EmbeddedMessage_CreateWithPayload(msgSend, MSG_ID_LORA_SEND_POSITION, MODULE_FSM, MODULE_LORA_TX, data, 2 * sizeof(float));
+    //     if (osMessageQueuePut(loraTxQueueHandle, &msgSend, 0, 100) == osOK){
+    //       rtos_printf("Message queue to loraTxQueue\r\n");
+    //     }
+    //     else {
+    //       rtos_printf("ERROR: Failed to send to LORATX \r\n");
+    //       MessagePool_Free(msgSend);
+    //     }
+    // }
 
     if (osMessageQueueGet(loraTxQueueHandle, &msg, NULL, 0) == osOK) {
       // Procesar mensaje según tipo - cada case solo configura AppData
@@ -1059,7 +1059,7 @@ static void SendTxData(void)
           if (msg->id == MSG_ID_LORA_SEND_POSITION) {
             EmbeddedMessage_t *msgFeedback = MessagePool_Allocate();
             if (msgFeedback != NULL) {
-              EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, 100);//MODULE_FSM);
+              EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, MODULE_FSM);
               osStatus_t feedbackStatus = osMessageQueuePut(dispatcherQueueHandle, &msgFeedback, 0, 100);
               if (feedbackStatus != osOK) {
                 rtos_printf("[LORA_TX] WARNING: Feedback queue full (status=%d)\r\n", feedbackStatus);

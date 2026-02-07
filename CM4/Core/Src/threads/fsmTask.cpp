@@ -47,7 +47,7 @@ void fsmTask(void *argument) {
     static uint32_t stackMonitorCounter = 0;
     while(1) {
         // Monitorear stack cada ~10 segundos (cada 20 iteraciones × 500ms delay)
-        if (++stackMonitorCounter >= 20) {
+        if (++stackMonitorCounter >= 10) {
             UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
             RTOS_LOG_INFO("[FSM] Stack libre: %u words (%u bytes)\n", 
                          stackLeft, stackLeft * 4);
@@ -81,7 +81,7 @@ void fsmTask(void *argument) {
                 break;
         }
         
-        osDelay(500);
+        osDelay(1000);
     }
 }
 
