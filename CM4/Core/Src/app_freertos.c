@@ -122,7 +122,7 @@ osThreadId_t dispatcher_TaskHandle;
 
 const osThreadAttr_t dispatcher_Task_attributes = {
   .name = "dispatcher_Task",
-  .stack_size = 128 * 4,  // 512 bytes - ruteo simple
+  .stack_size = 128 * 5,  // 512 bytes - ruteo simple
   .priority = (osPriority_t) osPriorityNormal,
   // .cb_mem = &dispatcher_TaskBuffer,
   // .cb_size = sizeof(dispatcher_TaskBuffer),
@@ -196,8 +196,8 @@ const osThreadAttr_t lora_Task_attributes = {
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 64  // 256 bytes - se termina inmediatamente
+  .priority = (osPriority_t) osPriorityLow,  // Baja prioridad - solo monitoring
+  .stack_size = 128 * 4  // 512 bytes - suficiente para monitoring simple
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -223,19 +223,19 @@ void initialize_message_queues(void) {
         Error_Handler();
     }
     
-    // Cola para adquisición de sensores
-    // sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
-    // if (sensorAcqQueueHandle == NULL) {
-    //     printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
-    //     Error_Handler();
-    // }
+    //Cola para adquisición de sensores
+    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
+    if (sensorAcqQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
+        Error_Handler();
+    }
 
-    // Cola para estímulos
-    // stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
-    // if (stimulusQueueHandle == NULL) {
-    //     printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
-    //     Error_Handler();
-    // }
+    //Cola para estímulos
+    stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
+    if (stimulusQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
+        Error_Handler();
+    }
     
     // Colas adicionales (tamaños más pequeños para funciones futuras)
     //gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
@@ -314,12 +314,6 @@ void initialize_system_threads(void) {
         Error_Handler();
     }
 
-    //Thread LoRa TX - prioridad normal (transmisión LoRa)
-    lora_TaskHandle = osThreadNew(loraTask, NULL, &lora_Task_attributes);
-    if (lora_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación lora_Task\n");
-        Error_Handler();
-    }
 
     printf("[THREADS] OK - Todos los threads creados exitosamente\n");
     printf("[THREADS] - dispatcher_Task: Stack 512B\n");
@@ -408,20 +402,23 @@ void StartDefaultTask(void *argument)
   /* init code for LoRaWAN */
   MX_LoRaWAN_Init();
   /* USER CODE BEGIN StartDefaultTask */
+  
+  // NOTA: NO terminar esta tarea - causa problemas de double-free en heap
   osThreadTerminate (defaultTaskHandle);
+  
   /* Infinite loop */
-  static uint32_t stackMonitorCounter = 0;
-  for(;;)
-  {
-    // Monitorear stack cada 10 segundos
-    if (++stackMonitorCounter >= 10) {
-      UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-      rtos_printf("[DEFAULT] Stack libre: %u words (%u bytes)\n", 
-                 stackLeft, stackLeft * 4);
-      stackMonitorCounter = 0;
-    }
-    osDelay(1000);
-  }
+  // static uint32_t stackMonitorCounter = 0;
+  // for(;;)
+  // {
+  //   // Monitorear stack cada 10 segundos
+  //   if (++stackMonitorCounter >= 10) {
+  //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+  //     rtos_printf("[DEFAULT] Stack libre: %u words (%u bytes)\n", 
+  //                stackLeft, stackLeft * 4);
+  //     stackMonitorCounter = 0;
+  //   }
+  //   osDelay(1000);
+  // }
   /* USER CODE END StartDefaultTask */
 }
 
