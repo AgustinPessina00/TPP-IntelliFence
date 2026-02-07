@@ -59,8 +59,8 @@ void sensorAcqTask(void *argument) {
     EmbeddedMessage_t *msgToSend = NULL;
     gpsRateSpeed rateGPS;
     RTOS_LOG_INFO("[SENSOR_ACQ] Task initialized successfully\n");
-    double gpsData[2] = {0.0, 0.0};
-    double imuData[3] = {0.0, 0.0, 0.0};
+    float gpsData[2] = {0.0, 0.0};
+    float imuData[3] = {0.0, 0.0, 0.0};
 
     static uint32_t stackMonitorCounter = 0;
     while(1) {
@@ -72,67 +72,102 @@ void sensorAcqTask(void *argument) {
             stackMonitorCounter = 0;
         }
         
-        // Leer todos los sensores periódicamente
-            gps.read_gps_position();
-            gpsData[0] = gps.latitude;
-            gpsData[1] = gps.longitude;
-            RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\n", gps.latitude, gps.longitude);
+        // // Leer todos los sensores periódicamente
+        //     gps.read_gps_position();
+        //     gpsData[0] = gps.latitude;
+        //     gpsData[1] = gps.longitude;
+        //     RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\n", gps.latitude, gps.longitude);
 
-            imu.readAcceleration();
-            imuData[0] = imu.ax;
-            imuData[1] = imu.ay;
-            imuData[2] = imu.az;
-            RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU read: (%.6f g, %.6f g, %.6f g)\n", imu.ax/1000, imu.ay/1000, imu.az/1000);
+        //     imu.readAcceleration();
+        //     imuData[0] = imu.ax;
+        //     imuData[1] = imu.ay;
+        //     imuData[2] = imu.az;
+        //     RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU read: (%.6f g, %.6f g, %.6f g)\n", imu.ax/1000, imu.ay/1000, imu.az/1000);
 
-            inaGps.readCurrent_mA();
-            RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS current read: %.3f mA\n", inaGps.current);
-            inaImu.readCurrent_mA();
-            RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU current read: %.3f mA\n", inaImu.current);
-            inaMcu.readCurrent_mA();
-            RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU current read: %.3f mA\n", inaMcu.current);
-        // Verificar si hay mensajes de solicitud
+        //     inaGps.readCurrent_mA();
+        //     RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS current read: %.3f mA\n", inaGps.current);
+        //     inaImu.readCurrent_mA();
+        //     RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU current read: %.3f mA\n", inaImu.current);
+        //     inaMcu.readCurrent_mA();
+        //     RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU current read: %.3f mA\n", inaMcu.current);
+        // // Verificar si hay mensajes de solicitud
         if (osMessageQueueGet(sensorAcqQueueHandle, &msgReceived, NULL, 0) == osOK) {
             RTOS_LOG_DEBUG("[SENSOR_ACQ] Received message ID:%d from module:%d\n", msgReceived->id, msgReceived->sender);
             
             switch (msgReceived->id) {
                 case MSG_ID_REQUEST_GPS:
+                    // Leer GPS solo cuando se solicita
+                    gps.read_gps_position();
+                    gpsData[0] = gps.latitude;
+                    gpsData[1] = gps.longitude;
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read on request: lat %.6f, lon %.6f\n", gps.latitude, gps.longitude);
+                    
                     msgToSend = MessagePool_Allocate();
-                    EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)gpsData, sizeof(float) * 2);
-                    osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ]] Sent GPS data to FSM\n");
-                    msgToSend = NULL;
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)gpsData, sizeof(float) * 2);
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent GPS data to FSM\n");
+                        msgToSend = NULL;
+                    }
                     break;
 
                 case MSG_ID_REQUEST_IMU:
+                    // Leer IMU solo cuando se solicita
+                    imu.readAcceleration();
+                    imuData[0] = imu.ax;
+                    imuData[1] = imu.ay;
+                    imuData[2] = imu.az;
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU read on request: (%.3f, %.3f, %.3f) mg\n", imu.ax, imu.ay, imu.az);
+                    
                     msgToSend = MessagePool_Allocate();
-                    EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_IMU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)imuData, sizeof(double) * 3);
-                    osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ]] Sent IMU data to FSM\n");
-                    msgToSend = NULL;
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_IMU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)imuData, sizeof(float) * 3);
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent IMU data to FSM\n");
+                        msgToSend = NULL;
+                    }
                     break;
         
                 case MSG_ID_REQUEST_INA_MCU:
+                    // Leer INA MCU solo cuando se solicita
+                    inaMcu.readCurrent_mA();
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU read on request: %.3f mA\n", inaMcu.current);
+                    
                     msgToSend = MessagePool_Allocate();
-                    EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_MCU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaMcu.current), sizeof(float));
-                    osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ]] Sent INA MCU data to FSM\n");
-                    msgToSend = NULL;
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_MCU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaMcu.current), sizeof(float));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent INA MCU data to FSM\n");
+                        msgToSend = NULL;
+                    }
                     break;
                 
                 case MSG_ID_REQUEST_INA_GPS:
+                    // Leer INA GPS solo cuando se solicita
+                    inaGps.readCurrent_mA();
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS read on request: %.3f mA\n", inaGps.current);
+                    
                     msgToSend = MessagePool_Allocate();
-                    EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaGps.current), sizeof(float));
-                    osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ]] Sent INA GPS data to FSM\n");
-                    msgToSend = NULL;
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaGps.current), sizeof(float));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent INA GPS data to FSM\n");
+                        msgToSend = NULL;
+                    }
                     break;
 
                 case MSG_ID_REQUEST_INA_IMU:
+                    // Leer INA IMU solo cuando se solicita
+                    inaImu.readCurrent_mA();
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU read on request: %.3f mA\n", inaImu.current);
+                    
                     msgToSend = MessagePool_Allocate();
-                    EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_IMU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaImu.current), sizeof(float));
-                    osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ]] Sent INA IMU data to FSM\n");
-                    msgToSend = NULL;
+                    if (msgToSend != NULL) {
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_IMU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaImu.current), sizeof(float));
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent INA IMU data to FSM\n");
+                        msgToSend = NULL;
+                    }
                     break;
 
                 case MSG_ID_GPS_REQUEST_CONFIG:
@@ -145,13 +180,17 @@ void sensorAcqTask(void *argument) {
                     }
                     break;
 
-                // Console UART requests
+                // Console UART requests - leer sensores on-demand
                 case MSG_ID_CONSOLE_READ_GPS:
+                    gps.read_gps_position();
+                    gpsData[0] = gps.latitude;
+                    gpsData[1] = gps.longitude;
+                    
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_GPS_DATA, 
                                                          MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
-                                                         (uint8_t*)gpsData, 2 * sizeof(double));
+                                                         (uint8_t*)gpsData, 2 * sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent GPS data to console\n");
                         msgToSend = NULL;
@@ -159,11 +198,16 @@ void sensorAcqTask(void *argument) {
                     break;
 
                 case MSG_ID_CONSOLE_READ_IMU:
+                    imu.readAcceleration();
+                    imuData[0] = imu.ax;
+                    imuData[1] = imu.ay;
+                    imuData[2] = imu.az;
+                    
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_IMU_DATA, 
                                                          MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
-                                                         (uint8_t*)imuData, 3 * sizeof(double));
+                                                         (uint8_t*)imuData, 3 * sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent IMU data to console\n");
                         msgToSend = NULL;
@@ -171,6 +215,8 @@ void sensorAcqTask(void *argument) {
                     break;
 
                 case MSG_ID_CONSOLE_READ_INA_GPS:
+                    inaGps.readCurrent_mA();
+                    
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_GPS_DATA, 
@@ -183,6 +229,8 @@ void sensorAcqTask(void *argument) {
                     break;
 
                 case MSG_ID_CONSOLE_READ_INA_IMU:
+                    inaImu.readCurrent_mA();
+                    
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_IMU_DATA, 
@@ -195,6 +243,8 @@ void sensorAcqTask(void *argument) {
                     break;
 
                 case MSG_ID_CONSOLE_READ_INA_MCU:
+                    inaMcu.readCurrent_mA();
+                    
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_MCU_DATA, 
@@ -207,12 +257,14 @@ void sensorAcqTask(void *argument) {
                     break;
         
                 default:
+                    RTOS_LOG_WARN("[SENSOR_ACQ] Unknown message ID: %d\n", msgReceived->id);
                     break;
             }
       
-        MessagePool_Free(msgReceived);
-        msgReceived = NULL;
+            MessagePool_Free(msgReceived);
+            msgReceived = NULL;
         }
-        osDelay(100);
+
+        osDelay(1000);
     }
 }
