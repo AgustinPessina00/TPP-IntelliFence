@@ -51,37 +51,6 @@ bool SamM10q::init(uint8_t i2cAddr) {
     return true;
 }
 
-bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
-    if (gpsRate > gpsRateSpeed::FAST) {
-        return false;
-    }
-
-    const size_t idx = static_cast<size_t>(gpsRate);
-
-    // Obtener payload desde la tabla en sam_m10q_KEYID.h
-    const uint8_t* payload = m10q_new_acq_time[idx];
-    const size_t payloadLen = 5; // Todos los payloads de acq_time son de 5 bytes
-
-    // Usar arrays estáticos para evitar allocación dinámica
-    uint8_t sendMsgRAM[UBX_MAX_MESSAGE_SIZE];
-    uint8_t sendMsgBBR[UBX_MAX_MESSAGE_SIZE];
-    
-    // Construir mensajes UBX-CFG-VALSET para RAM y BBR
-    uint16_t lenRAM = build_ubx_message(VALSET_CLASS, VALSET_ID, RAM, 
-                                        payload, payloadLen, 
-                                        sendMsgRAM, UBX_MAX_MESSAGE_SIZE);
-    uint16_t lenBBR = build_ubx_message(VALSET_CLASS, VALSET_ID, BBR, 
-                                        payload, payloadLen, 
-                                        sendMsgBBR, UBX_MAX_MESSAGE_SIZE);
-
-    // Enviar a RAM (temporal) y BBR (batería respaldada)
-    const bool okRAM = (lenRAM > 0) && (send_message(sendMsgRAM, lenRAM, 15) == HAL_OK);
-    const bool okBBR = (lenBBR > 0) && (send_message(sendMsgBBR, lenBBR, 15) == HAL_OK);
-
-    return okRAM && okBBR;
-}
-
-
 void SamM10q::testGPS() {
     //printf("[TEST GPS] Iniciando test de GPS...\n");
 
@@ -134,44 +103,84 @@ bool SamM10q::update_location_and_time() {
     return false;
 }
 
-/*EJEMPLO DE USO.
-// En un task FreeRTOS:
-while(1) {
-    gps.update_location_and_time();
-    
-    printf("Lat: %.7f°, Lon: %.7f°\n", gps.latitude, gps.longitude);
-    printf("Fecha: %06lu, Hora: %06lu UTC\n", gps.fechaUTC, gps.horaUTC);
-    
-    osDelay(5000); // Actualizar cada 5 segundos
+bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
+    if (gpsRate > gpsRateSpeed::FAST) {
+        return false;
+    }
+
+    switch (gpsRate)
+    {
+    case gpsRateSpeed::STOP:
+        configure_all_registers(m10q_new_acq_time_stop, M10Q_NUM_RATE_OPTIONS);
+        break;
+    case gpsRateSpeed::SLOW:
+        configure_all_registers(m10q_new_acq_time_slow, M10Q_NUM_RATE_OPTIONS);
+        break;
+    case gpsRateSpeed::MEDIUM:
+        configure_all_registers(m10q_new_acq_time_medium, M10Q_NUM_RATE_OPTIONS);
+        break;
+    case gpsRateSpeed::FAST:
+        configure_all_registers(m10q_new_acq_time_fast, M10Q_NUM_RATE_OPTIONS);
+        break;
+    default:
+        break;
+    }
+
+    return true;
 }
-*/
 
 /* =========================================================== */
 /* ========== CONFIGURACION INICIAL DEL GPS VIA I2C ========== */
 /* =========================================================== */
-void SamM10q::configure_gps() {
-    uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
-    //write_register_uart(m10q_data_payloads[44], sizeof(m10q_data_payloads[44]), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
 
-    //write_register(m10q_data_payloads[45], sizeof(m10q_data_payloads[45]), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
-
-    //write_register_uart(m10q_data_payloads[44].data, m10q_data_payloads[44].size, RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
-    //write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM); // Habilito TRAMAS UBX UART via UART RAM
+void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads) {
+    const uint8_t* payload;
+    size_t payload_len;
+    for(size_t i = 0; i < numPayloads; i++) {
+        payload = configPayloads[i].data;
+        payload_len = configPayloads[i].size;
     
-    write_register_uart(m10q_data_payloads[43].data, m10q_data_payloads[43].size, RAM); // Habilito I2C via UART RAM
-    write_register_uart(m10q_data_payloads[43].data, m10q_data_payloads[43].size, BBR); // Habilito I2C via UART BBR
+        // Escribir en RAM
+        if (!write_register(payload, payload_len, RAM)) {
+            // Si falla la escritura en RAM, reintentar
+            i--;
+            continue;
+        }
+        // Escribir en BBR (persistente)
+        if (!write_register(payload, payload_len, BBR)) {
+            // Si falla la escritura en BBR, reintentar
+            i--;
+            continue;
+        }
+    }
+}
 
-    write_register_uart(m10q_data_payloads[47].data, m10q_data_payloads[47].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
-    write_register_uart(m10q_data_payloads[47].data, m10q_data_payloads[47].size, BBR);
+void SamM10q::configure_gps() {
+    //write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
+    //write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
+
+    //write_register(m10q_data_payloads[50], sizeof(m10q_data_payloads[50]), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
+
+    
+    //write_register_uart(m10q_data_payloads[54].data, m10q_data_payloads[54].size, RAM); // Habilito TRAMAS UBX UART via UART RAM
+    
+    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Habilito I2C via UART RAM
+    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR); // Habilito I2C via UART BBR
+
+    write_register_uart(m10q_data_payloads[52].data, m10q_data_payloads[52].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
+    write_register_uart(m10q_data_payloads[52].data, m10q_data_payloads[52].size, BBR);
     
     write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Habilita UBX_NAV_PVT_I2C via uart
     write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
 
-    write_register_uart(m10q_data_payloads[46].data, m10q_data_payloads[46].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
-    write_register_uart(m10q_data_payloads[46].data, m10q_data_payloads[46].size, BBR);
+    write_register_uart(m10q_data_payloads[51].data, m10q_data_payloads[51].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
+    write_register_uart(m10q_data_payloads[51].data, m10q_data_payloads[51].size, BBR);
 
-    write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
-    write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, BBR);
+    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
+    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, BBR);
+
+    // Reemplazo todo lo de abajo con esta función:
+    // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
 
     // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
     //     const uint8_t* payload = m10q_data_payloads[i].data;
@@ -184,29 +193,11 @@ void SamM10q::configure_gps() {
     //         continue;
     //     }
         
-    //     // Verificar escritura en RAM leyendo el registro
-    //     if (payload_len >= UBX_KEYID_SIZE) {
-    //         if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
-    //             // Si falla la lectura de verificación, reintentar
-    //             i--;
-    //             continue;
-    //         }
-    //     }
-        
     //     // Escribir en BBR (persistente)
     //     if (!write_register(payload, payload_len, BBR)) {
     //         // Si falla la escritura en BBR, reintentar
     //         i--;
     //         continue;
-    //     }
-        
-    //     // Verificar escritura en BBR
-    //     if (payload_len >= UBX_KEYID_SIZE) {
-    //         if (!read_register(payload, payload_len, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
-    //             // Si falla la lectura de verificación, reintentar
-    //             i--;
-    //             continue;
-    //         }
     //     }
     // }
 }
@@ -214,9 +205,7 @@ void SamM10q::configure_gps() {
 /* ============================================================ */
 /* ========== CONFIGURACION INICIAL DEL GPS VIA UART ========== */
 /* ============================================================ */
-void SamM10q::configure_gps_uart() {
-    uint8_t response_buffer[UBX_MAX_MESSAGE_SIZE];
-    
+void SamM10q::configure_gps_uart() {    
     for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++){
         const uint8_t* payload = m10q_data_payloads[i].data;
         size_t payloadlen = m10q_data_payloads[i].size;
@@ -228,29 +217,11 @@ void SamM10q::configure_gps_uart() {
             continue;
         }
         
-        // Verificar escritura en RAM leyendo el registro
-        if (payloadlen >= 4) {
-            if (!read_register_uart(payload, payloadlen, response_buffer, UBX_MAX_MESSAGE_SIZE, RAM)) {
-                // Si falla la lectura de verificación, reintentar
-                i--;
-                continue;
-            }
-        }
-        
         // Escribir en BBR (persistente) via UART
         if (!write_register_uart(payload, payloadlen, BBR)) {
             // Si falla la escritura en BBR, reintentar
             i--;
             continue;
-        }
-        
-        // Verificar escritura en BBR
-        if (payloadlen >= 4) {
-            if (!read_register_uart(payload, payloadlen, response_buffer, UBX_MAX_MESSAGE_SIZE, BBR)) {
-                // Si falla la lectura de verificación, reintentar
-                i--;
-                continue;
-            }
         }
     }
 }
