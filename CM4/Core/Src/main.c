@@ -223,8 +223,8 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   
-  /* Configure FreeRTOS heap to use RAM2 before any RTOS calls */
-  //vApplicationSetupHeap(); // Commented out - osKernelInitialize() will handle heap setup
+  /* heap_4 initialization is automatic - no setup needed */
+  // vApplicationSetupHeap(); // Not needed for heap_4
 
   /* USER CODE END Init */
 

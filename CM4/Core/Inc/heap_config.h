@@ -29,7 +29,7 @@ extern "C" {
   * @note   This function MUST be called before any FreeRTOS API calls
   * @retval None
   */
-void vApplicationSetupHeap(void);
+// void vApplicationSetupHeap(void);  // Not needed for heap_4
 
 /**
   * @brief  Get heap statistics for debugging

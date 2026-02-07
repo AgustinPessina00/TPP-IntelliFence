@@ -1,12 +1,15 @@
 /**
   ******************************************************************************
   * @file           : heap_config.c
-  * @brief          : FreeRTOS heap configuration for RAM2 usage
+  * @brief          : FreeRTOS heap_4 configuration for RAM1 usage
   ******************************************************************************
   * @attention
   *
-  * This file configures FreeRTOS heap_4 to use RAM2 (backup SRAM)
-  * for better memory management in STM32WL55JC dual-core system.
+  * This file configures FreeRTOS heap_4 to use RAM1
+  * for memory management in STM32WL55JC dual-core system.
+  *
+  * heap_4 automatically manages the heap - no initialization needed.
+  * Just define the ucHeap array with configTOTAL_HEAP_SIZE.
   *
   ******************************************************************************
   */
@@ -14,50 +17,97 @@
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "portable.h"
+#include <stdio.h>
+#include <stdint.h>
 
 /* Private defines -----------------------------------------------------------*/
-#define RAM2_START_ADDRESS   0x20008000U
-#define RAM2_TOTAL_SIZE      (16 * 1024U)     /* 16KB total RAM2 */
-#define RAM2_HEAP_SIZE       (8 * 1024U)      /* 8KB for FreeRTOS heap in RAM2 */
+#define HEAP_SIZE            configTOTAL_HEAP_SIZE
 
 /* Private variables ---------------------------------------------------------*/
 
-/* Define the heap array in RAM2 section */
-__attribute__((section(".RAM1_region")))
-static uint8_t ucHeap[configTOTAL_HEAP_SIZE];
-
-/* Required by heap_4.c - Define heap start and size */
-uint8_t * const pucStartOfHeap = ucHeap;
-const size_t xTotalHeapSize = configTOTAL_HEAP_SIZE;
-    { 
-        .pucStartAddress = (uint8_t*)RAM2_START_ADDRESS, 
-        .xSizeInBytes = RAM2_HEAP_SIZE 
-    },
-    
-    /* Optional: Add RAM1 as secondary region if needed 
-    { 
-        .pucStartAddress = (uint8_t*)0x20000000, 
-        .xSizeInBytes = (4 * 1024)  // Use 4KB from RAM1 if needed
-    },
-    */
-    
-    /* Terminate the array */
-    { NULL, 0 }
-};
+/**
+ * @brief FreeRTOS heap_4 memory pool in RAM1
+ * @note heap_4 automatically finds and uses this array
+ *       The .heap section is placed in RAM1 by the linker script
+ */
+__attribute__((section(".heap"))) __attribute__((used))
+uint8_t ucHeap[configTOTAL_HEAP_SIZE];
 
 /* Public Functions ----------------------------------------------------------*/
 
 /**
-  * @brief  Initialize FreeRTOS heap regions to use RAM2
-  * @note   This function MUST be called before any FreeRTOS API calls
-  *         including osKernelInitialize(), task creation, etc.
+  * @brief  Get heap statistics for debugging
+  * @param  pxTotalHeapSize: Pointer to store total heap size
+  * @param  pxFreeHeapSize: Pointer to store current free heap size
+  * @param  pxMinimumEverFreeHeapSize: Pointer to store minimum free size
   * @retval None
   */
-void vApplicationSetupHeap(void)
+void vGetHeapStats(size_t *pxTotalHeapSize, size_t *pxFreeHeapSize, size_t *pxMinimumEverFreeHeapSize)
 {
-    /* Configure heap regions for heap_5 */
-    vPortDefineHeapRegions(xHeapRegions);
+    if (pxTotalHeapSize != NULL) {
+        *pxTotalHeapSize = HEAP_SIZE;
+    }
+    
+    if (pxFreeHeapSize != NULL) {
+        *pxFreeHeapSize = xPortGetFreeHeapSize();
+    }
+    
+    if (pxMinimumEverFreeHeapSize != NULL) {
+        *pxMinimumEverFreeHeapSize = xPortGetMinimumEverFreeHeapSize();
+    }
 }
+
+/**
+  * @brief  Print heap information to debug console
+  * @retval None
+  */
+void vPrintHeapInfo(void)
+{
+    size_t xTotalSize, xFreeSize, xMinEverFree;
+    vGetHeapStats(&xTotalSize, &xFreeSize, &xMinEverFree);
+    
+    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\n", 
+           (unsigned int)xTotalSize, (unsigned int)xFreeSize, (unsigned int)xMinEverFree);
+    printf("[HEAP] Heap location: 0x%08X\n", (unsigned int)ucHeap);
+}
+
+/**
+  * @brief  Get heap statistics for debugging
+  * @param  pxTotalHeapSize: Pointer to store total heap size
+  * @param  pxFreeHeapSize: Pointer to store current free heap size
+  * @param  pxMinimumEverFreeHeapSize: Pointer to store minimum free size
+  * @retval None
+  */
+void vGetHeapStats(size_t *pxTotalHeapSize, size_t *pxFreeHeapSize, size_t *pxMinimumEverFreeHeapSize)
+{
+    if (pxTotalHeapSize != NULL) {
+        *pxTotalHeapSize = RAM2_HEAP_SIZE;
+    }
+    
+    if (pxFreeHeapSize != NULL) {
+        *pxFreeHeapSize = xPortGetFreeHeapSize();
+    }
+    
+    if (pxMinimumEverFreeHeapSize != NULL) {
+        *pxMinimumEverFreeHeapSize = xPortGetMinimumEverFreeHeapSize();
+    }
+}
+
+/**
+  * @brief  Print heap information to debug console
+  * @retval None
+  */
+void vPrintHeapInfo(void)
+{
+    size_t xTotalSize, xFreeSize, xMinEverFree;
+    vGetHeapStats(&xTotalSize, &xFreeSize, &xMinEverFree);
+    
+    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\n", 
+           (unsigned int)xTotalSize, (unsigned int)xFreeSize, (unsigned int)xMinEverFree);
+    printf("[HEAP] Located in RAM2 (0x%08X - 0x%08X)\n", 
+           RAM2_START_ADDRESS, RAM2_START_ADDRESS + RAM2_HEAP_SIZE - 1);
+}
+
 
 /**
   * @brief  Get heap statistics for debugging
