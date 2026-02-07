@@ -684,10 +684,7 @@ HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence) {
     }
 }
 
-void updateFence(Fence& fence) {
-    fence.createLimits();
-    RTOS_LOG_DEBUG("[FSM] Fence limits updated\n");
-}
+
 
 HAL_StatusTypeDef isInGreenZone(Cow& cow) {
     return (cow.getCurrentZone() == GREEN_ZONE) ? HAL_OK : HAL_ERROR;

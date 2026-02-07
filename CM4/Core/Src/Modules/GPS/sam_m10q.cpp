@@ -45,7 +45,7 @@ bool SamM10q::init(uint8_t i2cAddr) {
         return false;
     }
     
-    //configure_gps();
+    configure_gps();
     
     initialized = true;
     return true;
