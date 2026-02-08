@@ -246,9 +246,9 @@ El sistema implementa `rtos_printf` para logging desde tareas FreeRTOS:
 rtos_printf_init();
 
 // Logging thread-safe desde cualquier tarea
-RTOS_LOG_INFO("[SENSOR] GPS Lat: %.6f, Lon: %.6f\n", lat, lon);
-RTOS_LOG_DEBUG("[INA226] Current: %.2f mA\n", current);
-RTOS_LOG_ERROR("[IMU] Failed to read acceleration\n");
+RTOS_LOG_INFO("[SENSOR] GPS Lat: %.6f, Lon: %.6f\r\n", lat, lon);
+RTOS_LOG_DEBUG("[INA226] Current: %.2f mA\r\n", current);
+RTOS_LOG_ERROR("[IMU] Failed to read acceleration\r\n");
 ```
 
 ## 📊 Uso de Memoria
