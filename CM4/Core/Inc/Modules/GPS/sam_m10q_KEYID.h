@@ -8,7 +8,7 @@
 // Constantes y contadores
 // ========================
 constexpr size_t M10Q_NUM_RATE_OPTIONS   = 6; 
-constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 55;  // Cantidad de elementos en m10q_data
+constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 48;  // Cantidad de elementos en m10q_data
 
 // ======================================================
 // Estructura para empaqueta puntero + tamaño (ahorro de memoria vs arrays paralelos)

@@ -139,16 +139,18 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
     for(size_t i = 0; i < numPayloads; i++) {
         payload = configPayloads[i].data;
         payload_len = configPayloads[i].size;
+        
+        bool ramSuccess = false;
+        bool bbrSuccess = false;
     
         // Escribir en RAM
-        if (!write_register(payload, payload_len, RAM)) {
-            // Si falla la escritura en RAM, reintentar
-            i--;
-            continue;
-        }
+        ramSuccess = write_register(payload, payload_len, RAM);
+        
         // Escribir en BBR (persistente)
-        if (!write_register(payload, payload_len, BBR)) {
-            // Si falla la escritura en BBR, reintentar
+        bbrSuccess = write_register(payload, payload_len, BBR);
+        
+        // Si falla alguna de las dos escrituras, reintentar
+        if (!ramSuccess || !bbrSuccess) {
             i--;
             continue;
         }
@@ -156,28 +158,21 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
 }
 
 void SamM10q::configure_gps() {
-    //write_register_uart(m10q_data_payloads[49], sizeof(m10q_data_payloads[49]), RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
-    //write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM); // Deshabilito TRAMAS NMEA UART via UART RAM
 
-    //write_register(m10q_data_payloads[50], sizeof(m10q_data_payloads[50]), RAM); // Habilito TRAMAS NMEA UART via I2C RAM
+    write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C via UART RAM
+    write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR); // Habilito I2C via UART BBR
 
+    write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_I2C via uart
+    write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
     
-    //write_register_uart(m10q_data_payloads[54].data, m10q_data_payloads[54].size, RAM); // Habilito TRAMAS UBX UART via UART RAM
-    
-    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Habilito I2C via UART RAM
-    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR); // Habilito I2C via UART BBR
+    write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
+    write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
 
-    write_register_uart(m10q_data_payloads[52].data, m10q_data_payloads[52].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
-    write_register_uart(m10q_data_payloads[52].data, m10q_data_payloads[52].size, BBR);
-    
-    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, RAM); // Habilita UBX_NAV_PVT_I2C via uart
-    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, BBR);
+    write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
+    write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
 
-    write_register_uart(m10q_data_payloads[51].data, m10q_data_payloads[51].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
-    write_register_uart(m10q_data_payloads[51].data, m10q_data_payloads[51].size, BBR);
-
-    write_register_uart(m10q_data_payloads[54].data, m10q_data_payloads[54].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
-    write_register_uart(m10q_data_payloads[54].data, m10q_data_payloads[54].size, BBR);
+    write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
+    write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
 
     // Reemplazo todo lo de abajo con esta función:
     // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
