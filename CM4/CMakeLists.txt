@@ -132,6 +132,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/stimulusTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/loraTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/console.cpp
 
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/system_init.cpp
 

@@ -19,6 +19,11 @@ Esta carpeta contiene toda la documentación técnica del proyecto TPP-IntelliFe
 - **[Clase Cow](01_architecture/04_cow_class.md)** - Modelo de datos de la vaca (posición, aceleración, estado, zona)
 - **[Clase Fence](01_architecture/05_fence_class.md)** - Implementación embedded del cerco virtual (sin std::vector)
 
+#### Protocolo de Consola UART
+- **[Especificación del Protocolo](01_architecture/STM32_CONSOLE_PROTOCOL.md)** - Protocolo completo de comunicación UART2
+- **[Implementación de Console](01_architecture/CONSOLE_IMPLEMENTATION.md)** - Detalles técnicos de la implementación
+- **[Ejemplos de Uso](01_architecture/CONSOLE_EXAMPLES.md)** - Ejemplos prácticos y casos de uso
+
 ---
 
 ### 🔬 Implementaciones Técnicas
@@ -51,8 +56,9 @@ Esta carpeta contiene toda la documentación técnica del proyecto TPP-IntelliFe
 
 1. **Nuevo en el proyecto?** → Empieza por [Arquitectura General](01_architecture/01_system_overview.md)
 2. **Desarrollando FSM?** → Lee [FSM Architecture](01_architecture/02_fsm_architecture.md)
-3. **Debugging RTOS?** → Consulta [RTOS Printf](02_implementation/02_rtos_printf.md) y [Debug Views](02_implementation/03_rtos_debug_views.md)
-4. **Agregando tests?** → Revisa [Test Suite](03_testing/01_cow_fence_tests.md)
+3. **Implementando Console?** → Revisa [Protocolo Console](01_architecture/STM32_CONSOLE_PROTOCOL.md) y [Ejemplos](01_architecture/CONSOLE_EXAMPLES.md)
+4. **Debugging RTOS?** → Consulta [RTOS Printf](02_implementation/02_rtos_printf.md) y [Debug Views](02_implementation/03_rtos_debug_views.md)
+5. **Agregando tests?** → Revisa [Test Suite](03_testing/01_cow_fence_tests.md)
 
 ---
 
@@ -67,6 +73,7 @@ Esta carpeta contiene toda la documentación técnica del proyecto TPP-IntelliFe
 
 ## 🔄 Última Actualización
 
-**Fecha**: 22 de Noviembre de 2025  
-**Versión**: v1.0  
-**Branch**: vscode-refactor
+**Fecha**: 8 de Febrero de 2026  
+**Versión**: v1.1  
+**Branch**: main  
+**Última implementación**: Protocolo de Console UART2 con formato [CONSOLE]

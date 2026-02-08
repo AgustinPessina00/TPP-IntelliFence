@@ -22,7 +22,12 @@
 #include "usart_if.h"
 
 /* USER CODE BEGIN Includes */
-
+// Console protocol support
+extern uint8_t console_uart_rx_buffer[];
+extern volatile uint16_t console_uart_rx_head;
+extern uint8_t console_current_rx_byte;
+extern volatile uint8_t console_command_ready_flag;
+#define UART_RX_BUFFER_SIZE 128
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -186,8 +191,8 @@ UTIL_ADV_TRACE_Status_t vcom_ReceiveInit(void (*RxCb)(uint8_t *rxChar, uint16_t 
   /*Enable wakeup from stop mode*/
   HAL_UARTEx_EnableStopMode(&huart2);
 
-  /*Start LPUART receive on IT*/
-  HAL_UART_Receive_IT(&huart2, &charRx, 1);
+  /*Start LPUART receive on IT - commented out, console will handle this*/
+  /* HAL_UART_Receive_IT(&huart2, &charRx, 1); */
 
   return UTIL_ADV_TRACE_OK;
   /* USER CODE BEGIN vcom_ReceiveInit_2 */
@@ -238,11 +243,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* USER CODE END HAL_UART_RxCpltCallback_1 */
   if (huart->Instance == USART2)
   {
-    if ((NULL != RxCpltCallback) && (HAL_UART_ERROR_NONE == huart->ErrorCode))
-    {
-      RxCpltCallback(&charRx, 1, 0);
+    // Handle console protocol - UART2 is dedicated to console communication
+    console_uart_rx_buffer[console_uart_rx_head] = console_current_rx_byte;
+    console_uart_rx_head = (console_uart_rx_head + 1) % UART_RX_BUFFER_SIZE;
+    
+    // Check for newline - command complete
+    if (console_current_rx_byte == '\n') {
+      console_command_ready_flag = 1;
     }
-    HAL_UART_Receive_IT(huart, &charRx, 1);
+    
+    // Restart reception for next byte
+    HAL_UART_Receive_IT(huart, &console_current_rx_byte, 1);
   }
   /* USER CODE BEGIN HAL_UART_RxCpltCallback_2 */
 
