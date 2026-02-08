@@ -125,6 +125,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Thread Sources (FreeRTOS Tasks)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/dispatcherTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsmTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fsm_helper.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/startupRoutineFsm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/normalOperationFsm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fenceTransitionFsm.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/stimulusTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/loraTask.cpp

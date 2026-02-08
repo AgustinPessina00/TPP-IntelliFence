@@ -21,26 +21,26 @@
  * - Thread-safe I2C communication
  */
 extern "C" void ina226_comprehensive_test(void) {
-    printf("[INA226] ========================================\n");
-    printf("[INA226] INICIANDO TEST COMPRENSIVO INA226\n");
-    printf("[INA226] Sensor de corriente y potencia thread-safe\n");
-    printf("[INA226] PROBANDO DIRECCIONES: 0x40, 0x41, 0x45\n");
-    printf("[INA226] ========================================\n");
+    printf("[INA226] ========================================\r\n");
+    printf("[INA226] INICIANDO TEST COMPRENSIVO INA226\r\n");
+    printf("[INA226] Sensor de corriente y potencia thread-safe\r\n");
+    printf("[INA226] PROBANDO DIRECCIONES: 0x40, 0x41, 0x45\r\n");
+    printf("[INA226] ========================================\r\n");
     
     // ===== FASE 1: INICIALIZACION I2C =====
-    printf("\n[INA226] === FASE 1: INICIALIZACION I2C ===\n");
+    printf("\n[INA226] === FASE 1: INICIALIZACION I2C ===\r\n");
     
     if (!I2CManager::isInitialized()) {
-        printf("[INA226] Inicializando I2CManager...\n");
+        printf("[INA226] Inicializando I2CManager...\r\n");
         if (!I2CManager::initializeAll()) {
-            printf("[INA226] ERROR CRITICO - Fallo inicializacion I2CManager\n");
+            printf("[INA226] ERROR CRITICO - Fallo inicializacion I2CManager\r\n");
             return;
         }
     }
-    printf("[INA226] OK - I2CManager inicializado\n");
+    printf("[INA226] OK - I2CManager inicializado\r\n");
     
     // ===== FASE 2: TEST CONECTIVIDAD =====
-    printf("\n[INA226] === FASE 2: TEST CONECTIVIDAD ===\n");
+    printf("\n[INA226] === FASE 2: TEST CONECTIVIDAD ===\r\n");
     
     I2CBus& testBus = I2CManager::getBus2();
     
@@ -63,19 +63,19 @@ extern "C" void ina226_comprehensive_test(void) {
     bool addressFound[3] = {false, false, false};
     
     for (int i = 0; i < numConfigs; i++) {
-        printf("[INA226] Escaneando %s...\n", configs[i].name);
+        printf("[INA226] Escaneando %s...\r\n", configs[i].name);
         
         uint8_t manufacturerID[2];
         I2CResult scanResult = testBus.memRead(configs[i].address, 0xFE, 1, manufacturerID, 2, 100); // Manufacturer ID register
         
         if (scanResult == I2C_OK) {
             uint16_t manID = (manufacturerID[0] << 8) | manufacturerID[1];
-            printf("[INA226] OK - Dispositivo encontrado en %s\n", configs[i].name);
-            printf("[INA226]      Manufacturer ID: 0x%04X %s\n", manID, 
+            printf("[INA226] OK - Dispositivo encontrado en %s\r\n", configs[i].name);
+            printf("[INA226]      Manufacturer ID: 0x%04X %s\r\n", manID, 
                    (manID == 0x5449) ? "(Texas Instruments - Correcto)" : "(ID no reconocido)");
             addressFound[i] = true;
         } else {
-            printf("[INA226] INFO - No respuesta en %s\n", configs[i].name);
+            printf("[INA226] INFO - No respuesta en %s\r\n", configs[i].name);
         }
     }
     
@@ -86,40 +86,40 @@ extern "C" void ina226_comprehensive_test(void) {
     }
     
     if (foundCount == 0) {
-        printf("[INA226] ERROR - No se encontro ningun INA226 en las direcciones especificadas\n");
-        printf("[INA226] Continuando con direccion por defecto 0x40 para demostracion...\n");
+        printf("[INA226] ERROR - No se encontro ningun INA226 en las direcciones especificadas\r\n");
+        printf("[INA226] Continuando con direccion por defecto 0x40 para demostracion...\r\n");
         addressFound[0] = true; // Forzar test de 0x40
     } else {
-        printf("[INA226] RESUMEN - %d de 3 direcciones respondieron\n", foundCount);
+        printf("[INA226] RESUMEN - %d de 3 direcciones respondieron\r\n", foundCount);
     }
     
     // ===== FASE 3: PRUEBA SECUENCIAL DE DIRECCIONES =====
-    printf("\n[INA226] === FASE 3: PRUEBA SECUENCIAL DIRECCIONES ===\n");
+    printf("\n[INA226] === FASE 3: PRUEBA SECUENCIAL DIRECCIONES ===\r\n");
     
     for (int i = 0; i < numConfigs; i++) {
         InaConfig& config = configs[i];
         
-        printf("\n[INA226] --- PROBANDO %s ---\n", config.name);
+        printf("\n[INA226] --- PROBANDO %s ---\r\n", config.name);
         
         if (!addressFound[i]) {
-            printf("[INA226] SKIP - Direccion no responde, saltando...\n");
+            printf("[INA226] SKIP - Direccion no responde, saltando...\r\n");
             continue;
         }
         
-        printf("[INA226] Creando instancia INA226 para direccion 0x%02X...\n", config.address);
-        printf("[INA226] Parametros de configuracion:\n");
-        printf("[INA226] - Aplicacion: %s\n", config.application);
-        printf("[INA226] - Resistencia shunt: %.2f ohm\n", config.rShunt);
-        printf("[INA226] - Current LSB: %.9f A (%.6f mA)\n", config.currentLSB, config.currentLSB * 1000);
-        printf("[INA226] - Rango corriente max: %.3f A\n", config.currentLSB * 32767);
-        printf("[INA226] - Promediado: 128 muestras\n");
-        printf("[INA226] - Tiempo conversion: 1.1ms\n");
-        printf("[INA226] - Modo: Continuo shunt+bus\n");
+        printf("[INA226] Creando instancia INA226 para direccion 0x%02X...\r\n", config.address);
+        printf("[INA226] Parametros de configuracion:\r\n");
+        printf("[INA226] - Aplicacion: %s\r\n", config.application);
+        printf("[INA226] - Resistencia shunt: %.2f ohm\r\n", config.rShunt);
+        printf("[INA226] - Current LSB: %.9f A (%.6f mA)\r\n", config.currentLSB, config.currentLSB * 1000);
+        printf("[INA226] - Rango corriente max: %.3f A\r\n", config.currentLSB * 32767);
+        printf("[INA226] - Promediado: 128 muestras\r\n");
+        printf("[INA226] - Tiempo conversion: 1.1ms\r\n");
+        printf("[INA226] - Modo: Continuo shunt+bus\r\n");
         
         // Crear instancia con configuración específica para esta dirección
         Ina226 ina226;  // Default constructor - no hardware access
         
-        printf("[INA226] Inicializando INA226 en 0x%02X...\n", config.address);
+        printf("[INA226] Inicializando INA226 en 0x%02X...\r\n", config.address);
         if (!ina226.init(config.address,                      // I2C address específica
                          config.rShunt,                       // Resistencia shunt específica
                          config.currentLSB,                   // Current LSB específico
@@ -127,30 +127,30 @@ extern "C" void ina226_comprehensive_test(void) {
                          Ina226ConvTime::CT_1_1MS,           // 1.1ms bus voltage conversion time
                          Ina226ConvTime::CT_1_1MS,           // 1.1ms shunt voltage conversion time
                          Ina226Mode::SHUNT_BUS_CONTINUOUS)) {  // Continuous shunt+bus measurement
-            printf("[INA226] ERROR - Fallo inicializacion en 0x%02X\n", config.address);
+            printf("[INA226] ERROR - Fallo inicializacion en 0x%02X\r\n", config.address);
             continue;
         }
-        printf("[INA226] OK - INA226 inicializado en 0x%02X\n", config.address);
+        printf("[INA226] OK - INA226 inicializado en 0x%02X\r\n", config.address);
         
         // Test rápido de registros
-        printf("[INA226] Ejecutando test de registros...\n");
+        printf("[INA226] Ejecutando test de registros...\r\n");
         ina226.testINA();
         
         // ===== MEDICIONES EN TIEMPO REAL =====
-        printf("[INA226] Realizando 10 mediciones cada 300ms...\n");
-        printf("[INA226] Esperando rango de corriente segun configuracion:\n");
+        printf("[INA226] Realizando 10 mediciones cada 300ms...\r\n");
+        printf("[INA226] Esperando rango de corriente segun configuracion:\r\n");
         
         // Mostrar rango esperado según la configuración
         if (config.address == 0x40) {
-            printf("[INA226] - 0x40: Corrientes altas (mA-A range) con shunt 0.75 ohm\n");
+            printf("[INA226] - 0x40: Corrientes altas (mA-A range) con shunt 0.75 ohm\r\n");
         } else if (config.address == 0x41) {
-            printf("[INA226] - 0x41: Corrientes muy bajas (uA range) con shunt 10 ohm\n");
+            printf("[INA226] - 0x41: Corrientes muy bajas (uA range) con shunt 10 ohm\r\n");
         } else if (config.address == 0x45) {
-            printf("[INA226] - 0x45: Corrientes medias (mA range) con shunt 10 ohm\n");
+            printf("[INA226] - 0x45: Corrientes medias (mA range) con shunt 10 ohm\r\n");
         }
         
-        printf("[INA226] [#] Vshunt | Vbus | Corriente | Potencia | Estado\n");
-        printf("[INA226] ----------------------------------------------\n");
+        printf("[INA226] [#] Vshunt | Vbus | Corriente | Potencia | Estado\r\n");
+        printf("[INA226] ----------------------------------------------\r\n");
         
         int successfulReads = 0;
         float totalCurrent = 0.0f;
@@ -222,32 +222,32 @@ extern "C" void ina226_comprehensive_test(void) {
                 printf("ERROR");
             }
             
-            printf("\n");
+            printf("\r\n");
             HAL_Delay(300); // 300ms entre mediciones
         }
         
         // Análisis de resultados para esta dirección
-        printf("[INA226] RESULTADO 0x%02X: %d/10 lecturas exitosas (%.1f%%)\n", 
+        printf("[INA226] RESULTADO 0x%02X: %d/10 lecturas exitosas (%.1f%%)\r\n", 
                config.address, successfulReads, (float)successfulReads * 10.0f);
         
         if (successfulReads >= 8) {
-            printf("[INA226] EXCELENTE - Sensor en 0x%02X funciona correctamente\n", config.address);
+            printf("[INA226] EXCELENTE - Sensor en 0x%02X funciona correctamente\r\n", config.address);
         } else if (successfulReads >= 5) {
-            printf("[INA226] BUENO - Sensor en 0x%02X funciona con algunos errores\n", config.address);
+            printf("[INA226] BUENO - Sensor en 0x%02X funciona con algunos errores\r\n", config.address);
         } else {
-            printf("[INA226] PROBLEMAS - Sensor en 0x%02X tiene fallas frecuentes\n", config.address);
+            printf("[INA226] PROBLEMAS - Sensor en 0x%02X tiene fallas frecuentes\r\n", config.address);
         }
         
         // Estadísticas de corriente si hubo mediciones exitosas
         if (successfulReads > 0) {
             float avgCurrent = totalCurrent / successfulReads;
-            printf("[INA226] ESTADISTICAS 0x%02X:\n", config.address);
+            printf("[INA226] ESTADISTICAS 0x%02X:\r\n", config.address);
             
             if (config.address == 0x41) {
-                printf("[INA226]   Promedio: %.3fuA, Min: %.3fuA, Max: %.3fuA\n", 
+                printf("[INA226]   Promedio: %.3fuA, Min: %.3fuA, Max: %.3fuA\r\n", 
                        avgCurrent * 1000, minCurrent * 1000, maxCurrent * 1000);
             } else {
-                printf("[INA226]   Promedio: %.3fmA, Min: %.3fmA, Max: %.3fmA\n", 
+                printf("[INA226]   Promedio: %.3fmA, Min: %.3fmA, Max: %.3fmA\r\n", 
                        avgCurrent, minCurrent, maxCurrent);
             }
             
@@ -256,69 +256,69 @@ extern "C" void ina226_comprehensive_test(void) {
             if (config.address == 0x40) {
                 // Alto consumo esperado
                 if (currentAbs > 10.0f) {
-                    printf("[INA226]   OK - Corriente alta como esperado para 0x40\n");
+                    printf("[INA226]   OK - Corriente alta como esperado para 0x40\r\n");
                 } else {
-                    printf("[INA226]   INFO - Corriente menor a esperada para aplicacion alto consumo\n");
+                    printf("[INA226]   INFO - Corriente menor a esperada para aplicacion alto consumo\r\n");
                 }
             } else if (config.address == 0x41) {
                 // Muy bajo consumo esperado
                 if (currentAbs < 1.0f) {
-                    printf("[INA226]   OK - Corriente muy baja como esperado para 0x41\n");
+                    printf("[INA226]   OK - Corriente muy baja como esperado para 0x41\r\n");
                 } else {
-                    printf("[INA226]   WARNING - Corriente mayor a esperada para aplicacion bajo consumo\n");
+                    printf("[INA226]   WARNING - Corriente mayor a esperada para aplicacion bajo consumo\r\n");
                 }
             } else if (config.address == 0x45) {
                 // Consumo medio esperado
                 if (currentAbs > 1.0f && currentAbs < 100.0f) {
-                    printf("[INA226]   OK - Corriente media como esperado para 0x45\n");
+                    printf("[INA226]   OK - Corriente media como esperado para 0x45\r\n");
                 } else {
-                    printf("[INA226]   INFO - Corriente fuera del rango medio esperado\n");
+                    printf("[INA226]   INFO - Corriente fuera del rango medio esperado\r\n");
                 }
             }
         }
         
-        printf("[INA226] --- FIN PRUEBA 0x%02X ---\n", config.address);
+        printf("[INA226] --- FIN PRUEBA 0x%02X ---\r\n", config.address);
     }
     
     // ===== CONCLUSION GENERAL =====
-    printf("\n[INA226] ========== CONCLUSION GENERAL ==========\n");
-    printf("[INA226] RESUMEN DE CONFIGURACIONES PROBADAS:\n");
+    printf("\n[INA226] ========== CONCLUSION GENERAL ==========\r\n");
+    printf("[INA226] RESUMEN DE CONFIGURACIONES PROBADAS:\r\n");
     
     for (int i = 0; i < numConfigs; i++) {
         if (addressFound[i]) {
-            printf("[INA226] OK %s - %s\n", configs[i].name, configs[i].application);
-            printf("[INA226]    Rshunt=%.2f ohm, LSB=%.9f A\n", configs[i].rShunt, configs[i].currentLSB);
+            printf("[INA226] OK %s - %s\r\n", configs[i].name, configs[i].application);
+            printf("[INA226]    Rshunt=%.2f ohm, LSB=%.9f A\r\n", configs[i].rShunt, configs[i].currentLSB);
         } else {
-            printf("[INA226] -- %s - No detectado\n", configs[i].name);
+            printf("[INA226] -- %s - No detectado\r\n", configs[i].name);
         }
     }
     
-    printf("[INA226] VENTAJAS CONFIGURACION MULTI-SENSOR:\n");
-    printf("[INA226] + Configuraciones optimizadas por aplicacion\n");
-    printf("[INA226] + Diferentes rangos de medicion por sensor\n");
-    printf("[INA226] + Resistencias shunt especificas\n");
-    printf("[INA226] + Current LSB calculado por precision requerida\n");
-    printf("[INA226] + 0x40: Alto consumo (0.75 ohm)\n");
-    printf("[INA226] + 0x41: Bajo consumo precision (10 ohm)\n");
-    printf("[INA226] + 0x45: Consumo medio (10 ohm)\n");
-    printf("[INA226] + Arquitectura thread-safe unificada\n");
-    printf("[INA226] =========================================\n");
+    printf("[INA226] VENTAJAS CONFIGURACION MULTI-SENSOR:\r\n");
+    printf("[INA226] + Configuraciones optimizadas por aplicacion\r\n");
+    printf("[INA226] + Diferentes rangos de medicion por sensor\r\n");
+    printf("[INA226] + Resistencias shunt especificas\r\n");
+    printf("[INA226] + Current LSB calculado por precision requerida\r\n");
+    printf("[INA226] + 0x40: Alto consumo (0.75 ohm)\r\n");
+    printf("[INA226] + 0x41: Bajo consumo precision (10 ohm)\r\n");
+    printf("[INA226] + 0x45: Consumo medio (10 ohm)\r\n");
+    printf("[INA226] + Arquitectura thread-safe unificada\r\n");
+    printf("[INA226] =========================================\r\n");
 }
 
 /**
  * @brief Test de diferentes configuraciones del INA226
  */
 extern "C" void ina226_configuration_test(void) {
-    printf("[INA226-CFG] ========== TEST CONFIGURACIONES ==========\n");
+    printf("[INA226-CFG] ========== TEST CONFIGURACIONES ==========\r\n");
     
     if (!I2CManager::isInitialized()) {
         I2CManager::initializeAll();
     }
     
-    printf("[INA226-CFG] Probando diferentes configuraciones...\n");
+    printf("[INA226-CFG] Probando diferentes configuraciones...\r\n");
     
     // Configuración 1: Alta velocidad, baja precisión
-    printf("\n[INA226-CFG] === CONFIG 1: ALTA VELOCIDAD ===\n");
+    printf("\n[INA226-CFG] === CONFIG 1: ALTA VELOCIDAD ===\r\n");
     {
         Ina226 ina226_fast;
         
@@ -327,12 +327,12 @@ extern "C" void ina226_configuration_test(void) {
                              Ina226ConvTime::CT_140US,       // Conversión rápida
                              Ina226ConvTime::CT_140US,       // Conversión rápida
                              Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
-            printf("[INA226-CFG] Config alta velocidad inicializada\n");
+            printf("[INA226-CFG] Config alta velocidad inicializada\r\n");
             
             // 5 mediciones rápidas
             for (int i = 0; i < 5; i++) {
                 if (ina226_fast.readCurrent_mA() == I2C_OK) {
-                    printf("[INA226-CFG] Lectura rápida %d: %.3fmA\n", i+1, ina226_fast.current);
+                    printf("[INA226-CFG] Lectura rápida %d: %.3fmA\r\n", i+1, ina226_fast.current);
                 }
                 HAL_Delay(50); // Solo 50ms entre lecturas
             }
@@ -340,7 +340,7 @@ extern "C" void ina226_configuration_test(void) {
     }
     
     // Configuración 2: Alta precisión, baja velocidad  
-    printf("\n[INA226-CFG] === CONFIG 2: ALTA PRECISION ===\n");
+    printf("\n[INA226-CFG] === CONFIG 2: ALTA PRECISION ===\r\n");
     {
         Ina226 ina226_precise;
         
@@ -349,15 +349,15 @@ extern "C" void ina226_configuration_test(void) {
                                 Ina226ConvTime::CT_8_244MS,     // Conversión lenta
                                 Ina226ConvTime::CT_8_244MS,     // Conversión lenta  
                                 Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
-            printf("[INA226-CFG] Config alta precision inicializada\n");
-            printf("[INA226-CFG] NOTA: Cada medicion toma ~17ms (8.244ms*2 + 1024 avg)\n");
+            printf("[INA226-CFG] Config alta precision inicializada\r\n");
+            printf("[INA226-CFG] NOTA: Cada medicion toma ~17ms (8.244ms*2 + 1024 avg)\r\n");
             
             // 3 mediciones precisas
             for (int i = 0; i < 3; i++) {
                 uint32_t startTime = HAL_GetTick();
                 if (ina226_precise.readCurrent_mA() == I2C_OK) {
                     uint32_t elapsed = HAL_GetTick() - startTime;
-                    printf("[INA226-CFG] Lectura precisa %d: %.6fmA (tomo %ums)\n", 
+                    printf("[INA226-CFG] Lectura precisa %d: %.6fmA (tomo %ums)\r\n", 
                            i+1, ina226_precise.current, (unsigned int)elapsed);
                 }
                 HAL_Delay(1000); // 1 segundo entre lecturas precisas
@@ -365,15 +365,15 @@ extern "C" void ina226_configuration_test(void) {
         }
     }
     
-    printf("[INA226-CFG] =========================================\n");
+    printf("[INA226-CFG] =========================================\r\n");
 }
 
 /**
  * @brief Test de monitoreo continuo del INA226
  */
 extern "C" void ina226_continuous_monitor(void) {
-    printf("[INA226-MONITOR] Iniciando monitor continuo INA226...\n");
-    printf("[INA226-MONITOR] Presione reset para detener\n");
+    printf("[INA226-MONITOR] Iniciando monitor continuo INA226...\r\n");
+    printf("[INA226-MONITOR] Presione reset para detener\r\n");
     
     if (!I2CManager::isInitialized()) {
         I2CManager::initializeAll();
@@ -386,7 +386,7 @@ extern "C" void ina226_continuous_monitor(void) {
                      Ina226ConvTime::CT_1_1MS,  
                      Ina226ConvTime::CT_1_1MS,
                      Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
-        printf("[INA226-MONITOR] ERROR - Fallo inicializacion\n");
+        printf("[INA226-MONITOR] ERROR - Fallo inicializacion\r\n");
         return;
     }
     
@@ -409,7 +409,7 @@ extern "C" void ina226_continuous_monitor(void) {
             
             // Mostrar cada 50 lecturas
             if (readCount % 50 == 0) {
-                printf("[INA226-MONITOR] #%u: %.3fV, %.3fmA, %.3fmW | Avg=%.3f Min=%.3f Max=%.3f\n",
+                printf("[INA226-MONITOR] #%u: %.3fV, %.3fmA, %.3fmW | Avg=%.3f Min=%.3f Max=%.3f\r\n",
                        (unsigned int)readCount, ina226.busVoltage, ina226.current, ina226.power,
                        avgCurrent, minCurrent, maxCurrent);
             }

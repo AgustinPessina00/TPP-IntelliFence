@@ -52,7 +52,7 @@ static void console_init(void) {
     // Start UART reception with interrupts
     HAL_UART_Receive_IT(&huart1, &current_rx_byte, 1);
     
-    RTOS_LOG_INFO("[CONSOLE] Initialized successfully\n");
+    RTOS_LOG_INFO("[CONSOLE] Initialized successfully\r\n");
 }
 
 /**
@@ -112,8 +112,8 @@ static uint8_t hex_string_to_bytes(char* hex_str, uint8_t* bytes, uint8_t max_le
 
 /**
  * Parse command line
- * Format: "<MODULE_CODE> <OPERATION_CODE> [DATA]\n"
- * Example: "41 00\n" or "41 01 A1 B2\n"
+ * Format: "<MODULE_CODE> <OPERATION_CODE> [DATA]\r\n"
+ * Example: "41 00\r\n" or "41 01 A1 B2\r\n"
  */
 static ConsoleCommand_t parse_command(char* cmd_line) {
     ConsoleCommand_t cmd = {0};
@@ -155,11 +155,11 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
     EmbeddedMessage_t *msgToSend = NULL;
     
     if (!cmd->valid) {
-        send_uart_response("[ERROR] Invalid command format\n");
+        send_uart_response("[ERROR] Invalid command format\r\n");
         return;
     }
     
-    RTOS_LOG_DEBUG("[CONSOLE] Executing command: module=%d, operation=0x%02X\n", 
+    RTOS_LOG_DEBUG("[CONSOLE] Executing command: module=%d, operation=0x%02X\r\n", 
                   cmd->module_code, cmd->operation_code);
     
     switch (cmd->module_code) {
@@ -176,22 +176,22 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
                     if (status == osOK) {
-                        RTOS_LOG_DEBUG("[CONSOLE] GPS read request sent\n");
+                        RTOS_LOG_DEBUG("[CONSOLE] GPS read request sent\r\n");
                         // Response will be sent when data arrives
                     } else {
-                        RTOS_LOG_ERROR("[CONSOLE] Failed to send GPS request\n");
-                        send_uart_response("[ERROR] GPS read request failed\n");
+                        RTOS_LOG_ERROR("[CONSOLE] Failed to send GPS request\r\n");
+                        send_uart_response("[ERROR] GPS read request failed\r\n");
                         MessagePool_Free(msgToSend);
                     }
                 } else {
-                    send_uart_response("[ERROR] Memory allocation failed\n");
+                    send_uart_response("[ERROR] Memory allocation failed\r\n");
                 }
             } else if (cmd->operation_code == OP_WRITE) {
                 // GPS write configuration
-                snprintf(response, RESPONSE_SIZE, "[CONSOLE] GPS config updated OK\n");
+                snprintf(response, RESPONSE_SIZE, "[CONSOLE] GPS config updated OK\r\n");
                 send_uart_response(response);
             } else {
-                send_uart_response("[ERROR] Unknown operation code\n");
+                send_uart_response("[ERROR] Unknown operation code\r\n");
             }
             break;
             
@@ -208,21 +208,21 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
                     if (status == osOK) {
-                        RTOS_LOG_DEBUG("[CONSOLE] IMU read request sent\n");
+                        RTOS_LOG_DEBUG("[CONSOLE] IMU read request sent\r\n");
                     } else {
-                        RTOS_LOG_ERROR("[CONSOLE] Failed to send IMU request\n");
-                        send_uart_response("[ERROR] IMU read request failed\n");
+                        RTOS_LOG_ERROR("[CONSOLE] Failed to send IMU request\r\n");
+                        send_uart_response("[ERROR] IMU read request failed\r\n");
                         MessagePool_Free(msgToSend);
                     }
                 } else {
-                    send_uart_response("[ERROR] Memory allocation failed\n");
+                    send_uart_response("[ERROR] Memory allocation failed\r\n");
                 }
             } else if (cmd->operation_code == OP_WRITE) {
                 // IMU write configuration
-                snprintf(response, RESPONSE_SIZE, "[CONSOLE] IMU config updated OK\n");
+                snprintf(response, RESPONSE_SIZE, "[CONSOLE] IMU config updated OK\r\n");
                 send_uart_response(response);
             } else {
-                send_uart_response("[ERROR] Unknown operation code\n");
+                send_uart_response("[ERROR] Unknown operation code\r\n");
             }
             break;
             
@@ -239,17 +239,17 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
                     if (status == osOK) {
-                        RTOS_LOG_DEBUG("[CONSOLE] INA GPS read request sent\n");
+                        RTOS_LOG_DEBUG("[CONSOLE] INA GPS read request sent\r\n");
                     } else {
-                        RTOS_LOG_ERROR("[CONSOLE] Failed to send INA GPS request\n");
-                        send_uart_response("[ERROR] INA GPS read request failed\n");
+                        RTOS_LOG_ERROR("[CONSOLE] Failed to send INA GPS request\r\n");
+                        send_uart_response("[ERROR] INA GPS read request failed\r\n");
                         MessagePool_Free(msgToSend);
                     }
                 } else {
-                    send_uart_response("[ERROR] Memory allocation failed\n");
+                    send_uart_response("[ERROR] Memory allocation failed\r\n");
                 }
             } else {
-                send_uart_response("[ERROR] Unknown operation code\n");
+                send_uart_response("[ERROR] Unknown operation code\r\n");
             }
             break;
             
@@ -266,17 +266,17 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
                     if (status == osOK) {
-                        RTOS_LOG_DEBUG("[CONSOLE] INA IMU read request sent\n");
+                        RTOS_LOG_DEBUG("[CONSOLE] INA IMU read request sent\r\n");
                     } else {
-                        RTOS_LOG_ERROR("[CONSOLE] Failed to send INA IMU request\n");
-                        send_uart_response("[ERROR] INA IMU read request failed\n");
+                        RTOS_LOG_ERROR("[CONSOLE] Failed to send INA IMU request\r\n");
+                        send_uart_response("[ERROR] INA IMU read request failed\r\n");
                         MessagePool_Free(msgToSend);
                     }
                 } else {
-                    send_uart_response("[ERROR] Memory allocation failed\n");
+                    send_uart_response("[ERROR] Memory allocation failed\r\n");
                 }
             } else {
-                send_uart_response("[ERROR] Unknown operation code\n");
+                send_uart_response("[ERROR] Unknown operation code\r\n");
             }
             break;
             
@@ -293,22 +293,22 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
                     if (status == osOK) {
-                        RTOS_LOG_DEBUG("[CONSOLE] INA MCU read request sent\n");
+                        RTOS_LOG_DEBUG("[CONSOLE] INA MCU read request sent\r\n");
                     } else {
-                        RTOS_LOG_ERROR("[CONSOLE] Failed to send INA MCU request\n");
-                        send_uart_response("[ERROR] INA MCU read request failed\n");
+                        RTOS_LOG_ERROR("[CONSOLE] Failed to send INA MCU request\r\n");
+                        send_uart_response("[ERROR] INA MCU read request failed\r\n");
                         MessagePool_Free(msgToSend);
                     }
                 } else {
-                    send_uart_response("[ERROR] Memory allocation failed\n");
+                    send_uart_response("[ERROR] Memory allocation failed\r\n");
                 }
             } else {
-                send_uart_response("[ERROR] Unknown operation code\n");
+                send_uart_response("[ERROR] Unknown operation code\r\n");
             }
             break;
             
         default:
-            snprintf(response, RESPONSE_SIZE, "[ERROR] Unknown module code: %d\n", 
+            snprintf(response, RESPONSE_SIZE, "[ERROR] Unknown module code: %d\r\n", 
                     cmd->module_code);
             send_uart_response(response);
             break;
@@ -334,7 +334,7 @@ void consoleTask(void *argument) {
             // Extract command from buffer
             extract_command_line(command_line, COMMAND_LINE_SIZE);
             
-            RTOS_LOG_DEBUG("[CONSOLE] Command received: %s\n", command_line);
+            RTOS_LOG_DEBUG("[CONSOLE] Command received: %s\r\n", command_line);
             
             // Parse and execute command
             ConsoleCommand_t cmd = parse_command(command_line);
@@ -343,7 +343,7 @@ void consoleTask(void *argument) {
         
         // Check for messages from other tasks (sensor data responses)
         if (osMessageQueueGet(consoleQueueHandle, &msgReceived, NULL, 10) == osOK) {
-            RTOS_LOG_DEBUG("[CONSOLE] Received message ID:%d from module:%d\n", 
+            RTOS_LOG_DEBUG("[CONSOLE] Received message ID:%d from module:%d\r\n", 
                           msgReceived->id, msgReceived->sender);
             
             char response[RESPONSE_SIZE];
@@ -356,7 +356,7 @@ void consoleTask(void *argument) {
                         memcpy(&longitude, msgReceived->payload + sizeof(double), sizeof(double));
                         
                         snprintf(response, RESPONSE_SIZE, 
-                                "[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\n", 
+                                "[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\r\n", 
                                 latitude, longitude);
                         send_uart_response(response);
                     }
@@ -370,7 +370,7 @@ void consoleTask(void *argument) {
                         memcpy(&az, msgReceived->payload + 2 * sizeof(double), sizeof(double));
                         
                         snprintf(response, RESPONSE_SIZE, 
-                                "[SENSOR_ACQ] IMU read: (%.3f g, %.3f g, %.3f g)\n", 
+                                "[SENSOR_ACQ] IMU read: (%.3f g, %.3f g, %.3f g)\r\n", 
                                 ax / 1000.0, ay / 1000.0, az / 1000.0);
                         send_uart_response(response);
                     }
@@ -382,7 +382,7 @@ void consoleTask(void *argument) {
                         memcpy(&current, msgReceived->payload, sizeof(float));
                         
                         snprintf(response, RESPONSE_SIZE, 
-                                "[SENSOR_ACQ] INA GPS current read: %.1f mA\n", 
+                                "[SENSOR_ACQ] INA GPS current read: %.1f mA\r\n", 
                                 current);
                         send_uart_response(response);
                     }
@@ -394,7 +394,7 @@ void consoleTask(void *argument) {
                         memcpy(&current, msgReceived->payload, sizeof(float));
                         
                         snprintf(response, RESPONSE_SIZE, 
-                                "[SENSOR_ACQ] INA IMU current read: %.1f mA\n", 
+                                "[SENSOR_ACQ] INA IMU current read: %.1f mA\r\n", 
                                 current);
                         send_uart_response(response);
                     }
@@ -406,14 +406,14 @@ void consoleTask(void *argument) {
                         memcpy(&current, msgReceived->payload, sizeof(float));
                         
                         snprintf(response, RESPONSE_SIZE, 
-                                "[SENSOR_ACQ] INA MCU current read: %.1f mA\n", 
+                                "[SENSOR_ACQ] INA MCU current read: %.1f mA\r\n", 
                                 current);
                         send_uart_response(response);
                     }
                     break;
                     
                 default:
-                    RTOS_LOG_WARNING("[CONSOLE] Unhandled message ID: %d\n", 
+                    RTOS_LOG_WARNING("[CONSOLE] Unhandled message ID: %d\r\n", 
                                     msgReceived->id);
                     break;
             }

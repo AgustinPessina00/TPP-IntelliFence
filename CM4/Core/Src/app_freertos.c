@@ -207,33 +207,33 @@ const osThreadAttr_t defaultTask_attributes = {
  * @details Crea las colas para comunicación entre threads usando EmbeddedMessage_t*
  */
 void initialize_message_queues(void) {
-    printf("[QUEUES] Inicializando colas de mensajes FreeRTOS...\n");
+    printf("[QUEUES] Inicializando colas de mensajes FreeRTOS...\r\n");
     
     // Cola principal del dispatcher (más grande, recibe todos los mensajes)
     dispatcherQueueHandle = osMessageQueueNew(32, sizeof(void*), &dispatcherQueue_attributes);
     if (dispatcherQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación dispatcherQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación dispatcherQueue\r\n");
         Error_Handler();
     }
 
     // Cola principal del dispatcher (más grande, recibe todos los mensajes)
     fsmQueueHandle = osMessageQueueNew(16, sizeof(void*), &fsmQueue_attributes);
     if (fsmQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación fsmQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación fsmQueue\r\n");
         Error_Handler();
     }
     
     //Cola para adquisición de sensores
     sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
     if (sensorAcqQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\r\n");
         Error_Handler();
     }
 
     //Cola para estímulos
     stimulusQueueHandle = osMessageQueueNew(16, sizeof(void*), &stimulusQueue_attributes);
     if (stimulusQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación stimulusQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación stimulusQueue\r\n");
         Error_Handler();
     }
     
@@ -241,34 +241,34 @@ void initialize_message_queues(void) {
     //gpsQueueHandle = osMessageQueueNew(8, sizeof(void*), &gpsQueue_attributes);
     loraTxQueueHandle = osMessageQueueNew(16, sizeof(void*), &loraTxQueue_attributes);
     if (loraTxQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación loraTxQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación loraTxQueue\r\n");
         Error_Handler();
     }
     
     loraRxQueueHandle = osMessageQueueNew(12, sizeof(void*), &loraRxQueue_attributes);
     if (loraRxQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación loraRxQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación loraRxQueue\r\n");
         Error_Handler();
     }
     
     distanceToLimitQueueHandle = osMessageQueueNew(8, sizeof(void*), &distanceToLimitQueue_attributes);
     if (distanceToLimitQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación distanceToLimitQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación distanceToLimitQueue\r\n");
         Error_Handler();
     }
     
     fenceUpdateQueueHandle = osMessageQueueNew(4, sizeof(void*), &fenceUpdateQueue_attributes);
     if (fenceUpdateQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación fenceUpdateQueue\n");
+        printf("[QUEUES] ERROR - Fallo creación fenceUpdateQueue\r\n");
         Error_Handler();
     }
     
-    printf("[QUEUES] OK - Todas las colas creadas exitosamente\n");
-    printf("[QUEUES] - DispatcherQueue: 32 slots\n");
-    printf("[QUEUES] - SensorAcqQueue: 16 slots\n");
-    printf("[QUEUES] - FSMQueue: 16 slots\n");
-    printf("[QUEUES] - Colas adicionales: 4-12 slots c/u\n");
-    printf("[QUEUES] - Tamaño por slot: %u bytes (puntero EmbeddedMessage_t*)\n", 
+    printf("[QUEUES] OK - Todas las colas creadas exitosamente\r\n");
+    printf("[QUEUES] - DispatcherQueue: 32 slots\r\n");
+    printf("[QUEUES] - SensorAcqQueue: 16 slots\r\n");
+    printf("[QUEUES] - FSMQueue: 16 slots\r\n");
+    printf("[QUEUES] - Colas adicionales: 4-12 slots c/u\r\n");
+    printf("[QUEUES] - Tamaño por slot: %u bytes (puntero EmbeddedMessage_t*)\r\n", 
            (unsigned int)sizeof(void*));
 }
 
@@ -277,26 +277,26 @@ void initialize_message_queues(void) {
  * @details Crea los threads principales: dispatcher, FSM, sensor acquisition
  */
 void initialize_system_threads(void) {
-    printf("[THREADS] Inicializando threads del sistema FreeRTOS...\n");
+    printf("[THREADS] Inicializando threads del sistema FreeRTOS...\r\n");
     
     //Thread dispatcher - alta prioridad (ruteo de mensajes crítico)
     dispatcher_TaskHandle = osThreadNew(dispatcherTask, NULL, &dispatcher_Task_attributes);
     if (dispatcher_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación dispatcher_Task\n");
+        printf("[THREADS] ERROR - Fallo creación dispatcher_Task\r\n");
         Error_Handler();
     }
     
     //Thread FSM - prioridad normal (lógica de aplicación)
     fsm_TaskHandle = osThreadNew(fsmTask, NULL, &fsm_Task_attributes);
     if (fsm_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación fsm_Task\n");
+        printf("[THREADS] ERROR - Fallo creación fsm_Task\r\n");
         Error_Handler();
     }
 
     //Thread stimulus - prioridad normal (lógica de aplicación)
     stimulus_TaskHandle = osThreadNew(stimulusTask, NULL, &stimulus_Task_attributes);
     if (stimulus_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación stimulus_Task\n");
+        printf("[THREADS] ERROR - Fallo creación stimulus_Task\r\n");
         Error_Handler();
     }
 
@@ -304,24 +304,24 @@ void initialize_system_threads(void) {
 #ifdef ENABLE_TEST_MODE
     // TEST MODE: Usar tarea mock con datos predefinidos
     sensorAcq_TaskHandle = osThreadNew(sensorAcqTask_Test, NULL, &sensorAcq_Task_attributes);
-    printf("[THREADS] ** TEST MODE ** - Using mock sensor task\n");
+    printf("[THREADS] ** TEST MODE ** - Using mock sensor task\r\n");
 #else
     // PRODUCTION MODE: Usar tarea real con sensores de hardware
     sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
 #endif
     if (sensorAcq_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\n");
+        printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\r\n");
         Error_Handler();
     }
 
 
-    printf("[THREADS] OK - Todos los threads creados exitosamente\n");
-    printf("[THREADS] - dispatcher_Task: Stack 512B\n");
-    printf("[THREADS] - fsm_Task: Stack 2KB (FSMs complejas)\n");
-    printf("[THREADS] - stimulus_Task: Stack 512B\n");
-    printf("[THREADS] - sensorAcq_Task: Stack 2KB (objetos C++ grandes)\n");
-    printf("[THREADS] - lora_Task: Stack 512B\n");
-    printf("[THREADS] Total stack allocated: ~5.5KB\n");
+    printf("[THREADS] OK - Todos los threads creados exitosamente\r\n");
+    printf("[THREADS] - dispatcher_Task: Stack 512B\r\n");
+    printf("[THREADS] - fsm_Task: Stack 2KB (FSMs complejas)\r\n");
+    printf("[THREADS] - stimulus_Task: Stack 512B\r\n");
+    printf("[THREADS] - sensorAcq_Task: Stack 2KB (objetos C++ grandes)\r\n");
+    printf("[THREADS] - lora_Task: Stack 512B\r\n");
+    printf("[THREADS] Total stack allocated: ~5.5KB\r\n");
 }
 /* USER CODE END FunctionPrototypes */
 
@@ -347,14 +347,14 @@ void MX_FREERTOS_Init(void) {
   // Inicializar datos de prueba para sensores mock
   TestData_Init();
   TestMode_Enable();
-  printf("\n");
-  printf("========================================\n");
-  printf("     TEST MODE ENABLED\n");
-  printf("========================================\n");
-  printf("Using mock sensor data for FSM testing\n");
-  printf("GPS samples: %d | IMU samples: %d\n", TEST_GPS_DATA_COUNT, TEST_IMU_DATA_COUNT);
-  printf("========================================\n");
-  printf("\n");
+  printf("\r\n");
+  printf("========================================\r\n");
+  printf("     TEST MODE ENABLED\r\n");
+  printf("========================================\r\n");
+  printf("Using mock sensor data for FSM testing\r\n");
+  printf("GPS samples: %d | IMU samples: %d\r\n", TEST_GPS_DATA_COUNT, TEST_IMU_DATA_COUNT);
+  printf("========================================\r\n");
+  printf("\r\n");
 #endif
   /* USER CODE END Init */
 
@@ -381,7 +381,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  initialize_system_threads();
+  //initialize_system_threads();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -402,6 +402,7 @@ void StartDefaultTask(void *argument)
   /* init code for LoRaWAN */
   MX_LoRaWAN_Init();
   /* USER CODE BEGIN StartDefaultTask */
+  initialize_system_threads();
   
   // NOTA: NO terminar esta tarea - causa problemas de double-free en heap
   osThreadTerminate (defaultTaskHandle);
@@ -413,7 +414,7 @@ void StartDefaultTask(void *argument)
   //   // Monitorear stack cada 10 segundos
   //   if (++stackMonitorCounter >= 10) {
   //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-  //     rtos_printf("[DEFAULT] Stack libre: %u words (%u bytes)\n", 
+  //     rtos_printf("[DEFAULT] Stack libre: %u words (%u bytes)\r\n", 
   //                stackLeft, stackLeft * 4);
   //     stackMonitorCounter = 0;
   //   }

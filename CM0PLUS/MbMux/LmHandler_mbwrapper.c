@@ -167,7 +167,7 @@ void Process_Lora_Cmd(MBMUX_ComParam_t *ComObj)
   LmHandlerErrorStatus_t errorStatus;
   bool busyStatus;
 
-  /* APP_LOG(TS_ON, VLEVEL_H, ">CM0PLUS(LoRa)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_H, ">CM0PLUS(LoRa)\r\r\n"); */
 
   com_buffer = MBMUX_SEC_VerifySramBufferPtr(ComObj->ParamBuf, ComObj->BufSize);
 
@@ -518,7 +518,7 @@ void Process_Lora_Cmd(MBMUX_ComParam_t *ComObj)
   }
 
   /* send Response */
-  /* APP_LOG(TS_ON, VLEVEL_H, "<CM0PLUS(LoRa)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_H, "<CM0PLUS(LoRa)\r\r\n"); */
   MBMUX_ResponseSnd(FEAT_INFO_LORAWAN_ID);
   /* USER CODE BEGIN Process_Lora_Cmd_2 */
 

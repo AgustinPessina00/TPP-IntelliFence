@@ -53,15 +53,15 @@ void printI2cStatistics(void) {
     uint32_t total, success, errors;
     getI2cStatistics(&total, &success, &errors);
     
-    printf("\n=== Estadísticas I2C ===\n");
-    printf("Total operaciones: %u\n", (unsigned int)total);
-    printf("Operaciones exitosas: %u\n", (unsigned int)success);
-    printf("Errores: %u\n", (unsigned int)errors);
+    printf("\n=== Estadísticas I2C ===\r\n");
+    printf("Total operaciones: %u\r\n", (unsigned int)total);
+    printf("Operaciones exitosas: %u\r\n", (unsigned int)success);
+    printf("Errores: %u\r\n", (unsigned int)errors);
     
     if (total > 0) {
         float successRate = (float)success / total * 100.0f;
-        printf("Tasa de éxito: %.1f%%\n", successRate);
+        printf("Tasa de éxito: %.1f%%\r\n", successRate);
     } else {
-        printf("No hay operaciones registradas\n");
+        printf("No hay operaciones registradas\r\n");
     }
 }

@@ -170,7 +170,7 @@ void Process_Sys_Notif(MBMUX_ComParam_t *ComObj)
       /* USER CODE END Process_Sys_Notif_RTC_ALARM */
       break;
     case SYS_OTHER_MSG_ID:
-      APP_LOG(TS_ON, VLEVEL_H, "CM4<(System)\r\n");
+      APP_LOG(TS_ON, VLEVEL_H, "CM4<(System)\r\r\n");
       /* prepare ack buffer*/
       ComObj->ParamCnt = 0;
       ComObj->ReturnVal = 0; /* dummy value  */
@@ -186,7 +186,7 @@ void Process_Sys_Notif(MBMUX_ComParam_t *ComObj)
   }
 
   /* Send ack*/
-  APP_LOG(TS_ON, VLEVEL_H, "CM4>(System)\r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "CM4>(System)\r\r\n");
   MBMUXIF_SystemSendAck(FEAT_INFO_SYSTEM_ID);
   /* USER CODE BEGIN Process_Sys_Notif_2 */
 
@@ -252,7 +252,7 @@ static void MBMUXIF_Init(void)
   FEAT_INFO_List_t *p_cm0plus_supported_features_list;
   int8_t init_status;
 
-  APP_LOG(TS_ON, VLEVEL_H, "\r\nCM4: System Initialization started \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "\r\nCM4: System Initialization started \r\r\n");
 
   init_status = MBMUXIF_SystemInit();
   if (init_status < 0)
@@ -269,16 +269,16 @@ static void MBMUXIF_Init(void)
   /* once CM0PLUS is also initialized it send a SYS notification */
   MBMUXIF_SetCpusSynchroFlag(CPUS_BOOT_SYNC_ALLOW_CPU2_TO_START);
 
-  APP_LOG(TS_ON, VLEVEL_H, "CM4: System Initialization done: Wait for CM0PLUS \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "CM4: System Initialization done: Wait for CM0PLUS \r\r\n");
 
   MBMUXIF_WaitCm0MbmuxIsInitialized();
 
-  APP_LOG(TS_ON, VLEVEL_H, "CM0PLUS: System Initialization started \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "CM0PLUS: System Initialization started \r\r\n");
 
   p_cm0plus_supported_features_list = MBMUXIF_SystemSendCm0plusInfoListReq();
   MBMUX_SetCm0plusFeatureListPtr(p_cm0plus_supported_features_list);
 
-  APP_LOG(TS_ON, VLEVEL_H, "System Initialization CM4-CM0PLUS completed \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "System Initialization CM4-CM0PLUS completed \r\r\n");
 
   init_status = MBMUXIF_SystemPrio_Add(FEAT_INFO_SYSTEM_NOTIF_PRIO_A_ID);
   if (init_status < 0)
@@ -286,21 +286,21 @@ static void MBMUXIF_Init(void)
     Error_Handler();
   }
   MBMUXIF_SetCpusSynchroFlag(CPUS_BOOT_SYNC_RTC_REGISTERED);
-  APP_LOG(TS_ON, VLEVEL_H, "System_Priority_A Registration for RTC Alarm handling completed \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "System_Priority_A Registration for RTC Alarm handling completed \r\r\n");
 
   init_status = MBMUXIF_TraceInit();
   if (init_status < 0)
   {
     Error_Handler();
   }
-  APP_LOG(TS_ON, VLEVEL_H, "Trace registration CM4-CM0PLUS completed \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "Trace registration CM4-CM0PLUS completed \r\r\n");
 
   init_status = MBMUXIF_LoraInit();
   if (init_status < 0)
   {
     Error_Handler();
   }
-  APP_LOG(TS_ON, VLEVEL_H, "Lora registration CM4-CM0PLUS completed \r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "Lora registration CM4-CM0PLUS completed \r\r\n");
 
   /* USER CODE BEGIN MBMUXIF_Init_Last */
 
@@ -364,8 +364,11 @@ static void tiny_snprintf_like(char *buf, uint32_t maxsize, const char *strForma
 /* HAL overload functions ---------------------------------------------------------*/
 
 /**
-  * @note This function overwrites the __weak one from HAL
+  * @note This function is NOW implemented in stm32wlxx_hal_timebase_tim.c using TIM2
+  * @note The implementation here is COMMENTED to allow TIM2-based HAL tick for RTOS compatibility
   */
+/* HAL_InitTick is implemented in stm32wlxx_hal_timebase_tim.c */
+#if 1  /* Disabled to use TIM2 timebase instead of RTC */
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
   /*Don't enable SysTick if TIMER_IF is based on other counters (e.g. RTC) */
@@ -377,6 +380,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 
   /* USER CODE END HAL_InitTick_2 */
 }
+#endif
 
 /**
   * @note This function overwrites the __weak one from HAL

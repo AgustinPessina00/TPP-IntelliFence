@@ -18,17 +18,17 @@ static uint8_t tests_failed = 0;
 #define TEST_ASSERT(condition, test_name) \
     do { \
         if (condition) { \
-            printf("  [PASS] %s\n", test_name); \
+            printf("  [PASS] %s\r\n"n", test_name); \
             tests_passed++; \
         } else { \
-            printf("  [FAIL] %s FAILED\n", test_name); \
+            printf("  [FAIL] %s FAILED\r\n"n", test_name); \
             tests_failed++; \
         } \
     } while(0)
 
 #define TEST_SECTION(section_name) \
-    printf("\n[TEST SECTION] %s\n", section_name); \
-    printf("----------------------------------------\n")
+    printf("\n[TEST SECTION] %s\r\n"n", section_name); \
+    printf("----------------------------------------\r\n"n")
 
 // ============================================================================
 // COW TESTS
@@ -57,7 +57,7 @@ void test_cow_creation() {
     Position pos = vaca.getPosition();
     TEST_ASSERT(pos.latitude == 0.0f && pos.longitude == 0.0f, "Initial position is (0,0)");
     
-    printf("  Cow created with ID: 0x%08X-%08X-%08X\n", 
+    printf("  Cow created with ID: 0x%08X-%08X-%08X\r\n"n", 
            (unsigned int)testId.w0, (unsigned int)testId.w1, (unsigned int)testId.w2);
 }
 
@@ -77,7 +77,7 @@ void test_cow_position_update() {
     TEST_ASSERT(fabs(retrieved.longitude - buenosAires.longitude) < 0.000001f, 
                 "Longitude updated correctly");
     
-    printf("  Position updated to: (%.6f, %.6f)\n", 
+    printf("  Position updated to: (%.6f, %.6f)\r\n"n", 
            retrieved.latitude, retrieved.longitude);
     
     // Test another position
@@ -103,7 +103,7 @@ void test_cow_acceleration_update() {
     TEST_ASSERT(fabs(retrieved.ay - sleep_acc.ay) < 0.0001, "Acceleration Y updated");
     TEST_ASSERT(fabs(retrieved.az - sleep_acc.az) < 0.0001, "Acceleration Z updated");
     
-    printf("  Sleep acceleration: (%.3f, %.3f, %.3f) g\n", 
+    printf("  Sleep acceleration: (%.3f, %.3f, %.3f) g\r\n"n", 
            retrieved.ax, retrieved.ay, retrieved.az);
     
     // Test 2: Grazing state (Z-axis movement)
@@ -112,7 +112,7 @@ void test_cow_acceleration_update() {
     retrieved = vaca.getAcceleration();
     TEST_ASSERT(fabs(retrieved.az - 0.15) < 0.0001, "Grazing acceleration detected");
     
-    printf("  Grazing acceleration: (%.3f, %.3f, %.3f) g\n", 
+    printf("  Grazing acceleration: (%.3f, %.3f, %.3f) g\r\n"n", 
            retrieved.ax, retrieved.ay, retrieved.az);
     
     // Test 3: Movement state (high acceleration)
@@ -121,7 +121,7 @@ void test_cow_acceleration_update() {
     retrieved = vaca.getAcceleration();
     TEST_ASSERT(fabs(retrieved.ax - 0.25) < 0.0001, "Movement acceleration detected");
     
-    printf("  Movement acceleration: (%.3f, %.3f, %.3f) g\n", 
+    printf("  Movement acceleration: (%.3f, %.3f, %.3f) g\r\n"n", 
            retrieved.ax, retrieved.ay, retrieved.az);
 }
 
@@ -141,7 +141,7 @@ void test_cow_state_transitions() {
     vaca.updateState(CowState::MOVEMENT);
     TEST_ASSERT(vaca.getState() == CowState::MOVEMENT, "State changed to MOVEMENT");
     
-    printf("  State transitions: SLEEP -> GRAZING -> MOVEMENT [OK]\n");
+    printf("  State transitions: SLEEP -> GRAZING -> MOVEMENT [OK]\r\n"n");
 }
 
 void test_cow_zone_and_distance() {
@@ -169,8 +169,8 @@ void test_cow_zone_and_distance() {
     TEST_ASSERT(fabs(vaca.getDistanceToLimit() - 12.3) < 0.001, 
                 "Distance to limit: 12.3m");
     
-    printf("  Zone progression: GREEN -> YELLOW -> RED\n");
-    printf("  Distance tracking: 5.5m -> 12.3m\n");
+    printf("  Zone progression: GREEN -> YELLOW -> RED\r\n"n");
+    printf("  Distance tracking: 5.5m -> 12.3m\r\n"n");
 }
 
 // ============================================================================
@@ -196,7 +196,7 @@ void test_fence_creation() {
     TEST_ASSERT(fence.getThreshold(YELLOW_ZONE) > 0, "YELLOW threshold set");
     TEST_ASSERT(fence.getThreshold(RED_ZONE) > 0, "RED threshold set");
     
-    printf("  Thresholds: LIGHT_BLUE=%.1fm, BLUE=%.1fm, DARK_BLUE=%.1fm, YELLOW=%.1fm, RED=%.1fm\n",
+    printf("  Thresholds: LIGHT_BLUE=%.1fm, BLUE=%.1fm, DARK_BLUE=%.1fm, YELLOW=%.1fm, RED=%.1fm\r\n"n",
            fence.getThreshold(LIGHT_BLUE_ZONE),
            fence.getThreshold(BLUE_ZONE),
            fence.getThreshold(DARK_BLUE_ZONE),
@@ -231,8 +231,8 @@ void test_fence_rectangular() {
     TEST_ASSERT(fabs(center.longitude - expectedLon) < 0.000001, 
                 "Center longitude calculated correctly");
     
-    printf("  Rectangle created: 4 vertices, 4 limits\n");
-    printf("  Center: (%.6f, %.6f)\n", center.latitude, center.longitude);
+    printf("  Rectangle created: 4 vertices, 4 limits\r\n"n");
+    printf("  Center: (%.6f, %.6f)\r\n"n", center.latitude, center.longitude);
 }
 
 void test_fence_polygon() {
@@ -259,8 +259,8 @@ void test_fence_polygon() {
                 fabs(limits[5].end.longitude - hexagon[0].longitude) < 0.000001,
                 "Polygon closes correctly (last -> first)");
     
-    printf("  Hexagon created: 6 vertices, 6 limits\n");
-    printf("  Polygon closure verified [OK]\n");
+    printf("  Hexagon created: 6 vertices, 6 limits\r\n"n");
+    printf("  Polygon closure verified [OK]\r\n"n");
 }
 
 void test_fence_overflow_protection() {
@@ -278,7 +278,7 @@ void test_fence_overflow_protection() {
     TEST_ASSERT(fence.getLimitCount() == MAX_VERTICES, 
                 "Created MAX_VERTICES limits");
     
-    printf("  Overflow protection: [OK] Accepted MAX_VERTICES\n");
+    printf("  Overflow protection: [OK] Accepted MAX_VERTICES\r\n"n");
 }
 
 // ============================================================================
@@ -314,7 +314,7 @@ void test_cow_fence_integration() {
     TEST_ASSERT(vaca.getDistanceToLimit() > 20.0, 
                 "Distance > 20m (safe zone)");
     
-    printf("  Scenario 1: Cow safe inside fence (GREEN, 25m from edge)\n");
+    printf("  Scenario 1: Cow safe inside fence (GREEN, 25m from edge)\r\n"n");
     
     // Scenario 2: Cow approaching limit (YELLOW_ZONE)
     Position approaching = {-34.603200f, -58.381000f};
@@ -327,7 +327,7 @@ void test_cow_fence_integration() {
     TEST_ASSERT(vaca.getDistanceToLimit() < 5.0f, 
                 "Distance < 5m (warning zone)");
     
-    printf("  Scenario 2: Cow approaching fence (YELLOW, 4.5m from edge)\n");
+    printf("  Scenario 2: Cow approaching fence (YELLOW, 4.5m from edge)\r\n"n");
     
     // Scenario 3: Cow at limit (RED_ZONE)
     Position atLimit = {-34.603050f, -58.381000f};
@@ -340,7 +340,7 @@ void test_cow_fence_integration() {
     TEST_ASSERT(vaca.getDistanceToLimit() < 1.0f, 
                 "Distance < 1m (danger zone)");
     
-    printf("  Scenario 3: Cow at fence limit (RED, 0.8m from edge)\n");
+    printf("  Scenario 3: Cow at fence limit (RED, 0.8m from edge)\r\n"n");
     
     // Scenario 4: Cow escaped (BLACK_ZONE)
     Position escaped = {-34.602500f, -58.381000f};
@@ -353,7 +353,7 @@ void test_cow_fence_integration() {
     TEST_ASSERT(vaca.getDistanceToLimit() < 0, 
                 "Negative distance (outside fence)");
     
-    printf("  Scenario 4: Cow escaped fence (BLACK, -5m outside)\n");
+    printf("  Scenario 4: Cow escaped fence (BLACK, -5m outside)\r\n"n");
 }
 
 // ============================================================================
@@ -361,18 +361,18 @@ void test_cow_fence_integration() {
 // ============================================================================
 
 extern "C" void run_cow_fence_tests() {
-    printf("\n");
-    printf("================================================================\n");
-    printf("       COW & FENCE EMBEDDED CLASSES - TEST SUITE               \n");
-    printf("================================================================\n");
+    printf("\r\n"n");
+    printf("================================================================\r\n"n");
+    printf("       COW & FENCE EMBEDDED CLASSES - TEST SUITE               \r\n"n");
+    printf("================================================================\r\n"n");
     
     tests_passed = 0;
     tests_failed = 0;
     
     // ===== COW TESTS =====
-    printf("\n================================================================\n");
-    printf("                    COW CLASS TESTS\n");
-    printf("================================================================\n");
+    printf("\n================================================================\r\n"n");
+    printf("                    COW CLASS TESTS\r\n"n");
+    printf("================================================================\r\n"n");
     
     test_cow_creation();
     test_cow_position_update();
@@ -381,9 +381,9 @@ extern "C" void run_cow_fence_tests() {
     test_cow_zone_and_distance();
     
     // ===== FENCE TESTS =====
-    printf("\n================================================================\n");
-    printf("                   FENCE CLASS TESTS\n");
-    printf("================================================================\n");
+    printf("\n================================================================\r\n"n");
+    printf("                   FENCE CLASS TESTS\r\n"n");
+    printf("================================================================\r\n"n");
     
     test_fence_creation();
     test_fence_rectangular();
@@ -391,29 +391,29 @@ extern "C" void run_cow_fence_tests() {
     test_fence_overflow_protection();
     
     // ===== INTEGRATION TESTS =====
-    printf("\n================================================================\n");
-    printf("                COW & FENCE INTEGRATION\n");
-    printf("================================================================\n");
+    printf("\n================================================================\r\n"n");
+    printf("                COW & FENCE INTEGRATION\r\n"n");
+    printf("================================================================\r\n"n");
     
     test_cow_fence_integration();
     
     // ===== FINAL REPORT =====
-    printf("\n");
-    printf("================================================================\n");
-    printf("                     TEST SUMMARY                            \n");
-    printf("================================================================\n");
-    printf("  Tests Passed:  %3d                                        \n", tests_passed);
-    printf("  Tests Failed:  %3d                                        \n", tests_failed);
-    printf("  Total Tests:   %3d                                        \n", tests_passed + tests_failed);
-    printf("================================================================\n");
+    printf("\r\n"n");
+    printf("================================================================\r\n"n");
+    printf("                     TEST SUMMARY                            \r\n"n");
+    printf("================================================================\r\n"n");
+    printf("  Tests Passed:  %3d                                        \r\n"n", tests_passed);
+    printf("  Tests Failed:  %3d                                        \r\n"n", tests_failed);
+    printf("  Total Tests:   %3d                                        \r\n"n", tests_passed + tests_failed);
+    printf("================================================================\r\n"n");
     
     if (tests_failed == 0) {
-        printf("  Result: [ALL TESTS PASSED]                               \n");
-        printf("================================================================\n");
+        printf("  Result: [ALL TESTS PASSED]                               \r\n"n");
+        printf("================================================================\r\n"n");
     } else {
-        printf("  Result: [SOME TESTS FAILED]                              \n");
-        printf("================================================================\n");
+        printf("  Result: [SOME TESTS FAILED]                              \r\n"n");
+        printf("================================================================\r\n"n");
     }
     
-    printf("\n");
+    printf("\r\n"n");
 }

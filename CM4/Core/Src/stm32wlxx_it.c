@@ -60,7 +60,7 @@ extern DMA_HandleTypeDef hdma_i2c2_tx;
 extern IPCC_HandleTypeDef hipcc;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 /* USER CODE BEGIN EV */
-
+//extern TIM_HandleTypeDef htim2;  /* HAL Timebase TIM2 */
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -232,5 +232,19 @@ void IPCC_C1_TX_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+/**
+  * @brief This function handles TIM2 global interrupt (HAL Timebase).
+  */
+// void TIM2_IRQHandler(void)
+// {
+//   /* USER CODE BEGIN TIM2_IRQn 0 */
+
+//   /* USER CODE END TIM2_IRQn 0 */
+//   HAL_TIM_IRQHandler(&htim2);
+//   /* USER CODE BEGIN TIM2_IRQn 1 */
+
+//   /* USER CODE END TIM2_IRQn 1 */
+// }
 
 /* USER CODE END 1 */

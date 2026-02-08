@@ -21,33 +21,33 @@ extern "C" {
  * @note This function must be called from main() before using any sensors
  */
 int initialize_cpp_managers(void) {
-    printf("[MANAGERS] Initializing C++ managers...\n");
+    printf("[MANAGERS] Initializing C++ managers...\r\n");
     
     // Initialize I2C Manager
     if (!I2CManager::isInitialized()) {
-        printf("[I2C] Initializing I2CManager...\n");
+        printf("[I2C] Initializing I2CManager...\r\n");
         if (!I2CManager::initializeAll()) {
-            printf("[I2C] ERROR - Failed to initialize I2CManager\n");
+            printf("[I2C] ERROR - Failed to initialize I2CManager\r\n");
             return -1;
         }
-        printf("[I2C] OK - I2CManager initialized successfully\n");
+        printf("[I2C] OK - I2CManager initialized successfully\r\n");
     } else {
-        printf("[I2C] Already initialized\n");
+        printf("[I2C] Already initialized\r\n");
     }
     
     // Initialize UART Manager
     if (!UARTManager::isInitialized()) {
-        printf("[UART] Initializing UARTManager...\n");
+        printf("[UART] Initializing UARTManager...\r\n");
         if (!UARTManager::initializeAll()) {
-            printf("[UART] ERROR - Failed to initialize UARTManager\n");
+            printf("[UART] ERROR - Failed to initialize UARTManager\r\n");
             return -1;
         }
-        printf("[UART] OK - UARTManager initialized successfully\n");
+        printf("[UART] OK - UARTManager initialized successfully\r\n");
     } else {
-        printf("[UART] Already initialized\n");
+        printf("[UART] Already initialized\r\n");
     }
     
-    printf("[MANAGERS] All C++ managers initialized successfully\n");
+    printf("[MANAGERS] All C++ managers initialized successfully\r\n");
     return 0;
 }
 

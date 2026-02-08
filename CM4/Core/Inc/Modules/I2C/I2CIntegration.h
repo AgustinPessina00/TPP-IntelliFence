@@ -42,7 +42,7 @@ int checkI2cSystemHealth(void);
  * @code
  * uint8_t whoAmI;
  * if (simpleI2cReadByte(0x68, 0x75, &whoAmI)) {
- *     printf("MPU6050 WHO_AM_I: 0x%02X\n", whoAmI);
+ *     printf("MPU6050 WHO_AM_I: 0x%02X\r\n", whoAmI);
  * }
  * @endcode
  */
@@ -58,7 +58,7 @@ int simpleI2cReadByte(uint8_t deviceAddr, uint8_t regAddr, uint8_t* value);
  * Ejemplo de uso:
  * @code
  * if (simpleI2cWriteByte(0x68, 0x6B, 0x00)) {
- *     printf("MPU6050 despertado\n");
+ *     printf("MPU6050 despertado\r\n");
  * }
  * @endcode
  */

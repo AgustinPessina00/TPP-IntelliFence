@@ -2,7 +2,7 @@ CompileFlags:
   Add:
   - '-ferror-limit=0'
   - '-Wno-implicit-int'
-  CompilationDatabase: CM4/build/Debug
+  CompilationDatabase: CM4/build
 Diagnostics:
   Suppress:
   - unused-includes
@@ -27,19 +27,3 @@ Diagnostics:
   - typename_requires_specqual
 If:
   PathMatch: CM0PLUS/.*
-
----
-
-CompileFlags:
-  Add:
-  - '-ferror-limit=0'
-  - '-Wno-implicit-int'
-  CompilationDatabase: CM4/build/Debug
-Diagnostics:
-  Suppress:
-  - unused-includes
-  - unknown_typename
-  - unknown_typename_suggest
-  - typename_requires_specqual
-If:
-  PathMatch: CM4/.*

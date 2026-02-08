@@ -28,8 +28,8 @@ extern "C" void sensorAcqTask_Test(void *argument) {
     EmbeddedMessage_t *msgReceived = NULL;
     EmbeddedMessage_t *msgResponse = NULL;
     
-    rtos_printf("[TEST_SENSOR_ACQ] Iniciado en modo TEST\n");
-    rtos_printf("[TEST_SENSOR_ACQ] GPS samples: %d, IMU samples: %d\n", 
+    rtos_printf("[TEST_SENSOR_ACQ] Iniciado en modo TEST\r\n");
+    rtos_printf("[TEST_SENSOR_ACQ] GPS samples: %d, IMU samples: %d\r\n", 
                 TEST_GPS_DATA_COUNT, TEST_IMU_DATA_COUNT);
     
     // Inicializar datos de prueba
@@ -42,7 +42,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
             // Allocar mensaje de respuesta
             msgResponse = MessagePool_Allocate();
             if (msgResponse == NULL) {
-                rtos_printf("[TEST_SENSOR_ACQ] ERROR: No se pudo allocar mensaje de respuesta\n");
+                rtos_printf("[TEST_SENSOR_ACQ] ERROR: No se pudo allocar mensaje de respuesta\r\n");
                 MessagePool_Free(msgReceived);
                 continue;
             }
@@ -66,7 +66,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                         memcpy(&msgResponse->payload[4], &gpsData->position.longitude, sizeof(float));
                         msgResponse->length = 8;
                         
-                        rtos_printf("[TEST_GPS %02d] Lat: %.6f, Lon: %.6f | %s -> %s\n",
+                        rtos_printf("[TEST_GPS %02d] Lat: %.6f, Lon: %.6f | %s -> %s\r\n",
                                     TestData_GetGPSIndex() - 1,
                                     gpsData->position.latitude,
                                     gpsData->position.longitude,
@@ -80,7 +80,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                     } else {
                         // No hay más datos
                         msgResponse->id = MSG_ID_ERROR;
-                        rtos_printf("[TEST_GPS] WARNING: No hay mas datos de prueba\n");
+                        rtos_printf("[TEST_GPS] WARNING: No hay mas datos de prueba\r\n");
                     }
                     
                     // Enviar respuesta a FSM vía DISPATCHER
@@ -103,7 +103,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                         memcpy(&msgResponse->payload[16], &imuData->acceleration.az, sizeof(double));
                         msgResponse->length = 24;
                         
-                        rtos_printf("[TEST_IMU %02d] ax: %.2f, ay: %.2f, az: %.2f | %s -> %s\n",
+                        rtos_printf("[TEST_IMU %02d] ax: %.2f, ay: %.2f, az: %.2f | %s -> %s\r\n",
                                     TestData_GetIMUIndex() - 1,
                                     imuData->acceleration.ax,
                                     imuData->acceleration.ay,
@@ -114,7 +114,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                     } else {
                         // No hay más datos
                         msgResponse->id = MSG_ID_ERROR;
-                        rtos_printf("[TEST_IMU] WARNING: No hay mas datos de prueba\n");
+                        rtos_printf("[TEST_IMU] WARNING: No hay mas datos de prueba\r\n");
                     }
                     
                     // Enviar respuesta a FSM vía DISPATCHER
@@ -139,7 +139,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                     memcpy(&msgResponse->payload[1], &zoneData.distance, sizeof(float));
                     msgResponse->length = 5;
                     
-                    rtos_printf("[TEST_ZONE] Zona: %s, Distancia: %.1fm\n",
+                    rtos_printf("[TEST_ZONE] Zona: %s, Distancia: %.1fm\r\n",
                                 (zoneData.zone == GREEN_ZONE) ? "GREEN" :
                                 (zoneData.zone == LIGHT_BLUE_ZONE) ? "LIGHT_BLUE" :
                                 (zoneData.zone == BLUE_ZONE) ? "BLUE" :
@@ -158,7 +158,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                 // ============================================================
                 case MSG_ID_GPS_REQUEST_CONFIG: {
                     uint32_t rate = msgReceived->payload[0];
-                    rtos_printf("[TEST_GPS_RATE] Nueva tasa: %d Hz (ignorado en test)\n", rate);
+                    rtos_printf("[TEST_GPS_RATE] Nueva tasa: %d Hz (ignorado en test)\r\n", rate);
                     
                     // En modo test, simplemente confirmar
                     msgResponse->id = MSG_ID_GPS_CONFIG_RESPONSE;
@@ -171,7 +171,7 @@ extern "C" void sensorAcqTask_Test(void *argument) {
                 // COMANDOS NO IMPLEMENTADOS EN TEST
                 // ============================================================
                 default:
-                    rtos_printf("[TEST_SENSOR_ACQ] WARNING: Comando no implementado: 0x%02X\n", 
+                    rtos_printf("[TEST_SENSOR_ACQ] WARNING: Comando no implementado: 0x%02X\r\n", 
                                 msgReceived->id);
                     MessagePool_Free(msgResponse);
                     msgResponse = NULL;
@@ -193,12 +193,12 @@ extern "C" void sensorAcqTask_Test(void *argument) {
 
 extern "C" void TestMode_Enable(void) {
     testModeEnabled = true;
-    rtos_printf("[TEST] Modo test HABILITADO\n");
+    rtos_printf("[TEST] Modo test HABILITADO\r\n");
 }
 
 extern "C" void TestMode_Disable(void) {
     testModeEnabled = false;
-    rtos_printf("[TEST] Modo test DESHABILITADO\n");
+    rtos_printf("[TEST] Modo test DESHABILITADO\r\n");
 }
 
 extern "C" bool TestMode_IsEnabled(void) {
@@ -207,5 +207,5 @@ extern "C" bool TestMode_IsEnabled(void) {
 
 extern "C" void TestMode_Reset(void) {
     TestData_Reset();
-    rtos_printf("[TEST] Datos de prueba RESETEADOS\n");
+    rtos_printf("[TEST] Datos de prueba RESETEADOS\r\n");
 }

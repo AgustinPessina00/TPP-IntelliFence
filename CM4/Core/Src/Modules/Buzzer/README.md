@@ -55,7 +55,7 @@ BuzzerConfig_t config = {
 
 // Inicializar
 if (Buzzer_Init(&config) == BUZZER_OK) {
-    printf("Buzzer inicializado correctamente\n");
+    printf("Buzzer inicializado correctamente\r\n");
 }
 ```
 

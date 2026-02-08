@@ -136,12 +136,12 @@ static void handleZoneChange(zone_t newZone) {
 ```c
 // Verificar si una alarma está activa
 if (BuzzerAlarm_IsActive()) {
-    printf("Alarma corriendo\n");
+    printf("Alarma corriendo\r\n");
 }
 
 // Obtener estado detallado
 const AlarmState_t* state = BuzzerAlarm_GetState();
-printf("Patrón: %d, Repeticiones: %u\n", 
+printf("Patrón: %d, Repeticiones: %u\r\n", 
        state->pattern, state->repetitions);
 ```
 

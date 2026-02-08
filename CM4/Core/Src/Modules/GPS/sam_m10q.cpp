@@ -52,13 +52,13 @@ bool SamM10q::init(uint8_t i2cAddr) {
 }
 
 void SamM10q::testGPS() {
-    //printf("[TEST GPS] Iniciando test de GPS...\n");
+    //printf("[TEST GPS] Iniciando test de GPS...\r\n");
 
     if (!this->update_location_and_time()) {
-        //printf("[TEST GPS] Fallo al leer NMEA\n");
+        //printf("[TEST GPS] Fallo al leer NMEA\r\n");
         return;
     } else {
-		//printf("[TEST GPS] Posición válida: %.6f, %.6f\n", this->latitude, this->longitude);
+		//printf("[TEST GPS] Posición válida: %.6f, %.6f\r\n", this->latitude, this->longitude);
     }
 }
 
@@ -170,14 +170,14 @@ void SamM10q::configure_gps() {
     write_register_uart(m10q_data_payloads[52].data, m10q_data_payloads[52].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
     write_register_uart(m10q_data_payloads[52].data, m10q_data_payloads[52].size, BBR);
     
-    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Habilita UBX_NAV_PVT_I2C via uart
-    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
+    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, RAM); // Habilita UBX_NAV_PVT_I2C via uart
+    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, BBR);
 
     write_register_uart(m10q_data_payloads[51].data, m10q_data_payloads[51].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
     write_register_uart(m10q_data_payloads[51].data, m10q_data_payloads[51].size, BBR);
 
-    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
-    write_register_uart(m10q_data_payloads[53].data, m10q_data_payloads[53].size, BBR);
+    write_register_uart(m10q_data_payloads[54].data, m10q_data_payloads[54].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
+    write_register_uart(m10q_data_payloads[54].data, m10q_data_payloads[54].size, BBR);
 
     // Reemplazo todo lo de abajo con esta función:
     // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
@@ -441,7 +441,7 @@ bool SamM10q::read_register_uart(const uint8_t* payload_data, size_t payload_len
     UARTResult result = uartBus->receiveAvailable(response_buffer, buffer_size, &bytesReceived, 500);
     
     // Opcional: Log de diagnóstico
-    printf("[GPS] Recibidos %u bytes, resultado: %d\n", bytesReceived, result);
+    printf("[GPS] Recibidos %u bytes, resultado: %d\r\n", bytesReceived, result);
     
     return (result == UART_OK && bytesReceived > 0);
 }
@@ -489,6 +489,8 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
     if (!receivePVT(pvtData, maxWaitMs)) {
         return false;
     }
+
+    this->flags = pvtData->flags; // Guardar flags para diagnóstico o uso futuro
 
     // 3. Verificar que tenemos un fix válido
     // fixType: 0=no fix, 2=2D fix, 3=3D fix

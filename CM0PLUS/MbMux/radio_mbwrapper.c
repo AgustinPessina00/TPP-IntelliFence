@@ -122,7 +122,7 @@ void Process_Radio_Cmd(MBMUX_ComParam_t *ComObj)
   radio_status_t ret_status;
   RadioState_t state;
 
-  /* APP_LOG(TS_ON, VLEVEL_H, ">CM0PLUS(Radio)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_H, ">CM0PLUS(Radio)\r\r\n"); */
 
   com_buffer = MBMUX_SEC_VerifySramBufferPtr(ComObj->ParamBuf, ComObj->BufSize);
 
@@ -366,7 +366,7 @@ void Process_Radio_Cmd(MBMUX_ComParam_t *ComObj)
   }
 
   /* send Response */
-  /* APP_LOG(TS_ON, VLEVEL_H, "<CM0PLUS(Radio)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_H, "<CM0PLUS(Radio)\r\r\n"); */
   MBMUX_ResponseSnd(FEAT_INFO_RADIO_ID);
   /* USER CODE BEGIN Process_Radio_Cmd_2 */
 

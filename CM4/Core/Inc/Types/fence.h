@@ -27,6 +27,7 @@ struct Line {
 class Fence {
 public:
     Fence();
+    void init();  // Re-inicialización explícita
 
     // ===== LIMIT MANAGEMENT =====
     /**
@@ -42,6 +43,9 @@ public:
     uint8_t getLimitCount() const { return limitCount; }
     
     Vertex getCenterFence() const { return centerFence; }
+    bool getIsInitialized() const { return isInitialized; }
+
+    bool getHasValidFence() const { return hasValidFence; }
 
     // ===== ZONE THRESHOLDS =====
     /**
@@ -75,6 +79,9 @@ private:
     threshold_t darkBlue;
     threshold_t yellow;
     threshold_t red;
+    
+    bool isInitialized;               // Flag de inicialización
+    bool hasValidFence;
 };
 
 #endif

@@ -30,7 +30,9 @@ struct Acceleration {
 
 class Cow {
 public:
-	Cow(DeviceUID id);
+	Cow();  // Constructor vacío
+	Cow(DeviceUID id);  // Constructor con parámetros (legacy)
+	void init(DeviceUID id);  // Inicialización explícita
 
     void updatePosition(Position pos);
     void updateAcceleration(Acceleration accel);
@@ -44,6 +46,7 @@ public:
     CowState getState() const;
     zone_t getCurrentZone() const;
     float getDistanceToLimit() const;
+    bool getIsInitialized() const;
 
 private:
     DeviceUID id;
@@ -52,6 +55,7 @@ private:
     CowState state;
     zone_t currentZone;
     float distanceToLimit;
+    bool isInitialized;
 };
 
 #endif

@@ -114,7 +114,7 @@ void LoraInfo_Init(void)
 
   if (loraInfo.Region == 0)
   {
-    APP_PRINTF("error: At least one region shall be defined in the MW: check lorawan_conf.h \r\n");
+    APP_PRINTF("error: At least one region shall be defined in the MW: check lorawan_conf.h \r\r\n");
     
     while (1 != UTIL_ADV_TRACE_IsBufferEmpty())
     {

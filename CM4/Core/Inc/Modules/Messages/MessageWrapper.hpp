@@ -150,11 +150,11 @@ inline void PrintMessagePoolStats() {
     MessagePool_GetStats(&total, &allocated, &max_allocated);
     
     // Usar printf embedded-friendly
-    printf("MessagePool Stats:\n");
-    printf("  Total: %u\n", (unsigned int)total);
-    printf("  Allocated: %u\n", (unsigned int)allocated);
-    printf("  Max Allocated: %u\n", (unsigned int)max_allocated);
-    printf("  Usage: %u%%\n", (unsigned int)((allocated * 100) / total));
+    printf("MessagePool Stats:\r\n");
+    printf("  Total: %u\r\n", (unsigned int)total);
+    printf("  Allocated: %u\r\n", (unsigned int)allocated);
+    printf("  Max Allocated: %u\r\n", (unsigned int)max_allocated);
+    printf("  Usage: %u%%\r\n", (unsigned int)((allocated * 100) / total));
 }
 
 #endif // MESSAGE_WRAPPER_HPP

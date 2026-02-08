@@ -478,40 +478,40 @@ I2CResult Lsm6dso::lsm6dso_data_get(lsm6dso_md_t *md, lsm6dso_data_t *data) {
 }
 
 void Lsm6dso::testIMU() {
-    printf("[TEST IMU] Iniciando test de IMU thread-safe...\n");
+    printf("[TEST IMU] Iniciando test de IMU thread-safe...\r\n");
 
     // Test WHO_AM_I
     uint8_t whoAmI;
     if (getWhoAmI(whoAmI) == I2C_OK) {
-        printf("[TEST IMU] WHO_AM_I: 0x%02X %s\n", whoAmI, 
+        printf("[TEST IMU] WHO_AM_I: 0x%02X %s\r\n", whoAmI, 
                (whoAmI == 0x6C) ? "(LSM6DSO - Correcto)" : "(ID no reconocido)");
     } else {
-        printf("[TEST IMU] ERROR - No se pudo leer WHO_AM_I\n");
+        printf("[TEST IMU] ERROR - No se pudo leer WHO_AM_I\r\n");
     }
 
     // Test accelerometer
     I2CResult result = readAcceleration();
     if (result == I2C_OK) {
-        printf("[TEST IMU] Aceleracion: X=%.2f, Y=%.2f, Z=%.2f mg\n", ax, ay, az);
-        printf("[TEST IMU] Aceleracion Raw: X=%d, Y=%d, Z=%d\n", axRaw, ayRaw, azRaw);
+        printf("[TEST IMU] Aceleracion: X=%.2f, Y=%.2f, Z=%.2f mg\r\n", ax, ay, az);
+        printf("[TEST IMU] Aceleracion Raw: X=%d, Y=%d, Z=%d\r\n", axRaw, ayRaw, azRaw);
     } else {
-        printf("[TEST IMU] ERROR - Fallo al leer aceleracion\n");
+        printf("[TEST IMU] ERROR - Fallo al leer aceleracion\r\n");
     }
 
     // Test gyroscope
     result = readGyroscope();
     if (result == I2C_OK) {
-        printf("[TEST IMU] Giroscopio: X=%.2f, Y=%.2f, Z=%.2f mdps\n", gx, gy, gz);
-        printf("[TEST IMU] Giroscopio Raw: X=%d, Y=%d, Z=%d\n", gxRaw, gyRaw, gzRaw);
+        printf("[TEST IMU] Giroscopio: X=%.2f, Y=%.2f, Z=%.2f mdps\r\n", gx, gy, gz);
+        printf("[TEST IMU] Giroscopio Raw: X=%d, Y=%d, Z=%d\r\n", gxRaw, gyRaw, gzRaw);
     } else {
-        printf("[TEST IMU] ERROR - Fallo al leer giroscopio\n");
+        printf("[TEST IMU] ERROR - Fallo al leer giroscopio\r\n");
     }
 
     // Test temperature
     result = readTemperature();
     if (result == I2C_OK) {
-        printf("[TEST IMU] Temperatura: %.2f°C (Raw: %d)\n", temperature, tempRaw);
+        printf("[TEST IMU] Temperatura: %.2f°C (Raw: %d)\r\n", temperature, tempRaw);
     } else {
-        printf("[TEST IMU] ERROR - Fallo al leer temperatura\n");
+        printf("[TEST IMU] ERROR - Fallo al leer temperatura\r\n");
     }
 }

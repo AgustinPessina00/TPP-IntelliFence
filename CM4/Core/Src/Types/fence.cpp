@@ -12,7 +12,13 @@
 // CONSTRUCTOR
 // ============================================================================
 
-Fence::Fence() : limitCount(0) {
+Fence::Fence() : limitCount(0), isInitialized(false) {
+    init();
+}
+
+void Fence::init() {
+    limitCount = 0;
+    
     // Inicializar umbrales de zona (en metros desde el límite)
     // Ajustados para fence en Flores, Buenos Aires con datos de campo
     // GREEN_ZONE (Segura): 85m+
@@ -34,6 +40,10 @@ Fence::Fence() : limitCount(0) {
     
     // Inicializar array a cero
     memset(limites, 0, sizeof(limites));
+
+    this->hasValidFence = false;
+    
+    this->isInitialized = true;
 }
 
 // ============================================================================
@@ -41,21 +51,26 @@ Fence::Fence() : limitCount(0) {
 // ============================================================================
 
 void Fence::createLimits(const Vertex* v, uint8_t count) {
+    if (!isInitialized) {
+        printf("[FENCE] ERROR: Fence not initialized\r\r\n");
+        return;
+    }
+    
     limitCount = 0;
     
     // Validar entrada
     if (v == nullptr) {
-        printf("[FENCE] ERROR: Null vertex pointer\r\n");
+        printf("[FENCE] ERROR: Null vertex pointer\r\r\n");
         return;
     }
     
     if (count > MAX_VERTICES) {
-        printf("[FENCE] ERROR: Vertex count %d exceeds MAX_VERTICES %d\r\n", count, MAX_VERTICES);
+        printf("[FENCE] ERROR: Vertex count %d exceeds MAX_VERTICES %d\r\r\n", count, MAX_VERTICES);
         return;
     }
     
     if (count < 2) {
-        printf("[FENCE] WARNING: Need at least 2 vertices to create limits (have %d)\r\n", count);
+        printf("[FENCE] WARNING: Need at least 2 vertices to create limits (have %d)\r\r\n", count);
         return;
     }
 
@@ -68,8 +83,10 @@ void Fence::createLimits(const Vertex* v, uint8_t count) {
 
     // Actualizar centro del cerco usando los vértices recibidos
     updateCenterFence(v, count);
+
+    this->hasValidFence = true;
     
-    printf("[FENCE] Created %d limits from %d vertices\r\n", limitCount, count);
+    printf("[FENCE] Created %d limits from %d vertices\r\r\n", limitCount, count);
 }
 
 // ============================================================================
@@ -94,7 +111,7 @@ void Fence::updateCenterFence(const Vertex* v, uint8_t count) {
     centerFence.latitude = latSum / count;
     centerFence.longitude = lonSum / count;
     
-    printf("[FENCE] Center updated: (%.6f, %.6f)\r\n", centerFence.latitude, centerFence.longitude);
+    printf("[FENCE] Center updated: (%.6f, %.6f)\r\r\n", centerFence.latitude, centerFence.longitude);
 }
 
 // ============================================================================
@@ -104,7 +121,7 @@ void Fence::updateCenterFence(const Vertex* v, uint8_t count) {
 void Fence::setZoneThresholds() {
     // Verificar que los umbrales estén en orden lógico (decreciente)
     if (!(lightBlue > blue && blue > darkBlue && darkBlue > yellow && yellow > red)) {
-        printf("[FENCE] ERROR: Thresholds must be in descending order\r\n");
+        printf("[FENCE] ERROR: Thresholds must be in descending order\r\r\n");
         return;
     }
 
@@ -117,7 +134,7 @@ void Fence::setZoneThresholds() {
     this->thresholds[3] = this->yellow;     // YELLOW_ZONE
     this->thresholds[4] = this->red;        // RED_ZONE
     
-    printf("[FENCE] Thresholds set: LIGHT_BLUE=%.1fm, BLUE=%.1fm, DARK_BLUE=%.1fm, YELLOW=%.1fm, RED=%.1fm\r\n",
+    printf("[FENCE] Thresholds set: LIGHT_BLUE=%.1fm, BLUE=%.1fm, DARK_BLUE=%.1fm, YELLOW=%.1fm, RED=%.1fm\r\r\n",
            lightBlue, blue, darkBlue, yellow, red);
 }
 
@@ -127,6 +144,6 @@ float Fence::getThreshold(zone_t zone) const {
         return thresholds[zone - 1];  // zone 1 → index 0, zone 5 → index 4
     }
     
-    printf("[FENCE] WARNING: Invalid zone %d\r\n", zone);
+    printf("[FENCE] WARNING: Invalid zone %d\r\r\n", zone);
     return -1.0f;  // No aplica
 }

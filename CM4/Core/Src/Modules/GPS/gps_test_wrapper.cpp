@@ -23,25 +23,25 @@ extern UART_HandleTypeDef huart1;
  * la lógica C++ del GPS thread-safe.
  */
 extern "C" void gps_init_and_test(void) {
-    printf("[GPS] ========== DIAGNOSTICO COMPLETO GPS ==========\n");
-    printf("[GPS] Inicializando sistema I2C thread-safe...\n");
+    printf("[GPS] ========== DIAGNOSTICO COMPLETO GPS ==========\r\n");
+    printf("[GPS] Inicializando sistema I2C thread-safe...\r\n");
     
     // ¡IMPORTANTE! Inicializar el I2CManager primero
     if (!I2CManager::initializeAll()) {
-        printf("[GPS] ERROR CRITICO: No se pudo inicializar I2CManager\n");
-        printf("[GPS] Verifique que hi2c2 este correctamente configurado\n");
+        printf("[GPS] ERROR CRITICO: No se pudo inicializar I2CManager\r\n");
+        printf("[GPS] Verifique que hi2c2 este correctamente configurado\r\n");
         return;
     }
 
-    printf("[GPS] OK - I2CManager inicializado correctamente\n");
-    printf("[GPS] Verificando bus I2C...\n");
+    printf("[GPS] OK - I2CManager inicializado correctamente\r\n");
+    printf("[GPS] Verificando bus I2C...\r\n");
 
     // Inicializar UARTManager
     if(!UARTManager::initializeAll()) {
-        printf("[GPS] ERROR CRITICO: No se pudo inicializar UART1 para GPS\n");
+        printf("[GPS] ERROR CRITICO: No se pudo inicializar UART1 para GPS\r\n");
         return;
     }
-    printf("[GPS] OK - UART1 inicializado correctamente\n");
+    printf("[GPS] OK - UART1 inicializado correctamente\r\n");
 
     
     
@@ -50,111 +50,111 @@ extern "C" void gps_init_and_test(void) {
     uint8_t dummyData;
     
     // Probar direcciones GPS comunes: 0x42 (GPS SAM-M10Q)
-    printf("[GPS] Escaneando direccion GPS 0x42...\n");
+    printf("[GPS] Escaneando direccion GPS 0x42...\r\n");
     I2CResult scanResult = testBus.memRead(0x42, 0xFF, 1, &dummyData, 1, 100);
     
     if (scanResult == I2C_OK) {
-        printf("[GPS] OK - GPS encontrado en direccion 0x42\n");
+        printf("[GPS] OK - GPS encontrado en direccion 0x42\r\n");
     } else if (scanResult == I2C_NACK) {
-        printf("[GPS] WARN - No hay respuesta en 0x42 (GPS desconectado o direccion incorrecta)\n");
+        printf("[GPS] WARN - No hay respuesta en 0x42 (GPS desconectado o direccion incorrecta)\r\n");
     } else {
-        printf("[GPS] ERROR - Error I2C: %d (revisar cableado/alimentacion)\n", scanResult);
+        printf("[GPS] ERROR - Error I2C: %d (revisar cableado/alimentacion)\r\n", scanResult);
     }
     
-    printf("[GPS] Creando instancia GPS SAM-M10Q...\n");
+    printf("[GPS] Creando instancia GPS SAM-M10Q...\r\n");
     
     // CORRECCIÓN: Usar dirección 7-bit (0x42), no 8-bit (0x84)
     SamM10q gps;  // Default constructor - no hardware access
     
-    printf("[GPS] Instancia creada. Inicializando GPS...\n");
+    printf("[GPS] Instancia creada. Inicializando GPS...\r\n");
     
     // Inicializar GPS
     if (!gps.init(0x42)) {  // Dirección 7-bit correcta para GPS SAM-M10Q
-        printf("[GPS] ERROR - Fallo inicializacion GPS\n");
+        printf("[GPS] ERROR - Fallo inicializacion GPS\r\n");
         return;
     }
     
-    printf("[GPS] GPS inicializado\n");
-    printf("[GPS] ========== CONFIGURACIÓN GPS ==========\n");
+    printf("[GPS] GPS inicializado\r\n");
+    printf("[GPS] ========== CONFIGURACIÓN GPS ==========\r\n");
     
     // Test de configuración más detallado
-    // printf("[GPS] Aplicando configuración MEDIUM rate...\n");
+    // printf("[GPS] Aplicando configuración MEDIUM rate...\r\n");
     // bool config_result = gps.set_new_acq_time(gpsRateSpeed::MEDIUM);
     
     // if (config_result) {
-    //     printf("[GPS] OK - Configuracion aplicada exitosamente\n");
+    //     printf("[GPS] OK - Configuracion aplicada exitosamente\r\n");
     // } else {
-    //     printf("[GPS] WARN - Configuracion fallo - GPS puede no estar respondiendo\n");
+    //     printf("[GPS] WARN - Configuracion fallo - GPS puede no estar respondiendo\r\n");
     // }
     
     // Esperar tiempo para que GPS configure
-    printf("[GPS] Esperando estabilizacion GPS (3 segundos)...\n");
+    printf("[GPS] Esperando estabilizacion GPS (3 segundos)...\r\n");
     HAL_Delay(3000);
     
-    printf("[GPS] ========== TEST DE LECTURA DETALLADO ==========\n");
+    printf("[GPS] ========== TEST DE LECTURA DETALLADO ==========\r\n");
     
     // Test de lectura NMEA más detallado
     for (int i = 0; i < 5; i++) {
-        printf("[GPS] === Intento de lectura #%d ===\n", i + 1);
+        printf("[GPS] === Intento de lectura #%d ===\r\n", i + 1);
         
         // Leer posicion
         HAL_StatusTypeDef result = gps.read_gps_position();
         
-        printf("[GPS] Status I2C: %s\n", (result == HAL_OK) ? "OK" : "ERROR");
+        printf("[GPS] Status I2C: %s\r\n", (result == HAL_OK) ? "OK" : "ERROR");
         
         // Verificar datos GPS
         if (result == HAL_OK) {
-            printf("[GPS] Latitud: %.8f grados\n", gps.latitude);
-            printf("[GPS] Longitud: %.8f grados\n", gps.longitude);
+            printf("[GPS] Latitud: %.8f grados\r\n", gps.latitude);
+            printf("[GPS] Longitud: %.8f grados\r\n", gps.longitude);
             
             // Verificar si los datos son validos (no cero)
             if (gps.latitude != 0.0 || gps.longitude != 0.0) {
-                printf("[GPS] OK - DATOS GPS VALIDOS RECIBIDOS!\n");
+                printf("[GPS] OK - DATOS GPS VALIDOS RECIBIDOS!\r\n");
                 
                 if (gps.fechaUTC > 0) {
-                    printf("[GPS] Fecha UTC: %06u\n", (unsigned int)gps.fechaUTC);
+                    printf("[GPS] Fecha UTC: %06u\r\n", (unsigned int)gps.fechaUTC);
                 }
                 if (gps.horaUTC > 0) {
-                    printf("[GPS] Hora UTC: %06u\n", (unsigned int)gps.horaUTC);
+                    printf("[GPS] Hora UTC: %06u\r\n", (unsigned int)gps.horaUTC);
                 }
             } else {
-                printf("[GPS] WARN - GPS sin fix - datos en cero\n");
-                printf("[GPS] Posible causa: Sin senal satelital o GPS en indoor\n");
+                printf("[GPS] WARN - GPS sin fix - datos en cero\r\n");
+                printf("[GPS] Posible causa: Sin senal satelital o GPS en indoor\r\n");
             }
         } else {
-            printf("[GPS] ERROR - NO FIX\n");
+            printf("[GPS] ERROR - NO FIX\r\n");
         }
         
         // Delay entre lecturas
         HAL_Delay(1000);
     }
     
-    printf("[GPS] ========== DIAGNOSTICO FINAL ==========\n");
+    printf("[GPS] ========== DIAGNOSTICO FINAL ==========\r\n");
     
     // Test directo de stream NMEA
     //PESSI: REALIZO CAMBIOS YA QUE NO USAMOS NMEA STREAM AHORA, USAMOS GETPVT.
-    printf("[GPS] Test directo de getPVT...\n");
+    printf("[GPS] Test directo de getPVT...\r\n");
     HAL_StatusTypeDef streamResult = gps.read_gps_position();
     
     if (streamResult == HAL_OK) {
-        printf("[GPS] OK - getPVT leido correctamente\n");
-        printf("[GPS] Datos procesados en la estructura de datos PVT\n");
+        printf("[GPS] OK - getPVT leido correctamente\r\n");
+        printf("[GPS] Datos procesados en la estructura de datos PVT\r\n");
     } else {
-        printf("[GPS] ERROR - Error utilizando la función getPVT\n");
+        printf("[GPS] ERROR - Error utilizando la función getPVT\r\n");
     }
     
-    printf("[GPS] ========== CONCLUSION ==========\n");
+    printf("[GPS] ========== CONCLUSION ==========\r\n");
     
     if (gps.latitude != 0.0 || gps.longitude != 0.0) {
-        printf("[GPS] SUCCESS - GPS FUNCIONANDO - Datos validos recibidos\n");
-        printf("[GPS] INFO - Sistema listo para navegacion\n");
+        printf("[GPS] SUCCESS - GPS FUNCIONANDO - Datos validos recibidos\r\n");
+        printf("[GPS] INFO - Sistema listo para navegacion\r\n");
     } else {
-        printf("[GPS] INFO - GPS comunicando pero sin fix satelital\n");
-        printf("[GPS] TIP - Mueva el dispositivo al exterior para fix\n");
-        printf("[GPS] STATUS - Sistema I2C thread-safe funcionando correctamente\n");
+        printf("[GPS] INFO - GPS comunicando pero sin fix satelital\r\n");
+        printf("[GPS] TIP - Mueva el dispositivo al exterior para fix\r\n");
+        printf("[GPS] STATUS - Sistema I2C thread-safe funcionando correctamente\r\n");
     }
     
-    printf("[GPS] ==========================================\n\n");
+    printf("[GPS] ==========================================\n\r\n");
 }
 
 /**
@@ -174,11 +174,11 @@ extern "C" void gps_continuous_test(void) {
         }
         
         if (!gps_instance.init(0x42)) {  // Direccion 7-bit correcta
-            printf("[GPS] ERROR - Fallo inicializacion GPS\n");
+            printf("[GPS] ERROR - Fallo inicializacion GPS\r\n");
             return;
         }
         initialized = true;
-        printf("[GPS] Instancia para test continuo creada\n");
+        printf("[GPS] Instancia para test continuo creada\r\n");
     }
     
     // Lectura continua cada 2 segundos
@@ -186,10 +186,10 @@ extern "C" void gps_continuous_test(void) {
         HAL_StatusTypeDef result = gps_instance.read_gps_position();
         
         if (result == HAL_OK) {
-            printf("[GPS] Continuo - Lat: %.6f, Lon: %.6f\n", 
+            printf("[GPS] Continuo - Lat: %.6f, Lon: %.6f\r\n", 
                    gps_instance.latitude, gps_instance.longitude);
         } else {
-            printf("[GPS] Continuo - Sin senal GPS\n");
+            printf("[GPS] Continuo - Sin senal GPS\r\n");
         }
         
         HAL_Delay(2000);  // 2 segundos

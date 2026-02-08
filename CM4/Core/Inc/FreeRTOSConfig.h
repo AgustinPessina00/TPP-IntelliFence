@@ -147,8 +147,8 @@ standard names. */
 #define vPortSVCHandler    SVC_Handler
 #define xPortPendSVHandler PendSV_Handler
 
-/* IMPORTANT: This define is commented when used with STM32Cube firmware, when the timebase source is SysTick,
-              to prevent overwriting SysTick_Handler defined within STM32Cube HAL */
+/* IMPORTANT: This define SHOULD be uncommented when HAL uses alternate timebase (TIM2)
+              to allow FreeRTOS to control SysTick directly */
 
 /* #define xPortSysTickHandler SysTick_Handler */
 

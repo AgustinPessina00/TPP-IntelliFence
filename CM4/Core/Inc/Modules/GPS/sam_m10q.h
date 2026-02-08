@@ -135,6 +135,7 @@ public:
 	float longitude = 0;
 	uint32_t fechaUTC = 0; //yymmdd	//TODO: Chequear uint32_t
 	uint32_t horaUTC = 0; //hhmmss	//TODO: Chequear uint32_t
+    uint8_t flags;
 
 private:
     uint8_t i2cAddr;

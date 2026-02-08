@@ -146,32 +146,32 @@ I2CResult Ina226::readRegister(uint8_t reg, uint16_t &value) {
 }
 
 void Ina226::testINA() {
-    printf("[TEST INA] Iniciando test de sensores de corriente...\n");
+    printf("[TEST INA] Iniciando test de sensores de corriente...\r\n");
 
     if(this->readCurrent_mA() == I2C_OK) {
-    	printf("[TEST INA] Current: %.2f mA\n", this->current);
+    	printf("[TEST INA] Current: %.2f mA\r\n", this->current);
     }
     else {
-    	printf("[TEST INA] read Current FAILED\n");
+    	printf("[TEST INA] read Current FAILED\r\n");
     }
     if(this->readPower_mW() == I2C_OK) {
-        	printf("[TEST INA] Power: %.2f mW\n", this->power);
+        	printf("[TEST INA] Power: %.2f mW\r\n", this->power);
         }
     else {
-    	printf("[TEST INA] read Power FAILED\n");
+    	printf("[TEST INA] read Power FAILED\r\n");
     }
 
     if(this->readBusVoltage_mV() == I2C_OK) {
-        printf("[TEST INA] Bus Voltage: %.2f mV\n", this->busVoltage);
+        printf("[TEST INA] Bus Voltage: %.2f mV\r\n", this->busVoltage);
     }
     else {
-    	printf("[TEST INA] read Bus Voltage FAILED\n");
+    	printf("[TEST INA] read Bus Voltage FAILED\r\n");
     }
 
     if(this->readShuntVoltage_mV() == I2C_OK) {
-        printf("[TEST INA] Shunt Voltage: %.2f mV\n", this->shuntVoltage);
+        printf("[TEST INA] Shunt Voltage: %.2f mV\r\n", this->shuntVoltage);
     }
     else {
-    	printf("[TEST INA] read Shunt Voltage FAILED\n");
+    	printf("[TEST INA] read Shunt Voltage FAILED\r\n");
     }
 }

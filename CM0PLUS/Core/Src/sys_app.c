@@ -155,15 +155,15 @@ void Process_Kms_Cmd(MBMUX_ComParam_t *ComObj)
   /* USER CODE END Process_Kms_Cmd_1 */
   uint32_t *com_buffer = MBMUX_SEC_VerifySramBufferPtr(ComObj->ParamBuf, ComObj->BufSize);
 
-  /* APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(KMS)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(KMS)\r\r\n"); */
 
   /* process Command */
   switch (ComObj->MsgId)
   {
     case KMS_CRYPTO_HMAC_SHA256_MSG_ID:
-      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Cmd rcv : KMS_CRYPTO_HMAC_SHA256_MSG_ID\r\n"); */
-      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey length %d\r\n", com_buffer[1]); */
-      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey string %s\r\n", (char *) com_buffer[0]); */
+      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Cmd rcv : KMS_CRYPTO_HMAC_SHA256_MSG_ID\r\r\n"); */
+      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey length %d\r\r\n", com_buffer[1]); */
+      /* APP_LOG(TS_ON, VLEVEL_L, " * CM0 Crypto aKey string %s\r\r\n", (char *) com_buffer[0]); */
       /* prepare response buffer */
       ComObj->ParamCnt = 0;
       ComObj->ReturnVal = (uint32_t) -5; /* dummy value for test */
@@ -174,7 +174,7 @@ void Process_Kms_Cmd(MBMUX_ComParam_t *ComObj)
   }
 
   /* send Response */
-  /* APP_LOG(TS_ON, VLEVEL_L, "<CM0PLUS(KMS)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_L, "<CM0PLUS(KMS)\r\r\n"); */
   MBMUX_ResponseSnd(FEAT_INFO_KMS_ID);
 
   /* USER CODE BEGIN Process_Kms_Cmd_2 */
@@ -188,7 +188,7 @@ void Process_Sys_Cmd(MBMUX_ComParam_t *ComObj)
   /* USER CODE BEGIN Process_Sys_Cmd_1 */
 
   /* USER CODE END Process_Sys_Cmd_1 */
-  /* APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(System)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_L, ">CM0PLUS(System)\r\r\n"); */
 
   /* process Command */
   switch (ComObj->MsgId)
@@ -211,7 +211,7 @@ void Process_Sys_Cmd(MBMUX_ComParam_t *ComObj)
   }
 
   /* send Response */
-  /* APP_LOG(TS_ON, VLEVEL_M, "<CM0PLUS(System)\r\n"); */
+  /* APP_LOG(TS_ON, VLEVEL_M, "<CM0PLUS(System)\r\r\n"); */
   MBMUX_ResponseSnd(FEAT_INFO_SYSTEM_ID);
   /* USER CODE BEGIN Process_Sys_Cmd_2 */
 

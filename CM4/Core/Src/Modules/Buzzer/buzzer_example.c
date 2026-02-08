@@ -18,7 +18,7 @@ extern TIM_HandleTypeDef htim1;  // Timer handle (defined in main.c)
 /* Example 1: Basic initialization and on/off control ----------------------*/
 void buzzer_example_basic(void)
 {
-    printf("\n=== Buzzer Example 1: Basic Control ===\n");
+    printf("\n=== Buzzer Example 1: Basic Control ===\r\n");
     
     // Configure buzzer with default settings (4 kHz, 50% duty cycle)
     BuzzerConfig_t config = {
@@ -31,36 +31,36 @@ void buzzer_example_basic(void)
     // Initialize buzzer
     BuzzerResult_t result = Buzzer_Init(&config);
     if (result != BUZZER_OK) {
-        printf("ERROR: Buzzer initialization failed\n");
+        printf("ERROR: Buzzer initialization failed\r\n");
         return;
     }
-    printf("✓ Buzzer initialized (4 kHz, 50%% duty)\n");
+    printf("✓ Buzzer initialized (4 kHz, 50%% duty)\r\n");
     
     // Turn buzzer ON
-    printf("Turning buzzer ON...\n");
+    printf("Turning buzzer ON...\r\n");
     Buzzer_On();
     HAL_Delay(1000);  // 1 second
     
     // Turn buzzer OFF
-    printf("Turning buzzer OFF...\n");
+    printf("Turning buzzer OFF...\r\n");
     Buzzer_Off();
     HAL_Delay(500);
     
     // Toggle buzzer
-    printf("Toggling buzzer ON...\n");
+    printf("Toggling buzzer ON...\r\n");
     Buzzer_Toggle();
     HAL_Delay(1000);
     
-    printf("Toggling buzzer OFF...\n");
+    printf("Toggling buzzer OFF...\r\n");
     Buzzer_Toggle();
     
-    printf("✓ Basic control test completed\n\n");
+    printf("✓ Basic control test completed\n\r\n");
 }
 
 /* Example 2: Frequency control ---------------------------------------------*/
 void buzzer_example_frequency(void)
 {
-    printf("\n=== Buzzer Example 2: Frequency Control ===\n");
+    printf("\n=== Buzzer Example 2: Frequency Control ===\r\n");
     
     // Initialize with default config
     BuzzerConfig_t config = {
@@ -77,7 +77,7 @@ void buzzer_example_frequency(void)
     const char* notes[] = {"Low", "Medium-Low", "Nominal", "Medium-High", "High"};
     
     for (int i = 0; i < 5; i++) {
-        printf("Playing %s frequency: %lu Hz\n", notes[i], frequencies[i]);
+        printf("Playing %s frequency: %lu Hz\r\n", notes[i], frequencies[i]);
         
         Buzzer_SetFrequency(frequencies[i]);
         Buzzer_On();
@@ -86,13 +86,13 @@ void buzzer_example_frequency(void)
         HAL_Delay(200);
     }
     
-    printf("✓ Frequency sweep test completed\n\n");
+    printf("✓ Frequency sweep test completed\n\r\n");
 }
 
 /* Example 3: Volume (duty cycle) control -----------------------------------*/
 void buzzer_example_volume(void)
 {
-    printf("\n=== Buzzer Example 3: Volume Control ===\n");
+    printf("\n=== Buzzer Example 3: Volume Control ===\r\n");
     
     // Initialize with default config
     BuzzerConfig_t config = {
@@ -109,7 +109,7 @@ void buzzer_example_volume(void)
     const char* levels[] = {"Very Quiet", "Quiet", "Medium", "Loud", "Very Loud"};
     
     for (int i = 0; i < 5; i++) {
-        printf("Volume %s: %u%% duty cycle\n", levels[i], volumes[i]);
+        printf("Volume %s: %u%% duty cycle\r\n", levels[i], volumes[i]);
         
         Buzzer_SetDutyCycle(volumes[i]);
         Buzzer_On();
@@ -118,13 +118,13 @@ void buzzer_example_volume(void)
         HAL_Delay(200);
     }
     
-    printf("✓ Volume control test completed\n\n");
+    printf("✓ Volume control test completed\n\r\n");
 }
 
 /* Example 4: Beep functions ------------------------------------------------*/
 void buzzer_example_beep(void)
 {
-    printf("\n=== Buzzer Example 4: Beep Functions ===\n");
+    printf("\n=== Buzzer Example 4: Beep Functions ===\r\n");
     
     // Initialize buzzer
     BuzzerConfig_t config = {
@@ -137,31 +137,31 @@ void buzzer_example_beep(void)
     Buzzer_Init(&config);
     
     // Single beep (4 kHz, 50%, 200ms)
-    printf("Playing single beep...\n");
+    printf("Playing single beep...\r\n");
     Buzzer_Beep(4000, 50, 200);
     HAL_Delay(500);
     
     // Warning beep (3 kHz, 75%, 500ms)
-    printf("Playing warning beep...\n");
+    printf("Playing warning beep...\r\n");
     Buzzer_Beep(3000, 75, 500);
     HAL_Delay(500);
     
     // Beep sequence (3 beeps)
-    printf("Playing beep sequence (3 beeps)...\n");
+    printf("Playing beep sequence (3 beeps)...\r\n");
     Buzzer_BeepSequence(3, 100, 100);  // 3 beeps, 100ms on, 100ms off
     HAL_Delay(500);
     
     // Long beep sequence (5 beeps)
-    printf("Playing long beep sequence (5 beeps)...\n");
+    printf("Playing long beep sequence (5 beeps)...\r\n");
     Buzzer_BeepSequence(5, 150, 150);
     
-    printf("✓ Beep functions test completed\n\n");
+    printf("✓ Beep functions test completed\n\r\n");
 }
 
 /* Example 5: Real-world alarm patterns ------------------------------------*/
 void buzzer_example_alarm_patterns(void)
 {
-    printf("\n=== Buzzer Example 5: Alarm Patterns ===\n");
+    printf("\n=== Buzzer Example 5: Alarm Patterns ===\r\n");
     
     BuzzerConfig_t config = {
         .htim = &htim1,
@@ -173,7 +173,7 @@ void buzzer_example_alarm_patterns(void)
     Buzzer_Init(&config);
     
     // Pattern 1: Warning (approaching fence)
-    printf("Pattern 1: Warning alarm\n");
+    printf("Pattern 1: Warning alarm\r\n");
     for (int i = 0; i < 3; i++) {
         Buzzer_Beep(3500, 40, 100);
         HAL_Delay(100);
@@ -181,7 +181,7 @@ void buzzer_example_alarm_patterns(void)
     HAL_Delay(500);
     
     // Pattern 2: Alert (near fence limit)
-    printf("Pattern 2: Alert alarm\n");
+    printf("Pattern 2: Alert alarm\r\n");
     for (int i = 0; i < 5; i++) {
         Buzzer_Beep(4000, 60, 80);
         HAL_Delay(80);
@@ -189,7 +189,7 @@ void buzzer_example_alarm_patterns(void)
     HAL_Delay(500);
     
     // Pattern 3: Critical (fence breach)
-    printf("Pattern 3: Critical alarm\n");
+    printf("Pattern 3: Critical alarm\r\n");
     for (int i = 0; i < 10; i++) {
         Buzzer_Beep(5000, 80, 50);
         HAL_Delay(50);
@@ -197,19 +197,19 @@ void buzzer_example_alarm_patterns(void)
     HAL_Delay(500);
     
     // Pattern 4: Continuous warning
-    printf("Pattern 4: Continuous warning (2 seconds)\n");
+    printf("Pattern 4: Continuous warning (2 seconds)\r\n");
     Buzzer_SetParams(4500, 70);
     Buzzer_On();
     HAL_Delay(2000);
     Buzzer_Off();
     
-    printf("✓ Alarm patterns test completed\n\n");
+    printf("✓ Alarm patterns test completed\n\r\n");
 }
 
 /* Example 6: Zone-based stimulus control -----------------------------------*/
 void buzzer_example_zone_stimulus(void)
 {
-    printf("\n=== Buzzer Example 6: Zone-based Stimulus ===\n");
+    printf("\n=== Buzzer Example 6: Zone-based Stimulus ===\r\n");
     
     BuzzerConfig_t config = {
         .htim = &htim1,
@@ -223,31 +223,31 @@ void buzzer_example_zone_stimulus(void)
     // Simulate different fence zones
     
     // GREEN ZONE - No stimulus
-    printf("GREEN ZONE - No stimulus\n");
+    printf("GREEN ZONE - No stimulus\r\n");
     HAL_Delay(500);
     
     // LIGHT_BLUE ZONE - Soft beep
-    printf("LIGHT_BLUE ZONE - Soft warning\n");
+    printf("LIGHT_BLUE ZONE - Soft warning\r\n");
     Buzzer_Beep(2500, 20, 100);
     HAL_Delay(500);
     
     // BLUE ZONE - Medium beep
-    printf("BLUE ZONE - Medium warning\n");
+    printf("BLUE ZONE - Medium warning\r\n");
     Buzzer_Beep(3000, 35, 150);
     HAL_Delay(500);
     
     // DARK_BLUE ZONE - Stronger beep
-    printf("DARK_BLUE ZONE - Strong warning\n");
+    printf("DARK_BLUE ZONE - Strong warning\r\n");
     Buzzer_Beep(3500, 50, 200);
     HAL_Delay(500);
     
     // YELLOW ZONE - Intense beep sequence
-    printf("YELLOW ZONE - Intense warning\n");
+    printf("YELLOW ZONE - Intense warning\r\n");
     Buzzer_BeepSequence(3, 150, 100);
     HAL_Delay(500);
     
     // RED ZONE - Critical alert
-    printf("RED ZONE - Critical alert\n");
+    printf("RED ZONE - Critical alert\r\n");
     for (int i = 0; i < 5; i++) {
         Buzzer_Beep(5000, 75, 100);
         HAL_Delay(50);
@@ -255,19 +255,19 @@ void buzzer_example_zone_stimulus(void)
     HAL_Delay(500);
     
     // BLACK ZONE - Escape detected (continuous alarm)
-    printf("BLACK ZONE - Escape alarm (continuous 3 seconds)\n");
+    printf("BLACK ZONE - Escape alarm (continuous 3 seconds)\r\n");
     Buzzer_SetParams(4500, 80);
     Buzzer_On();
     HAL_Delay(3000);
     Buzzer_Off();
     
-    printf("✓ Zone-based stimulus test completed\n\n");
+    printf("✓ Zone-based stimulus test completed\n\r\n");
 }
 
 /* Example 7: State monitoring ----------------------------------------------*/
 void buzzer_example_state_monitoring(void)
 {
-    printf("\n=== Buzzer Example 7: State Monitoring ===\n");
+    printf("\n=== Buzzer Example 7: State Monitoring ===\r\n");
     
     BuzzerConfig_t config = {
         .htim = &htim1,
@@ -280,51 +280,51 @@ void buzzer_example_state_monitoring(void)
     
     // Get initial state
     const BuzzerState_t* state = Buzzer_GetState();
-    printf("Initial state:\n");
-    printf("  Initialized: %s\n", state->initialized ? "Yes" : "No");
-    printf("  Enabled: %s\n", state->enabled ? "Yes" : "No");
-    printf("  Frequency: %lu Hz\n", state->current_freq);
-    printf("  Duty Cycle: %u%%\n", state->current_duty);
-    printf("  ARR value: %lu\n", state->arr_value);
-    printf("  CCR value: %lu\n\n", state->ccr_value);
+    printf("Initial state:\r\n");
+    printf("  Initialized: %s\r\n", state->initialized ? "Yes" : "No");
+    printf("  Enabled: %s\r\n", state->enabled ? "Yes" : "No");
+    printf("  Frequency: %lu Hz\r\n", state->current_freq);
+    printf("  Duty Cycle: %u%%\r\n", state->current_duty);
+    printf("  ARR value: %lu\r\n", state->arr_value);
+    printf("  CCR value: %lu\n\r\n", state->ccr_value);
     
     // Change parameters
-    printf("Changing to 5 kHz, 75%% duty...\n");
+    printf("Changing to 5 kHz, 75%% duty...\r\n");
     Buzzer_SetParams(5000, 75);
     
     state = Buzzer_GetState();
-    printf("Updated state:\n");
-    printf("  Frequency: %lu Hz\n", state->current_freq);
-    printf("  Duty Cycle: %u%%\n", state->current_duty);
-    printf("  ARR value: %lu\n", state->arr_value);
-    printf("  CCR value: %lu\n\n", state->ccr_value);
+    printf("Updated state:\r\n");
+    printf("  Frequency: %lu Hz\r\n", state->current_freq);
+    printf("  Duty Cycle: %u%%\r\n", state->current_duty);
+    printf("  ARR value: %lu\r\n", state->arr_value);
+    printf("  CCR value: %lu\n\r\n", state->ccr_value);
     
     // Turn on and check state
     Buzzer_On();
     state = Buzzer_GetState();
-    printf("After turning ON:\n");
-    printf("  Enabled: %s\n", state->enabled ? "Yes" : "No");
-    printf("  IsEnabled(): %s\n", Buzzer_IsEnabled() ? "Yes" : "No");
+    printf("After turning ON:\r\n");
+    printf("  Enabled: %s\r\n", state->enabled ? "Yes" : "No");
+    printf("  IsEnabled(): %s\r\n", Buzzer_IsEnabled() ? "Yes" : "No");
     
     HAL_Delay(1000);
     
     // Turn off and check state
     Buzzer_Off();
     state = Buzzer_GetState();
-    printf("After turning OFF:\n");
-    printf("  Enabled: %s\n", state->enabled ? "Yes" : "No");
-    printf("  IsEnabled(): %s\n", Buzzer_IsEnabled() ? "Yes" : "No");
+    printf("After turning OFF:\r\n");
+    printf("  Enabled: %s\r\n", state->enabled ? "Yes" : "No");
+    printf("  IsEnabled(): %s\r\n", Buzzer_IsEnabled() ? "Yes" : "No");
     
-    printf("✓ State monitoring test completed\n\n");
+    printf("✓ State monitoring test completed\n\r\n");
 }
 
 /* Run all examples ---------------------------------------------------------*/
 void buzzer_run_all_examples(void)
 {
-    printf("\n");
-    printf("╔════════════════════════════════════════════════════════════╗\n");
-    printf("║        BUZZER MODULE - COMPREHENSIVE EXAMPLES              ║\n");
-    printf("╚════════════════════════════════════════════════════════════╝\n");
+    printf("\r\n");
+    printf("╔════════════════════════════════════════════════════════════╗\r\n");
+    printf("║        BUZZER MODULE - COMPREHENSIVE EXAMPLES              ║\r\n");
+    printf("╚════════════════════════════════════════════════════════════╝\r\n");
     
     buzzer_example_basic();
     buzzer_example_frequency();
@@ -334,7 +334,7 @@ void buzzer_run_all_examples(void)
     buzzer_example_zone_stimulus();
     buzzer_example_state_monitoring();
     
-    printf("╔════════════════════════════════════════════════════════════╗\n");
-    printf("║             ALL EXAMPLES COMPLETED                         ║\n");
-    printf("╚════════════════════════════════════════════════════════════╝\n\n");
+    printf("╔════════════════════════════════════════════════════════════╗\r\n");
+    printf("║             ALL EXAMPLES COMPLETED                         ║\r\n");
+    printf("╚════════════════════════════════════════════════════════════╝\n\r\n");
 }

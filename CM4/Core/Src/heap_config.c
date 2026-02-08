@@ -66,9 +66,9 @@ void vPrintHeapInfo(void)
     size_t xTotalSize, xFreeSize, xMinEverFree;
     vGetHeapStats(&xTotalSize, &xFreeSize, &xMinEverFree);
     
-    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\n", 
+    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\r\n", 
            (unsigned int)xTotalSize, (unsigned int)xFreeSize, (unsigned int)xMinEverFree);
-    printf("[HEAP] Heap location: 0x%08X\n", (unsigned int)ucHeap);
+    printf("[HEAP] Heap location: 0x%08X\r\n", (unsigned int)ucHeap);
 }
 
 /**
@@ -102,9 +102,9 @@ void vPrintHeapInfo(void)
     size_t xTotalSize, xFreeSize, xMinEverFree;
     vGetHeapStats(&xTotalSize, &xFreeSize, &xMinEverFree);
     
-    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\n", 
+    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\r\n", 
            (unsigned int)xTotalSize, (unsigned int)xFreeSize, (unsigned int)xMinEverFree);
-    printf("[HEAP] Located in RAM2 (0x%08X - 0x%08X)\n", 
+    printf("[HEAP] Located in RAM2 (0x%08X - 0x%08X)\r\n", 
            RAM2_START_ADDRESS, RAM2_START_ADDRESS + RAM2_HEAP_SIZE - 1);
 }
 
@@ -140,8 +140,8 @@ void vPrintHeapInfo(void)
     size_t xTotalSize, xFreeSize, xMinEverFree;
     vGetHeapStats(&xTotalSize, &xFreeSize, &xMinEverFree);
     
-    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\n", 
+    printf("[HEAP] Total: %u bytes, Free: %u bytes, Min Ever Free: %u bytes\r\n", 
            (unsigned int)xTotalSize, (unsigned int)xFreeSize, (unsigned int)xMinEverFree);
-    printf("[HEAP] Located in RAM2 (0x%08X - 0x%08X)\n", 
+    printf("[HEAP] Located in RAM2 (0x%08X - 0x%08X)\r\n", 
            RAM2_START_ADDRESS, RAM2_START_ADDRESS + RAM2_HEAP_SIZE - 1);
 }

@@ -115,90 +115,90 @@ void MX_FREERTOS_Init(void);
  * @note Called before FreeRTOS scheduler starts
  */
 void run_comprehensive_module_tests(void) {
-    printf("\n");
-    printf("=========================================================\n");
-    printf("       TPP-IntelliFence - COMPREHENSIVE MODULE TESTS    \n");
-    printf("=========================================================\n");
-    printf("INFO - Testing all modules before FreeRTOS startup\n");
-    printf("INFO - Hardware: STM32WL55JC Dual Core\n");
-    printf("INFO - Core: CM4 (Application Processor)\n");
-    printf("=========================================================\n\n");
+    printf("\r\n");
+    printf("=========================================================\r\n");
+    printf("       TPP-IntelliFence - COMPREHENSIVE MODULE TESTS    \r\n");
+    printf("=========================================================\r\n");
+    printf("INFO - Testing all modules before FreeRTOS startup\r\n");
+    printf("INFO - Hardware: STM32WL55JC Dual Core\r\n");
+    printf("INFO - Core: CM4 (Application Processor)\r\n");
+    printf("=========================================================\n\r\n");
     
     bool all_tests_passed = true;
     
     // ===== TEST 1: Sistema de Mensajes Embedded-Friendly =====
-    printf(">>> TEST 1: EMBEDDED MESSAGE SYSTEM <<<\n");
-    printf("Testing static message pool (no dynamic allocation)...\n");
+    printf(">>> TEST 1: EMBEDDED MESSAGE SYSTEM <<<\r\n");
+    printf("Testing static message pool (no dynamic allocation)...\r\n");
     
     test_message_pool_basic();
     
-    printf("SUCCESS - Embedded message system validated\n");
-    printf("INFO - Zero dynamic allocation confirmed\n");
-    printf("INFO - Thread-safe pool operations confirmed\n\n");
+    printf("SUCCESS - Embedded message system validated\r\n");
+    printf("INFO - Zero dynamic allocation confirmed\r\n");
+    printf("INFO - Thread-safe pool operations confirmed\n\r\n");
     
     // ===== TEST 2: INA226 Current/Power Sensors =====
-    printf(">>> TEST 2: INA226 CURRENT/POWER SENSORS <<<\n");
-    printf("Testing INA226 sensors (MCU, GPS, IMU power monitoring)...\n");
+    printf(">>> TEST 2: INA226 CURRENT/POWER SENSORS <<<\r\n");
+    printf("Testing INA226 sensors (MCU, GPS, IMU power monitoring)...\r\n");
     
     ina226_comprehensive_test();
     
-    printf("SUCCESS - INA226 comprehensive test completed\n");
-    printf("INFO - MCU, GPS, IMU power monitoring operational\n\n");
+    printf("SUCCESS - INA226 comprehensive test completed\r\n");
+    printf("INFO - MCU, GPS, IMU power monitoring operational\n\r\n");
     
     // ===== TEST 3: LSM6DSO IMU 6DOF Sensor =====
-    printf(">>> TEST 3: LSM6DSO IMU 6DOF SENSOR <<<\n");
-    printf("Testing accelerometer and gyroscope functionality...\n");
+    printf(">>> TEST 3: LSM6DSO IMU 6DOF SENSOR <<<\r\n");
+    printf("Testing accelerometer and gyroscope functionality...\r\n");
     
     lsm6dso_comprehensive_test();
     
-    printf("SUCCESS - LSM6DSO IMU test completed\n");
-    printf("INFO - 6DOF motion sensing operational\n\n");
+    printf("SUCCESS - LSM6DSO IMU test completed\r\n");
+    printf("INFO - 6DOF motion sensing operational\n\r\n");
     
     // ===== TEST 4: SAM-M10Q GPS Module =====
-    printf(">>> TEST 4: SAM-M10Q GPS MODULE <<<\n");
-    printf("Testing GPS connectivity and data acquisition...\n");
+    printf(">>> TEST 4: SAM-M10Q GPS MODULE <<<\r\n");
+    printf("Testing GPS connectivity and data acquisition...\r\n");
     
     // Test standard GPS implementation
 
     gps_init_and_test();
     
-    printf("SUCCESS - GPS module test completed\n");
+    printf("SUCCESS - GPS module test completed\r\n");
     
     // ===== TEST 5: COW & FENCE DATA MODEL =====
-    printf(">>> TEST 5: COW & FENCE DATA MODEL <<<\n");
-    printf("Testing embedded-friendly Cow and Fence classes...\n");
+    printf(">>> TEST 5: COW & FENCE DATA MODEL <<<\r\n");
+    printf("Testing embedded-friendly Cow and Fence classes...\r\n");
     
     run_cow_fence_tests();
     
-    printf("SUCCESS - Cow & Fence test completed\n");
-    printf("INFO - Data model ready for FSM integration\n\n");
+    printf("SUCCESS - Cow & Fence test completed\r\n");
+    printf("INFO - Data model ready for FSM integration\n\r\n");
     
     // ===== TEST 6: BUZZER ACTUATOR =====
-    printf(">>> TEST 6: BUZZER ACTUATOR <<<\n");
-    printf("Testing PWM-based buzzer functionality...\n");
+    printf(">>> TEST 6: BUZZER ACTUATOR <<<\r\n");
+    printf("Testing PWM-based buzzer functionality...\r\n");
     
     buzzer_run_all_examples();
     
-    printf("SUCCESS - Buzzer test completed\n");
-    printf("INFO - Acoustic stimulus system operational\n\n");
+    printf("SUCCESS - Buzzer test completed\r\n");
+    printf("INFO - Acoustic stimulus system operational\n\r\n");
     
     // ===== RESUMEN DE TESTS =====
     if (all_tests_passed) {
-        printf("=========================================================\n");
-        printf("              ALL MODULE TESTS PASSED                    \n");
-        printf("=========================================================\n");
-        printf("SUCCESS - System ready for FreeRTOS operation\n");
-        printf("INFO - All hardware modules validated\n");
-        printf("INFO - Embedded message system operational\n");
-        printf("INFO - Starting FreeRTOS scheduler...\n");
-        printf("=========================================================\n\n");
+        printf("=========================================================\r\n");
+        printf("              ALL MODULE TESTS PASSED                    \r\n");
+        printf("=========================================================\r\n");
+        printf("SUCCESS - System ready for FreeRTOS operation\r\n");
+        printf("INFO - All hardware modules validated\r\n");
+        printf("INFO - Embedded message system operational\r\n");
+        printf("INFO - Starting FreeRTOS scheduler...\r\n");
+        printf("=========================================================\n\r\n");
     } else {
-        printf("=========================================================\n");
-        printf("             SOME TESTS FAILED                         \n");
-        printf("=========================================================\n");
-        printf("WARNING - Proceeding with FreeRTOS startup\n");
-        printf("WARNING - Check failed modules before production use\n");
-        printf("=========================================================\n\n");
+        printf("=========================================================\r\n");
+        printf("             SOME TESTS FAILED                         \r\n");
+        printf("=========================================================\r\n");
+        printf("WARNING - Proceeding with FreeRTOS startup\r\n");
+        printf("WARNING - Check failed modules before production use\r\n");
+        printf("=========================================================\n\r\n");
     }
 }
 
@@ -249,7 +249,7 @@ int main(void)
   osKernelInitialize();  /* Call init function for freertos objects (in cmsis_os2.c) */
   MX_FREERTOS_Init();
   if (initialize_cpp_managers() != 0) {
-    printf("[MAIN] CRITICAL ERROR - Failed to initialize C++ managers\n");
+    printf("[MAIN] CRITICAL ERROR - Failed to initialize C++ managers\r\n");
     Error_Handler();
   }
   /* USER CODE END 2 */
@@ -268,8 +268,8 @@ int main(void)
 
     // Este bucle no debería ejecutarse nunca ya que FreeRTOS toma control
     // Si llegamos aquí, algo salió mal con el scheduler
-    printf("ERROR - FreeRTOS scheduler failed! System halted.\n");
-    printf("INFO - Check FreeRTOS configuration and task creation\n");
+    printf("ERROR - FreeRTOS scheduler failed! System halted.\r\n");
+    printf("INFO - Check FreeRTOS configuration and task creation\r\n");
     
     // Parpadear LED de error
     // HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_5); // LED_RED
@@ -360,7 +360,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: printf("Wrong parameters value: file %s on line %d\r\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

@@ -8,8 +8,8 @@ zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistanc
     Position pos = cow->getPosition();
     Vertex center = fence->getCenterFence();
 
-    RTOS_LOG_DEBUG("[ZONE] Cow pos: (%.6f, %.6f)\n", pos.latitude, pos.longitude);
-    RTOS_LOG_DEBUG("[ZONE] Fence center: (%.6f, %.6f)\n", center.latitude, center.longitude);
+    RTOS_LOG_DEBUG("[ZONE] Cow pos: (%.6f, %.6f)\r\n", pos.latitude, pos.longitude);
+    RTOS_LOG_DEBUG("[ZONE] Fence center: (%.6f, %.6f)\r\n", center.latitude, center.longitude);
 
     XY cowXY = latLonToXY(pos.latitude, pos.longitude, center.latitude, center.longitude);
 
@@ -20,8 +20,8 @@ zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistanc
     
     bool isInside = isPointInsideFence(cowXY, limites, limitCount, center);
     
-    RTOS_LOG_DEBUG("[ZONE] Min distance: %.2f m, Inside: %d\n", minDistance, isInside);
-    RTOS_LOG_DEBUG("[ZONE] Thresholds: [%.1f, %.1f, %.1f, %.1f, %.1f]\n",
+    RTOS_LOG_DEBUG("[ZONE] Min distance: %.2f m, Inside: %d\r\n", minDistance, isInside);
+    RTOS_LOG_DEBUG("[ZONE] Thresholds: [%.1f, %.1f, %.1f, %.1f, %.1f]\r\n",
                    fence->thresholds[0], fence->thresholds[1], fence->thresholds[2],
                    fence->thresholds[3], fence->thresholds[4]);
 
@@ -35,14 +35,14 @@ zone_t getZoneFromDistance(const Cow *cow, const Fence *fence, float &minDistanc
         else if (minDistance > fence->thresholds[4]) resultZone = YELLOW_ZONE;
         else resultZone = RED_ZONE;
         
-        RTOS_LOG_DEBUG("[ZONE] Result: %d (minDist=%.2f > thresh[0]=%.1f: %s)\n", 
+        RTOS_LOG_DEBUG("[ZONE] Result: %d (minDist=%.2f > thresh[0]=%.1f: %s)\r\n", 
                       resultZone, minDistance, fence->thresholds[0],
                       (minDistance > fence->thresholds[0]) ? "YES" : "NO");
         return resultZone;
     }
     else {
         minDistance = -minDistance;
-        RTOS_LOG_DEBUG("[ZONE] Result: BLACK_ZONE (outside)\n");
+        RTOS_LOG_DEBUG("[ZONE] Result: BLACK_ZONE (outside)\r\n");
         return BLACK_ZONE;
     }
 }

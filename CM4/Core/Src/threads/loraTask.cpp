@@ -21,21 +21,21 @@ void loraTask(void *argument) {
     EmbeddedMessage_t *msgReceived = NULL;
     EmbeddedMessage_t *msgToSend = NULL;
     
-    RTOS_LOG_INFO("[LORA] Task initialized successfully\n");
+    RTOS_LOG_INFO("[LORA] Task initialized successfully\r\n");
     
     static uint32_t stackMonitorCounter = 0;
     while(1) {
         // Monitorear stack cada 10 mensajes procesados
         if (++stackMonitorCounter >= 10) {
             UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-            RTOS_LOG_INFO("[LORA] Stack libre: %u words (%u bytes)\n", 
+            RTOS_LOG_INFO("[LORA] Stack libre: %u words (%u bytes)\r\n", 
                          stackLeft, stackLeft * 4);
             stackMonitorCounter = 0;
         }
         
         // Esperar mensajes en la cola de LoRa TX
         if (osMessageQueueGet(loraTxQueueHandle, &msgReceived, NULL, osWaitForever) == osOK) {
-            RTOS_LOG_DEBUG("[LORA] Received message ID:%d from module:%d\n", 
+            RTOS_LOG_DEBUG("[LORA] Received message ID:%d from module:%d\r\n", 
                           msgReceived->id, msgReceived->sender);
             
             switch (msgReceived->id) {
@@ -46,7 +46,7 @@ void loraTask(void *argument) {
                         memcpy(&latitude, msgReceived->payload, sizeof(float));
                         memcpy(&longitude, msgReceived->payload + sizeof(float), sizeof(float));
                         
-                        RTOS_LOG_INFO("[LORA] Sending position: lat=%.6f, lon=%.6f\n", 
+                        RTOS_LOG_INFO("[LORA] Sending position: lat=%.6f, lon=%.6f\r\n", 
                                      latitude, longitude);
                         
                         // TODO: Aquí iría la lógica real de envío por LoRa
@@ -63,14 +63,14 @@ void loraTask(void *argument) {
                             osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                                  &msgToSend, 0, 100);
                             if (status == osOK) {
-                                RTOS_LOG_DEBUG("[LORA] Feedback sent to FSM\n");
+                                RTOS_LOG_DEBUG("[LORA] Feedback sent to FSM\r\n");
                             } else {
-                                RTOS_LOG_ERROR("[LORA] Failed to send feedback (status=%d)\n", status);
+                                RTOS_LOG_ERROR("[LORA] Failed to send feedback (status=%d)\r\n", status);
                                 MessagePool_Free(msgToSend);
                             }
                             msgToSend = NULL;
                         } else {
-                            RTOS_LOG_ERROR("[LORA] Failed to allocate feedback message\n");
+                            RTOS_LOG_ERROR("[LORA] Failed to allocate feedback message\r\n");
                         }
                         
                         // Enviar fence de test_data en fragmentos a FSM
@@ -83,7 +83,7 @@ void loraTask(void *argument) {
                         
                         uint8_t totalFragments = (TEST_FENCE_VERTEX_COUNT + MAX_VERTICES_PER_MSG - 1) / MAX_VERTICES_PER_MSG;
                         
-                        RTOS_LOG_INFO("[LORA] Sending fence in %d fragments (%d vertices, %d per msg)\n", 
+                        RTOS_LOG_INFO("[LORA] Sending fence in %d fragments (%d vertices, %d per msg)\r\n", 
                                      totalFragments, TEST_FENCE_VERTEX_COUNT, MAX_VERTICES_PER_MSG);
                         
                         for (uint8_t fragment = 0; fragment < totalFragments; fragment++) {
@@ -120,10 +120,10 @@ void loraTask(void *argument) {
                                 osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                                      &msgToSend, 0, 100);
                                 if (status == osOK) {
-                                    RTOS_LOG_DEBUG("[LORA] Fragment %d/%d sent (%d vertices)\n", 
+                                    RTOS_LOG_DEBUG("[LORA] Fragment %d/%d sent (%d vertices)\r\n", 
                                                  fragment + 1, totalFragments, verticesInFragment);
                                 } else {
-                                    RTOS_LOG_ERROR("[LORA] Failed to send fragment %d\n", fragment);
+                                    RTOS_LOG_ERROR("[LORA] Failed to send fragment %d\r\n", fragment);
                                     MessagePool_Free(msgToSend);
                                 }
                                 msgToSend = NULL;
@@ -131,19 +131,19 @@ void loraTask(void *argument) {
                                 // Pequeño delay entre fragmentos para no saturar la cola
                                 osDelay(50);
                             } else {
-                                RTOS_LOG_ERROR("[LORA] Failed to allocate message for fragment %d\n", fragment);
+                                RTOS_LOG_ERROR("[LORA] Failed to allocate message for fragment %d\r\n", fragment);
                                 break;
                             }
                         }
 #endif
                     } else {
-                        RTOS_LOG_WARN("[LORA] Invalid position payload length: %d\n", 
+                        RTOS_LOG_WARN("[LORA] Invalid position payload length: %d\r\n", 
                                      msgReceived->length);
                     }
                     break;
                     
                 default:
-                    RTOS_LOG_WARN("[LORA] Unhandled message ID:%d\n", msgReceived->id);
+                    RTOS_LOG_WARN("[LORA] Unhandled message ID:%d\r\n", msgReceived->id);
                     break;
             }
             

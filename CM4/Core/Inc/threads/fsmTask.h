@@ -19,9 +19,9 @@ extern "C" {
 // ============================================================================
 // TIMEOUT CONFIGURATION (en milisegundos)
 // ============================================================================
-#define GPS_TIMEOUT_MS       30000  // 30 segundos - GPS puede tardar en obtener fix
+#define GPS_TIMEOUT_MS       30000  // 120 segundos - GPS puede tardar en obtener fix
 #define LORA_TX_TIMEOUT_MS   10000  // 10 segundos - Transmisión LoRa
-#define LORA_RX_TIMEOUT_MS   60000  // 60 segundos - Espera de mensajes LoRa entrantes
+#define LORA_RX_TIMEOUT_MS   120000  // 60 segundos - Espera de mensajes LoRa entrantes
 #define IMU_TIMEOUT_MS        2000  // 2 segundos  - Lectura del acelerómetro
 #define DISTANCE_TIMEOUT_MS   3000  // 3 segundos  - Cálculo de zona y distancia
 #define STIMULUS_TIMEOUT_MS   5000  // 5 segundos  - Respuesta del módulo de estímulo
@@ -76,6 +76,7 @@ enum class NormalOpFSM_t {
 
 typedef enum {
   STARTUP_ROUTINE_BEGIN,
+  STARTUP_ROUTINE_WAIT_JOIN,
   STARTUP_ROUTINE_REQUEST_POSITION,
   STARTUP_ROUTINE_WAIT_POSITION,
   STARTUP_ROUTINE_SEND_POSITION_LORA,
@@ -142,44 +143,50 @@ typedef enum {
 void fsmTask(void *argument);
 
 void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* startupRoutineState, 
-                         EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
+                         TimeoutContext_t& timeout, Cow& cow, Fence& fence, EmbeddedMessage_t** msg);
 
 void runNormalOperationFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState, 
                           GreenZoneState_t& greenZoneState, StimulusZone_t& stimulusZoneState, 
-                          EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
+                          TimeoutContext_t& timeout, Cow& cow, Fence& fence, EmbeddedMessage_t** msg);
 
 void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeState, 
-                     EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
+                     TimeoutContext_t& timeout, Cow& cow, Fence& fence, EmbeddedMessage_t** msg);
 
 void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneState, 
-                    EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
+                    TimeoutContext_t& timeout, Cow& cow, Fence& fence, EmbeddedMessage_t** msg);
 
 void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZoneState, 
-                       EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
+                       TimeoutContext_t& timeout, Cow& cow, Fence& fence, EmbeddedMessage_t** msg);
 
 void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTransitionState, 
-                          EmbeddedMessage_t** msgReceived, TimeoutContext_t& timeout, Cow& cow, Fence& fence);
+                          TimeoutContext_t& timeout, Cow& cow, Fence& fence, EmbeddedMessage_t** msg);
 
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
+// Message queue operations
 void sendMessage(uint8_t msgId, ModuleId_t dest);
-HAL_StatusTypeDef dequeuedMessage(EmbeddedMessage_t **msgReceived, Fence& fence);
-HAL_StatusTypeDef updatePosition(Cow& cow, EmbeddedMessage_t *msgReceived);
+HAL_StatusTypeDef dequeueMessage(EmbeddedMessage_t **msg);
+HAL_StatusTypeDef waitForMessage(uint8_t expectedMsgId, TimeoutContext_t& timeout, 
+                                 EmbeddedMessage_t** outMsg);
+
+// Message processors
+HAL_StatusTypeDef processLoRaTxResponse(EmbeddedMessage_t *msg);
+HAL_StatusTypeDef processFenceMessage(EmbeddedMessage_t *msg, Fence& fence);
+HAL_StatusTypeDef processImuMessage(EmbeddedMessage_t *msg, Cow& cow);
+HAL_StatusTypeDef processGpsConfigResponse(EmbeddedMessage_t *msg);
+HAL_StatusTypeDef processStimulusResponse(EmbeddedMessage_t *msg);
+
+// High-level operations
 void sendPosition(uint8_t msgId, ModuleId_t dest, Cow& cow);
-HAL_StatusTypeDef loraTxResponse(EmbeddedMessage_t *msgReceived);
-HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, Fence& fence);
-void updateFence(Fence& fence);
-HAL_StatusTypeDef isInGreenZone(Cow& cow);
-HAL_StatusTypeDef updateDistAndZone(EmbeddedMessage_t *msgReceived, Cow& cow);
-HAL_StatusTypeDef updateAcceleration(EmbeddedMessage_t *msgReceived, Cow& cow);
-void updateState(Cow& cow);
-HAL_StatusTypeDef gpsResponse(EmbeddedMessage_t *msgReceived);
+void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
 void updateGpsAdqTime(GpsRate gpsRate);
 void enterLowPowerSleep();
-void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
-HAL_StatusTypeDef receivedStimulusResponse(EmbeddedMessage_t *msgReceived);
+
+// Cow operations
+HAL_StatusTypeDef isInGreenZone(Cow& cow);
+void updateState(Cow& cow);
 
 #endif // __cplusplus
 
