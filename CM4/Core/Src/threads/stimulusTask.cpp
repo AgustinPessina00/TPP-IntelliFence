@@ -181,7 +181,7 @@ void stimulusTask(void *argument) {
         // Monitorear stack cada ~10 segundos (cada 100 iteraciones × 100ms delay)
         if (++stackMonitorCounter >= 100) {
             UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-            RTOS_LOG_INFO("[STIMULUS] Stack libre: %u words (%u bytes)\n", 
+            RTOS_LOG_INFO("[STIMULUS] Stack libre: %u words (%u bytes)\r\n", 
                          stackLeft, stackLeft * 4);
             stackMonitorCounter = 0;
         }

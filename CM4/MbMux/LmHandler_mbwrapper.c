@@ -1693,7 +1693,7 @@ void Process_Lora_Notif(MBMUX_ComParam_t *ComObj)
   uint32_t cb_ret = 0;
 
   /* Lora Notif received */
-  APP_LOG(TS_ON, VLEVEL_H, "CM4<(LoRa)\r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "CM4<(LoRa)\r\r\n");
 
   /* process Command */
   switch (ComObj->MsgId)
@@ -1879,7 +1879,7 @@ void Process_Lora_Notif(MBMUX_ComParam_t *ComObj)
   }
 
   /* Lora sending ack */
-  APP_LOG(TS_ON, VLEVEL_H, "CM4>(LoRa)\r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "CM4>(LoRa)\r\r\n");
   MBMUX_AcknowledgeSnd(FEAT_INFO_LORAWAN_ID);
   /* USER CODE BEGIN Process_Lora_Notif_2 */
 

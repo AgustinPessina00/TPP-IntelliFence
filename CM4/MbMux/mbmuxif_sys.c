@@ -157,12 +157,12 @@ int8_t MBMUXIF_SystemInit(void)
 
   if (OptionsBytesStruct.IPCCdataBufAddr != (uint32_t) pMb_RefTable)
   {
-    APP_PPRINTF("There is a difference between the MAPPING_TABLE placement in memory: 0x%X \r\n",
+    APP_PPRINTF("There is a difference between the MAPPING_TABLE placement in memory: 0x%X \r\r\n",
                 (uint32_t) pMb_RefTable);
-    APP_PPRINTF("and the address calculated according to the IPCCDBA option byte: 0x%X \r\n",
+    APP_PPRINTF("and the address calculated according to the IPCCDBA option byte: 0x%X \r\r\n",
                 OptionsBytesStruct.IPCCdataBufAddr);
-    APP_PPRINTF("IPCCDBA is automatically updated\n\rSystem restarting...\r\n\r\n");
-    APP_PPRINTF("Please check the CM4\\MbMux\\mbmuxif_sys.c for more info \r\n\r\n");
+    APP_PPRINTF("IPCCDBA is automatically updated\n\rSystem restarting...\r\n\r\r\n");
+    APP_PPRINTF("Please check the CM4\\MbMux\\mbmuxif_sys.c for more info \r\n\r\r\n");
 
     while (1 != UTIL_ADV_TRACE_IsBufferEmpty())
     {

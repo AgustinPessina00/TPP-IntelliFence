@@ -470,7 +470,7 @@ void Process_Radio_Notif(MBMUX_ComParam_t *ComObj)
   /* USER CODE END Process_Radio_Notif_1 */
   uint32_t *com_buffer = ComObj->ParamBuf;
   /* Radio Notif received */
-  APP_LOG(TS_ON, VLEVEL_H, "CM4<(Radio)\r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "CM4<(Radio)\r\r\n");
 
   /* process Command */
   switch (ComObj->MsgId)
@@ -540,7 +540,7 @@ void Process_Radio_Notif(MBMUX_ComParam_t *ComObj)
   }
 
   /* Radio sending ack */
-  APP_LOG(TS_ON, VLEVEL_H, "CM4>(Radio)\r\n");
+  APP_LOG(TS_ON, VLEVEL_H, "CM4>(Radio)\r\r\n");
   MBMUX_AcknowledgeSnd(FEAT_INFO_RADIO_ID);
   /* USER CODE BEGIN Process_Radio_Notif_2 */
 

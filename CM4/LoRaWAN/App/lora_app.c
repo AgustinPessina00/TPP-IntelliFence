@@ -407,7 +407,7 @@ void LoRaWAN_Init(void)
   /* USER CODE BEGIN LoRaWAN_Init_1 */
 
   /* Get CM4 LoRaWAN APP version*/
-  rtos_printf("M4_APP_VERSION:      V%X.%X.%X\r\n",
+  rtos_printf("M4_APP_VERSION:      V%X.%X.%X\r\r\n",
           (uint8_t)(APP_VERSION_MAIN),
           (uint8_t)(APP_VERSION_SUB1),
           (uint8_t)(APP_VERSION_SUB2));
@@ -415,7 +415,7 @@ void LoRaWAN_Init(void)
   /* Get CM0 LoRaWAN APP version*/
   p_cm0plus_specific_features_info = MBMUXIF_SystemGetFeatCapabInfoPtr(FEAT_INFO_SYSTEM_ID);
   feature_version = p_cm0plus_specific_features_info->Feat_Info_Feature_Version;
-  rtos_printf("M0PLUS_APP_VERSION:  V%X.%X.%X\r\n",
+  rtos_printf("M0PLUS_APP_VERSION:  V%X.%X.%X\r\r\n",
           (uint8_t)(feature_version >> 24),
           (uint8_t)(feature_version >> 16),
           (uint8_t)(feature_version >> 8));
@@ -423,7 +423,7 @@ void LoRaWAN_Init(void)
   /* Get MW LoRaWAN info */
   p_cm0plus_specific_features_info = MBMUXIF_SystemGetFeatCapabInfoPtr(FEAT_INFO_LORAWAN_ID);
   feature_version = p_cm0plus_specific_features_info->Feat_Info_Feature_Version;
-  rtos_printf("MW_LORAWAN_VERSION:  V%X.%X.%X\r\n",
+  rtos_printf("MW_LORAWAN_VERSION:  V%X.%X.%X\r\r\n",
           (uint8_t)(feature_version >> 24),
           (uint8_t)(feature_version >> 16),
           (uint8_t)(feature_version >> 8));
@@ -431,21 +431,21 @@ void LoRaWAN_Init(void)
   /* Get MW SubGhz_Phy info */
   p_cm0plus_specific_features_info = MBMUXIF_SystemGetFeatCapabInfoPtr(FEAT_INFO_RADIO_ID);
   feature_version = p_cm0plus_specific_features_info->Feat_Info_Feature_Version;
-  rtos_printf("MW_RADIO_VERSION:    V%X.%X.%X\r\n",
+  rtos_printf("MW_RADIO_VERSION:    V%X.%X.%X\r\r\n",
           (uint8_t)(feature_version >> 24),
           (uint8_t)(feature_version >> 16),
           (uint8_t)(feature_version >> 8));
 
   /* Get LoRaWAN Link Layer info */
   LmHandlerGetVersion(LORAMAC_HANDLER_L2_VERSION, &feature_version);
-  rtos_printf("L2_SPEC_VERSION:     V%X.%X.%X\r\n",
+  rtos_printf("L2_SPEC_VERSION:     V%X.%X.%X\r\r\n",
           (uint8_t)(feature_version >> 24),
           (uint8_t)(feature_version >> 16),
           (uint8_t)(feature_version >> 8));
 
   /* Get LoRaWAN Regional Parameters info */
   LmHandlerGetVersion(LORAMAC_HANDLER_REGION_VERSION, &feature_version);
-  rtos_printf("RP_SPEC_VERSION:     V%X-%X.%X.%X\r\n",
+  rtos_printf("RP_SPEC_VERSION:     V%X-%X.%X.%X\r\r\n",
           (uint8_t)(feature_version >> 24),
           (uint8_t)(feature_version >> 16),
           (uint8_t)(feature_version >> 8),
@@ -486,12 +486,12 @@ void LoRaWAN_Init(void)
     Error_Handler();
   }
   
-  rtos_printf("\r\n[CONFIG] ForceRejoin=%s, ActivationType=%d\r\n", 
+  rtos_printf("\r\n[CONFIG] ForceRejoin=%s, ActivationType=%d\r\r\n", 
               ForceRejoin ? "TRUE" : "FALSE", ActivationType);
   
   // Debug: Verificar si ya tenemos una sesión válida antes de llamar Join
   LmHandlerFlagStatus_t joinStatus = LmHandlerJoinStatus();
-  rtos_printf("[DEBUG] Join status BEFORE LmHandlerJoin(): %d (0=NOT_JOINED, 1=JOINED)\r\n", joinStatus);
+  rtos_printf("[DEBUG] Join status BEFORE LmHandlerJoin(): %d (0=NOT_JOINED, 1=JOINED)\r\r\n", joinStatus);
   /* USER CODE END LoRaWAN_Init_2 */
 
   LmHandlerJoin(ActivationType, ForceRejoin);
@@ -499,7 +499,7 @@ void LoRaWAN_Init(void)
   /* USER CODE BEGIN LoRaWAN_Init_2b */
   // Debug: Verificar estado después del Join
   joinStatus = LmHandlerJoinStatus();
-  rtos_printf("[DEBUG] Join status AFTER LmHandlerJoin(): %d\r\n", joinStatus);
+  rtos_printf("[DEBUG] Join status AFTER LmHandlerJoin(): %d\r\r\n", joinStatus);
   /* USER CODE END LoRaWAN_Init_2b */
 
   if (EventType == TX_ON_TIMER)
@@ -564,7 +564,7 @@ static void Thd_LoraSendProcess(void *argument)
     // Monitorear stack cada 10 ejecuciones
     if (++stackMonitorCounter >= 1) {
       UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-      APP_LOG(TS_ON, VLEVEL_M, "[LORA_SEND] Stack libre: %u words (%u bytes)\r\n", 
+      APP_LOG(TS_ON, VLEVEL_M, "[LORA_SEND] Stack libre: %u words (%u bytes)\r\r\n", 
              stackLeft, stackLeft * 4);
       stackMonitorCounter = 0;
     }
@@ -588,7 +588,7 @@ static void Thd_LoraStoreContext(void *argument)
     // Monitorear stack cada 10 ejecuciones
     if (++stackMonitorCounter >= 1) {
       UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-      APP_LOG(TS_ON, VLEVEL_M, "[LORA_STORE] Stack libre: %u words (%u bytes)\r\n", 
+      APP_LOG(TS_ON, VLEVEL_M, "[LORA_STORE] Stack libre: %u words (%u bytes)\r\r\n", 
              stackLeft, stackLeft * 4);
       stackMonitorCounter = 0;
     }
@@ -612,7 +612,7 @@ static void Thd_LoraStopJoin(void *argument)
     // Monitorear stack cada 10 ejecuciones
     if (++stackMonitorCounter >= 1) {
       UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-      APP_LOG(TS_ON, VLEVEL_M, "[LORA_STOP] Stack libre: %u words (%u bytes)\r\n", 
+      APP_LOG(TS_ON, VLEVEL_M, "[LORA_STOP] Stack libre: %u words (%u bytes)\r\r\n", 
              stackLeft, stackLeft * 4);
       stackMonitorCounter = 0;
     }
@@ -640,12 +640,12 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
   }
   
   // ⚠️ DEBUG: Confirmar que la función se llama
-  rtos_printf("\r\n*** OnRxData CALLED ***\r\n");
+  rtos_printf("\r\n*** OnRxData CALLED ***\r\r\n");
 
   if (params != NULL)
   {
-    rtos_printf("params != NULL: YES\r\n");
-    rtos_printf("IsMcpsIndication: %d\r\n", params->IsMcpsIndication);
+    rtos_printf("params != NULL: YES\r\r\n");
+    rtos_printf("IsMcpsIndication: %d\r\r\n", params->IsMcpsIndication);
     
     HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
 
@@ -655,12 +655,12 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
     {
       if (appData != NULL)
       {
-        rtos_printf("appData != NULL: YES\r\n");
+        rtos_printf("appData != NULL: YES\r\r\n");
         RxPort = appData->Port;
         
         // ⚠️ DEBUG: Mostrar información del downlink recibido
-        rtos_printf("\r\n>>> DOWNLINK RECEIVED <<<\r\n");
-        rtos_printf("Port: %d | Size: %d bytes\r\n", RxPort, appData->BufferSize);
+        rtos_printf("\r\n>>> DOWNLINK RECEIVED <<<\r\r\n");
+        rtos_printf("Port: %d | Size: %d bytes\r\r\n", RxPort, appData->BufferSize);
         
         // Mostrar payload en hex
         if (appData->Buffer != NULL && appData->BufferSize > 0)
@@ -670,7 +670,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
           {
             rtos_printf("%02X ", appData->Buffer[i]);
           }
-          rtos_printf("\r\n");
+          rtos_printf("\r\r\n");
         }
         
         if (appData->Buffer != NULL)
@@ -688,7 +688,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 // Validar número de posiciones
                 if (num_positions > 10)
                 {
-                  rtos_printf("ERROR: Invalid number of positions: %d (max 10)\r\n", num_positions);
+                  rtos_printf("ERROR: Invalid number of positions: %d (max 10)\r\r\n", num_positions);
                   break;
                 }
                 
@@ -696,13 +696,13 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 uint8_t expected_size = 1 + (num_positions * 8);  // 1 byte contador + 8 bytes por posición (4+4 floats)
                 if (appData->BufferSize != expected_size)
                 {
-                  rtos_printf("ERROR: Expected %d bytes for %d positions, received %d bytes\r\n", 
+                  rtos_printf("ERROR: Expected %d bytes for %d positions, received %d bytes\r\r\n", 
                           expected_size, num_positions, appData->BufferSize);
                   break;
                 }
                 
                 // MOSTRAR ENCABEZADO COMPACTO
-                rtos_printf("\r\n>>> GPS RECV: %d positions\r\n", num_positions);
+                rtos_printf("\r\n>>> GPS RECV: %d positions\r\r\n", num_positions);
                 
                 // PROCESAR Y MOSTRAR CADA POSICIÓN
                 for (uint8_t i = 0; i < num_positions; i++)
@@ -756,14 +756,14 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                   if (lon_dec < 0) lon_dec = -lon_dec;
                   
                   // MOSTRAR FORMATO COMPACTO
-                  rtos_printf("[%d] Lat:%d.%06d Lon:%d.%06d\r\n", 
+                  rtos_printf("[%d] Lat:%d.%06d Lon:%d.%06d\r\r\n", 
                           i + 1, lat_int, lat_dec, lon_int, lon_dec);
                   
                   // Delay para dar tiempo al UART (5ms por posición)
                   HAL_Delay(5);
                 }
                 
-                rtos_printf("DR%d | RX%s | DL#%lu | RSSI:%d SNR:%d\r\n\r\n", 
+                rtos_printf("DR%d | RX%s | DL#%lu | RSSI:%d SNR:%d\r\n\r\r\n", 
                         params->Datarate, slotStrings[params->RxSlot], 
                         params->DownlinkCounter, params->Rssi, params->Snr);
                 
@@ -778,7 +778,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
               }
               else
               {
-                rtos_printf("ERROR: Empty payload received\r\n");
+                rtos_printf("ERROR: Empty payload received\r\r\n");
               }
               break;
 
@@ -816,12 +816,12 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
             //     AppLedStateOn = appData->Buffer[0] & 0x01;
             //     if (AppLedStateOn == RESET)
             //     {
-            //       APP_LOG(TS_OFF, VLEVEL_H, "LED OFF\r\n");
+            //       APP_LOG(TS_OFF, VLEVEL_H, "LED OFF\r\r\n");
             //       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_RESET); /* LED_RED */
             //     }
             //     else
             //     {
-            //       APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\n");
+            //       APP_LOG(TS_OFF, VLEVEL_H, "LED ON\r\r\n");
             //       HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, GPIO_PIN_SET); /* LED_RED */
             //     }
             //   }
@@ -841,16 +841,16 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 
                 if (appData->BufferSize != expected_size)
                 {
-                  rtos_printf("ERROR: Expected %d bytes for %d vertices, received %d bytes\r\n", 
+                  rtos_printf("ERROR: Expected %d bytes for %d vertices, received %d bytes\r\r\n", 
                           expected_size, numVertices, appData->BufferSize);
                   break;
                 }
                 
-                rtos_printf("\r\n>>> FENCE RECV: %d vertices (%d bytes)\r\n", 
+                rtos_printf("\r\n>>> FENCE RECV: %d vertices (%d bytes)\r\r\n", 
                         numVertices, appData->BufferSize);
                 
                 // DEBUG: Estado de MessagePool antes de fragmentar
-                rtos_printf("[DEBUG] MessagePool status before fragmentation\r\n");
+                rtos_printf("[DEBUG] MessagePool status before fragmentation\r\r\n");
                 
                 // Fragmentar y enviar a FSM (máximo 4 vértices por mensaje)
                 const uint8_t HEADER_SIZE = 3;  // fragment_num, total_fragments, vertices_count
@@ -858,18 +858,18 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 
                 uint8_t totalFragments = (numVertices + MAX_VERTICES_PER_MSG - 1) / MAX_VERTICES_PER_MSG;
                 
-                rtos_printf("[DEBUG] Will send %d fragments, %d vertices per fragment max\r\n", 
+                rtos_printf("[DEBUG] Will send %d fragments, %d vertices per fragment max\r\r\n", 
                            totalFragments, MAX_VERTICES_PER_MSG);
                 
                 for (uint8_t fragment = 0; fragment < totalFragments; fragment++)
                 {
-                  rtos_printf("[DEBUG] Attempting to allocate message for fragment %d/%d\r\n", 
+                  rtos_printf("[DEBUG] Attempting to allocate message for fragment %d/%d\r\r\n", 
                              fragment + 1, totalFragments);
                   
                   EmbeddedMessage_t *msgToFSM = MessagePool_Allocate();
                   if (msgToFSM != NULL)
                   {
-                    rtos_printf("[DEBUG] Message allocated successfully for fragment %d\r\n", fragment + 1);
+                    rtos_printf("[DEBUG] Message allocated successfully for fragment %d\r\r\n", fragment + 1);
                     uint8_t startVertex = fragment * MAX_VERTICES_PER_MSG;
                     uint8_t verticesInFragment = MAX_VERTICES_PER_MSG;
                     
@@ -902,7 +902,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                                                          &msgToFSM, 0, 100);
                     if (status == osOK)
                     {
-                      rtos_printf("[LORA_RX] Fragment %d/%d sent to FSM (%d vertices)\r\n", 
+                      rtos_printf("[LORA_RX] Fragment %d/%d sent to FSM (%d vertices)\r\r\n", 
                               fragment + 1, totalFragments, verticesInFragment);
                       
                       // Mostrar primer vértice del primer fragmento para debug
@@ -912,12 +912,12 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                         memcpy(&latitude, &appData->Buffer[1], sizeof(float));
                         memcpy(&longitude, &appData->Buffer[1 + sizeof(float)], sizeof(float));
                         
-                        rtos_printf("  First vertex: {%.6ff, %.6ff}\r\n", latitude, longitude);
+                        rtos_printf("  First vertex: {%.6ff, %.6ff}\r\r\n", latitude, longitude);
                       }
                     }
                     else
                     {
-                      rtos_printf("ERROR: Failed to send fragment %d to FSM (status=%d)\r\n", 
+                      rtos_printf("ERROR: Failed to send fragment %d to FSM (status=%d)\r\r\n", 
                               fragment, status);
                       MessagePool_Free(msgToFSM);
                     }
@@ -928,8 +928,8 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                   }
                   else
                   {
-                    rtos_printf("ERROR: Failed to allocate message for fragment %d (MessagePool exhausted)\r\n", fragment + 1);
-                    rtos_printf("[DEBUG] This means %d/%d fragments were sent successfully\r\n", 
+                    rtos_printf("ERROR: Failed to allocate message for fragment %d (MessagePool exhausted)\r\r\n", fragment + 1);
+                    rtos_printf("[DEBUG] This means %d/%d fragments were sent successfully\r\r\n", 
                                fragment, totalFragments);
                     break;
                   }
@@ -946,141 +946,129 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
               }
               else
               {
-                rtos_printf("ERROR: Fence payload too small (%d bytes, min 9)\r\n", appData->BufferSize);
+                rtos_printf("ERROR: Fence payload too small (%d bytes, min 9)\r\r\n", appData->BufferSize);
               }
               break;
 
             default:
-              APP_LOG(TS_OFF, VLEVEL_H, "WARNING: Downlink received on unhandled port %d\r\n", RxPort);
+              APP_LOG(TS_OFF, VLEVEL_H, "WARNING: Downlink received on unhandled port %d\r\r\n", RxPort);
               break;
           }
         }
         else
         {
-          APP_LOG(TS_OFF, VLEVEL_H, "WARNING: appData->Buffer is NULL\r\n");
+          APP_LOG(TS_OFF, VLEVEL_H, "WARNING: appData->Buffer is NULL\r\r\n");
         }
       }
       else
       {
-        APP_LOG(TS_OFF, VLEVEL_H, "WARNING: appData is NULL\r\n");
+        APP_LOG(TS_OFF, VLEVEL_H, "WARNING: appData is NULL\r\r\n");
       }
     }
     else
     {
-      APP_LOG(TS_OFF, VLEVEL_H, "INFO: Not a McpsIndication (IsMcpsIndication = %d)\r\n", params->IsMcpsIndication);
+      APP_LOG(TS_OFF, VLEVEL_H, "INFO: Not a McpsIndication (IsMcpsIndication = %d)\r\r\n", params->IsMcpsIndication);
     }
     
     if (params->RxSlot < RX_SLOT_NONE)
     {
-      APP_LOG(TS_OFF, VLEVEL_H, "###### D/L FRAME:%04d | PORT:%d | DR:%d | SLOT:%s | RSSI:%d | SNR:%d\r\n",
+      APP_LOG(TS_OFF, VLEVEL_H, "###### D/L FRAME:%04d | PORT:%d | DR:%d | SLOT:%s | RSSI:%d | SNR:%d\r\r\n",
               params->DownlinkCounter, RxPort, params->Datarate, slotStrings[params->RxSlot],
               params->Rssi, params->Snr);
     }
   }
   else
   {
-    APP_LOG(TS_OFF, VLEVEL_H, "ERROR: params is NULL in OnRxData\r\n");
+    APP_LOG(TS_OFF, VLEVEL_H, "ERROR: params is NULL in OnRxData\r\r\n");
   }
   /* USER CODE END OnRxData_1 */
 }
 
 static void SendTxData(void)
 {
-  rtos_printf("SendTxData called\r\n");
+  rtos_printf("SendTxData called\r\r\n");
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
   UTIL_TIMER_Time_t nextTxIn = 0;
-  bool shouldSend = false;
+  bool shouldSendFeedback = false;
+  uint8_t messageId = 0;
 
   // Verificar condiciones y procesar mensaje
   if (LmHandlerIsBusy() == false) {
     EmbeddedMessage_t* msg = NULL;
 
-    // Mensaje Hardcodeado
-    // EmbeddedMessage_t *msgSend = MessagePool_Allocate();
-    // if (msgSend != NULL) {
-    //     float latitude_aux = -34.570440f;   // Ejemplo: Nacho
-    //     float longitude_aux = -58.444157f;
-        
-    //     uint8_t data[2 * sizeof(float)];
-    //     memcpy(data, &latitude_aux, sizeof(float));
-    //     memcpy(data + sizeof(float), &longitude_aux, sizeof(float));
-        
-    //     EmbeddedMessage_CreateWithPayload(msgSend, MSG_ID_LORA_SEND_POSITION, MODULE_FSM, MODULE_LORA_TX, data, 2 * sizeof(float));
-    //     if (osMessageQueuePut(loraTxQueueHandle, &msgSend, 0, 100) == osOK){
-    //       rtos_printf("Message queue to loraTxQueue\r\n");
-    //     }
-    //     else {
-    //       rtos_printf("ERROR: Failed to send to LORATX \r\n");
-    //       MessagePool_Free(msgSend);
-    //     }
-    // }
-
+    // Intentar obtener mensaje de la cola
     if (osMessageQueueGet(loraTxQueueHandle, &msg, NULL, 0) == osOK) {
-      // Procesar mensaje según tipo - cada case solo configura AppData
+      // HAY MENSAJE: Procesar según tipo
+      
       switch(msg->id) {
         case MSG_ID_LORA_SEND_POSITION:
           // Copiar payload al buffer de LoRa
           memcpy(AppData.Buffer, msg->payload, msg->length);
           AppData.BufferSize = msg->length;
           AppData.Port = LORAWAN_USER_APP_PORT;
-          shouldSend = true;
-          
+          shouldSendFeedback = true;
+          messageId = MSG_ID_LORA_SEND_POSITION_FEEDBACK;
           // Debug: extraer y mostrar lat/lon
           if (msg->length >= 8) {
             float latitude, longitude;
             memcpy(&latitude, &msg->payload[0], 4);
             memcpy(&longitude, &msg->payload[4], 4);
-            rtos_printf("[LORA_TX] GPS: Lat=%.6f Lon=%.6f\r\n", latitude, longitude);
+            rtos_printf("[LORA_TX] GPS: Lat=%.6f Lon=%.6f\r\r\n", latitude, longitude);
           }
           break;
         //AGREGAR ACA SI HAY QUE MANDAR MAS MENSAJES DE LORA.
-        //UNICAMENTE HACE FALTA TOCAR EL AppBuffer y el flag shouldSend = true;
+        //UNICAMENTE HACE FALTA TOCAR EL AppBuffer y el flag shouldSendFeedback si necesita feedback
         default:
-          rtos_printf("WARNING: Unknown message ID %d\r\n", msg->id);
+          rtos_printf("WARNING: Unknown message ID %d\r\r\n", msg->id);
+          AppData.BufferSize = 0;
+          AppData.Port = LORAWAN_USER_APP_PORT;
           break;
-      }
-
-      // Detener LED de Join si ya está conectado
-      if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)) {
-        UTIL_TIMER_Stop(&JoinLedTimer);
-        HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
-      }
-
-      // Código común de envío (solo si shouldSend == true)
-      if (shouldSend) {
-        // ENVIAR mensaje LoRaWAN
-        status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
-        
-        if (LORAMAC_HANDLER_SUCCESS == status) {
-          rtos_printf("[LORA_TX] Uplink sent successfully\r\n");
-          
-          // Enviar feedback a FSM si es MSG_ID_LORA_SEND_POSITION
-          if (msg->id == MSG_ID_LORA_SEND_POSITION) {
-            EmbeddedMessage_t *msgFeedback = MessagePool_Allocate();
-            if (msgFeedback != NULL) {
-              EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, MODULE_FSM);
-              osStatus_t feedbackStatus = osMessageQueuePut(dispatcherQueueHandle, &msgFeedback, 0, 100);
-              if (feedbackStatus != osOK) {
-                rtos_printf("[LORA_TX] WARNING: Feedback queue full (status=%d)\r\n", feedbackStatus);
-                MessagePool_Free(msgFeedback);
-              }
-            } else {
-              rtos_printf("[LORA_TX] WARNING: MessagePool exhausted, no feedback sent\r\n");
-            }
-          }
-        }
-        else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status) {
-          nextTxIn = LmHandlerGetDutyCycleWaitTime();
-          if (nextTxIn > 0) {
-            rtos_printf("Next Tx in  : ~%d second(s)\r\n", (nextTxIn / 1000));
-          }
-        }
       }
       
       // CRÍTICO: Liberar el mensaje después de procesarlo
       MessagePool_Free(msg);
       msg = NULL;
+    }
+    else {
+      // NO HAY MENSAJE: Enviar payload vacío
+      AppData.BufferSize = 0;
+      AppData.Port = LORAWAN_USER_APP_PORT;
+      rtos_printf("[LORA_TX] No message in queue, sending empty payload\r\r\n");
+    }
+
+    // Detener LED de Join si ya está conectado
+    if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)) {
+      UTIL_TIMER_Stop(&JoinLedTimer);
+      HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+    }
+
+    // SIEMPRE ENVIAR (con payload o vacío)
+    status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
+    
+    if (LORAMAC_HANDLER_SUCCESS == status) {
+      rtos_printf("[LORA_TX] Uplink sent successfully\r\r\n");
+      
+      // Enviar feedback a FSM solo si había mensaje válido
+      if (shouldSendFeedback && messageId == MSG_ID_LORA_SEND_POSITION_FEEDBACK) {
+        EmbeddedMessage_t *msgFeedback = MessagePool_Allocate();
+        if (msgFeedback != NULL) {
+          EmbeddedMessage_Create(msgFeedback, MSG_ID_LORA_SEND_POSITION_FEEDBACK, MODULE_LORA_TX, MODULE_FSM);
+          osStatus_t feedbackStatus = osMessageQueuePut(dispatcherQueueHandle, &msgFeedback, 0, 100);
+          if (feedbackStatus != osOK) {
+            rtos_printf("[LORA_TX] WARNING: Feedback queue full (status=%d)\r\r\n", feedbackStatus);
+            MessagePool_Free(msgFeedback);
+          }
+        } else {
+          rtos_printf("[LORA_TX] WARNING: MessagePool exhausted, no feedback sent\r\r\n");
+        }
+      }
+    }
+    else if (LORAMAC_HANDLER_DUTYCYCLE_RESTRICTED == status) {
+      nextTxIn = LmHandlerGetDutyCycleWaitTime();
+      if (nextTxIn > 0) {
+        rtos_printf("Next Tx in  : ~%d second(s)\r\r\n", (nextTxIn / 1000));
+      }
     }
   }
 
@@ -1123,20 +1111,20 @@ static void OnTxData(LmHandlerTxParams_t *params)
       HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_SET); /* LED_GREEN */
       UTIL_TIMER_Start(&TxLedTimer);
 
-      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### ========== MCPS-Confirm =============\r\n");
+      APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### ========== MCPS-Confirm =============\r\r\n");
       APP_LOG(TS_OFF, VLEVEL_M, "###### U/L FRAME:%04d | PORT:%d | DR:%d | PWR:%d", params->UplinkCounter,
               params->AppData.Port, params->Datarate, params->TxPower);
 
       APP_LOG(TS_OFF, VLEVEL_M, " | MSG TYPE:");
       if (params->MsgType == LORAMAC_HANDLER_CONFIRMED_MSG)
       {
-        APP_LOG(TS_OFF, VLEVEL_M, "CONFIRMED [%s]\r\n", (params->AckReceived != 0) ? "ACK" : "NACK");
+        APP_LOG(TS_OFF, VLEVEL_M, "CONFIRMED [%s]\r\r\n", (params->AckReceived != 0) ? "ACK" : "NACK");
       }
       else
       {
-        APP_LOG(TS_OFF, VLEVEL_M, "UNCONFIRMED\r\n");
+        APP_LOG(TS_OFF, VLEVEL_M, "UNCONFIRMED\r\r\n");
       }
-      APP_LOG(TS_OFF, VLEVEL_M, "\r\n");
+      APP_LOG(TS_OFF, VLEVEL_M, "\r\r\n");
     }
   }
   /* USER CODE END OnTxData_1 */
@@ -1151,19 +1139,25 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       UTIL_TIMER_Stop(&JoinLedTimer);
       HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
 
-      rtos_printf("\r\n###### = JOINED = %s\r\n",
+      rtos_printf("\r\n###### = JOINED = %s\r\r\n",
               (joinParams->Mode == ACTIVATION_TYPE_ABP) ? "ABP" : "OTAA");
       
       // ⚠️ WORKAROUND: El stack NO llama OnNvmDataChange automáticamente en dual-core
       // Guardamos manualmente el contexto NVM después del join exitoso
-      rtos_printf(">>> [OnJoinRequest] Join exitoso! Guardando contexto NVM manualmente...\r\n");
+      rtos_printf(">>> [OnJoinRequest] Join exitoso! Guardando contexto NVM manualmente...\r\r\n");
+
+      EmbeddedMessage_t *msgToFSM = MessagePool_Allocate();
+      if (msgToFSM != NULL) {
+        EmbeddedMessage_Create(msgToFSM, MSG_ID_LORA_JOINED, MODULE_LORA_RX, MODULE_FSM);
+        osMessageQueuePut(dispatcherQueueHandle, &msgToFSM, 0, 100);
+      }
       
       // Activar el thread de guardado
       osThreadFlagsSet(Thd_LoraStoreContextId, 1);
     }
     else
     {
-      rtos_printf("\r\n###### = JOIN FAILED\r\n");
+      rtos_printf("\r\n###### = JOIN FAILED\r\r\n");
     }
   }
   /* USER CODE END OnJoinRequest_1 */
@@ -1179,14 +1173,14 @@ static void OnBeaconStatusChange(LmHandlerBeaconParams_t *params)
       default:
       case LORAMAC_HANDLER_BEACON_LOST:
       {
-        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON LOST\r\n");
+        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON LOST\r\r\n");
         break;
       }
       case LORAMAC_HANDLER_BEACON_RX:
       {
         APP_LOG(TS_OFF, VLEVEL_M,
                 "\r\n###### BEACON RECEIVED | DR:%d | RSSI:%d | SNR:%d | FQ:%d | TIME:%d | DESC:%d | "
-                "INFO:02X%02X%02X %02X%02X%02X\r\n",
+                "INFO:02X%02X%02X %02X%02X%02X\r\r\n",
                 params->Info.Datarate, params->Info.Rssi, params->Info.Snr, params->Info.Frequency,
                 params->Info.Time.Seconds, params->Info.GwSpecific.InfoDesc,
                 params->Info.GwSpecific.Info[0], params->Info.GwSpecific.Info[1],
@@ -1196,7 +1190,7 @@ static void OnBeaconStatusChange(LmHandlerBeaconParams_t *params)
       }
       case LORAMAC_HANDLER_BEACON_NRX:
       {
-        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON NOT RECEIVED\r\n");
+        APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### BEACON NOT RECEIVED\r\r\n");
         break;
       }
     }
@@ -1213,7 +1207,7 @@ static void OnSysTimeUpdate(void)
 static void OnClassChange(DeviceClass_t deviceClass)
 {
   /* USER CODE BEGIN OnClassChange_1 */
-  APP_LOG(TS_OFF, VLEVEL_M, "Switch to Class %c done\r\n", "ABC"[deviceClass]);
+  APP_LOG(TS_OFF, VLEVEL_M, "Switch to Class %c done\r\r\n", "ABC"[deviceClass]);
   /* USER CODE END OnClassChange_1 */
 }
 
@@ -1295,20 +1289,20 @@ static void StopJoin(void)
 
   if (LORAMAC_HANDLER_SUCCESS != LmHandlerStop())
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "LmHandler Stop on going ...\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "LmHandler Stop on going ...\r\r\n");
   }
   else
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "LmHandler Stopped\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "LmHandler Stopped\r\r\n");
     if (LORAWAN_DEFAULT_ACTIVATION_TYPE == ACTIVATION_TYPE_ABP)
     {
       ActivationType = ACTIVATION_TYPE_OTAA;
-      APP_LOG(TS_OFF, VLEVEL_M, "LmHandler switch to OTAA mode\r\n");
+      APP_LOG(TS_OFF, VLEVEL_M, "LmHandler switch to OTAA mode\r\r\n");
     }
     else
     {
       ActivationType = ACTIVATION_TYPE_ABP;
-      APP_LOG(TS_OFF, VLEVEL_M, "LmHandler switch to ABP mode\r\n");
+      APP_LOG(TS_OFF, VLEVEL_M, "LmHandler switch to ABP mode\r\r\n");
     }
     LmHandlerConfigure(&LmHandlerParams);
     LmHandlerJoin(ActivationType, true);
@@ -1342,25 +1336,25 @@ static void StoreContext(void)
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
 
   /* USER CODE BEGIN StoreContext_1 */
-  rtos_printf("\r\n>>> [StoreContext] Thread ejecutando, llamando LmHandlerNvmDataStore()...\r\n");
+  rtos_printf("\r\n>>> [StoreContext] Thread ejecutando, llamando LmHandlerNvmDataStore()...\r\r\n");
   /* USER CODE END StoreContext_1 */
   status = LmHandlerNvmDataStore();
 
   if (status == LORAMAC_HANDLER_SUCCESS)
   {
-    rtos_printf(">>> [StoreContext] NVM guardado exitosamente\r\n");
+    rtos_printf(">>> [StoreContext] NVM guardado exitosamente\r\r\n");
   }
   else if (status == LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\r\n");
   }
   else if (status == LORAMAC_HANDLER_ERROR)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\r\n");
   }
   else
   {
-    rtos_printf(">>> [StoreContext] Status inesperado: %d\r\n", status);
+    rtos_printf(">>> [StoreContext] Status inesperado: %d\r\r\n", status);
   }
   /* USER CODE BEGIN StoreContext_Last */
 
@@ -1374,7 +1368,7 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
   /* USER CODE END OnNvmDataChange_1 */
   if (state == LORAMAC_HANDLER_NVM_STORE)
   {
-    rtos_printf("[NVM] Data change detected - STORE\r\n");
+    rtos_printf("[NVM] Data change detected - STORE\r\r\n");
     /* USER CODE BEGIN OnNvmDataChange_Last */
     // CRÍTICO: Activar el thread de guardado asíncrono
     osThreadFlagsSet(Thd_LoraStoreContextId, 1);
@@ -1382,7 +1376,7 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
   }
   else
   {
-    rtos_printf("[NVM] Data change detected - RESTORE\r\n");
+    rtos_printf("[NVM] Data change detected - RESTORE\r\r\n");
   /* USER CODE BEGIN OnNvmDataChange_Last */
 
   /* USER CODE END OnNvmDataChange_Last */
@@ -1392,19 +1386,19 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
 static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 {
   /* USER CODE BEGIN OnStoreContextRequest_1 */
-  rtos_printf("\r\n>>> [NVM STORE] Writing %lu bytes to Flash @ 0x%08lX <<<\r\n", 
+  rtos_printf("\r\n>>> [NVM STORE] Writing %lu bytes to Flash @ 0x%08lX <<<\r\r\n", 
               nvm_size, (uint32_t)LORAWAN_NVM_BASE_ADDRESS);
   /* USER CODE END OnStoreContextRequest_1 */
   FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, (const void *)nvm, nvm_size);
   /* USER CODE BEGIN OnStoreContextRequest_Last */
-  rtos_printf(">>> [NVM STORE] COMPLETE <<<\r\n");
+  rtos_printf(">>> [NVM STORE] COMPLETE <<<\r\r\n");
   /* USER CODE END OnStoreContextRequest_Last */
 }
 
 static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 {
   /* USER CODE BEGIN OnRestoreContextRequest_1 */
-  rtos_printf("\r\n>>> [NVM RESTORE] Reading %lu bytes from Flash @ 0x%08lX <<<\r\n", 
+  rtos_printf("\r\n>>> [NVM RESTORE] Reading %lu bytes from Flash @ 0x%08lX <<<\r\r\n", 
               nvm_size, (uint32_t)LORAWAN_NVM_BASE_ADDRESS);
   
   // Debug: Mostrar primeros bytes ANTES de leer
@@ -1413,11 +1407,11 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
   for (int i = 0; i < 16; i++) {
     rtos_printf("%02X ", flash_ptr[i]);
   }
-  rtos_printf("\r\n");
+  rtos_printf("\r\r\n");
   /* USER CODE END OnRestoreContextRequest_1 */
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);
   /* USER CODE BEGIN OnRestoreContextRequest_Last */
-  rtos_printf(">>> [NVM RESTORE] COMPLETE <<<\r\n");
+  rtos_printf(">>> [NVM RESTORE] COMPLETE <<<\r\r\n");
   
   // Debug: Mostrar primeros bytes DESPUÉS de copiar al buffer
   uint8_t *buf = (uint8_t*)nvm;
@@ -1425,7 +1419,7 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
   for (int i = 0; i < 16; i++) {
     rtos_printf("%02X ", buf[i]);
   }
-  rtos_printf("\r\n");
+  rtos_printf("\r\r\n");
   /* USER CODE END OnRestoreContextRequest_Last */
 }
 
