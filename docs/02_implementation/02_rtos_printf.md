@@ -33,7 +33,7 @@ int main(void) {
     
     // Inicializar el sistema de printf thread-safe
     if (rtos_printf_init() != 0) {
-        printf("ERROR - Failed to initialize RTOS printf\n");
+        printf("ERROR - Failed to initialize RTOS printf\r\n");
         Error_Handler();
     }
     
@@ -50,7 +50,7 @@ int main(void) {
 void myTask(void *argument) {
     for (;;) {
         // Usar rtos_printf en lugar de printf
-        rtos_printf("Task %s: counter = %d\n", pcTaskGetName(NULL), counter);
+        rtos_printf("Task %s: counter = %d\r\n", pcTaskGetName(NULL), counter);
         
         osDelay(1000);
     }
@@ -63,17 +63,17 @@ void myTask(void *argument) {
 #include "rtos_printf.h"
 
 void sensorTask(void *argument) {
-    RTOS_LOG_INFO("Sensor task started\n");
+    RTOS_LOG_INFO("Sensor task started\r\n");
     
     float temperature = readTemperature();
-    RTOS_LOG_DEBUG("Temperature reading: %.2f°C\n", temperature);
+    RTOS_LOG_DEBUG("Temperature reading: %.2f°C\r\n", temperature);
     
     if (temperature > 50.0f) {
-        RTOS_LOG_WARN("Temperature high: %.2f°C\n", temperature);
+        RTOS_LOG_WARN("Temperature high: %.2f°C\r\n", temperature);
     }
     
     if (temperature > 80.0f) {
-        RTOS_LOG_ERROR("Temperature critical: %.2f°C\n", temperature);
+        RTOS_LOG_ERROR("Temperature critical: %.2f°C\r\n", temperature);
     }
 }
 ```
@@ -89,7 +89,7 @@ Si quieres que todas las llamadas a `printf` usen automáticamente la versión t
 #include "rtos_printf.h"
 
 // Ahora printf() automáticamente usa rtos_printf()
-printf("This is thread-safe!\n");
+printf("This is thread-safe!\r\n");
 ```
 
 ### Opción 2: Define en CMakeLists.txt
@@ -144,10 +144,10 @@ O define `RTOS_PRINTF_USE_UART` en el CMakeLists.txt y configura el handle UART 
 ```c
 // Tarea 1
 printf("Sensor A: temp="); // ← interrumpida aquí
-printf("25.3°C\n");
+printf("25.3°C\r\n");
 
 // Tarea 2 (interrumpe)
-printf("Sensor B: humidity=45%\n");
+printf("Sensor B: humidity=45%\r\n");
 
 // Salida mezclada:
 // "Sensor A: temp=Sensor B: humidity=45%

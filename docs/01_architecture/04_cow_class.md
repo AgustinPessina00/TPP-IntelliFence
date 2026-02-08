@@ -279,7 +279,7 @@ Retorna el identificador único del dispositivo.
 **Ejemplo**:
 ```cpp
 DeviceUID uid = cow.getId();
-printf("Device UID: %08X-%08X-%08X\n", uid.w0, uid.w1, uid.w2);
+printf("Device UID: %08X-%08X-%08X\r\n", uid.w0, uid.w1, uid.w2);
 ```
 
 ---
@@ -294,7 +294,7 @@ Retorna la posición GPS actual.
 **Ejemplo**:
 ```cpp
 Position pos = cow.getPosition();
-printf("GPS: lat=%.6f, lon=%.6f\n", pos.latitude, pos.longitude);
+printf("GPS: lat=%.6f, lon=%.6f\r\n", pos.latitude, pos.longitude);
 
 // Enviar posición por LoRa
 sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
@@ -312,7 +312,7 @@ Retorna los datos de aceleración actuales.
 **Ejemplo**:
 ```cpp
 Acceleration accel = cow.getAcceleration();
-printf("IMU: ax=%.2f, ay=%.2f, az=%.2f g\n", accel.ax, accel.ay, accel.az);
+printf("IMU: ax=%.2f, ay=%.2f, az=%.2f g\r\n", accel.ax, accel.ay, accel.az);
 
 // Clasificar estado
 CowState state = classifyMotion(accel);
@@ -331,13 +331,13 @@ Retorna el estado de comportamiento actual.
 ```cpp
 switch (cow.getState()) {
     case CowState::SLEEP:
-        printf("Cow is sleeping\n");
+        printf("Cow is sleeping\r\n");
         break;
     case CowState::GRAZING:
-        printf("Cow is grazing\n");
+        printf("Cow is grazing\r\n");
         break;
     case CowState::MOVEMENT:
-        printf("Cow is moving\n");
+        printf("Cow is moving\r\n");
         break;
 }
 ```
@@ -355,9 +355,9 @@ Retorna la zona actual respecto al cerco.
 ```cpp
 zone_t zone = cow.getCurrentZone();
 if (zone == GREEN_ZONE) {
-    printf("Cow is safely inside the fence\n");
+    printf("Cow is safely inside the fence\r\n");
 } else if (zone == BLACK_ZONE) {
-    printf("ALERT: Cow escaped!\n");
+    printf("ALERT: Cow escaped!\r\n");
 }
 ```
 
@@ -373,10 +373,10 @@ Retorna la distancia al límite más cercano en metros.
 **Ejemplo**:
 ```cpp
 double dist = cow.getDistanceToLimit();
-printf("Distance to fence: %.2f meters\n", dist);
+printf("Distance to fence: %.2f meters\r\n", dist);
 
 if (dist < 5.0) {
-    printf("WARNING: Very close to fence!\n");
+    printf("WARNING: Very close to fence!\r\n");
 }
 ```
 

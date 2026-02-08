@@ -581,7 +581,7 @@ case STARTUP_ROUTINE_WAIT_POSITION:
     } else {
         tries++;
         if (tries >= MAX_TRIES) {
-            RTOS_LOG_WARN("[FSM] GPS position timeout, retrying...\n");
+            RTOS_LOG_WARN("[FSM] GPS position timeout, retrying...\r\n");
             *state = STARTUP_ROUTINE_REQUEST_POSITION;  // Reintentar
         }
     }

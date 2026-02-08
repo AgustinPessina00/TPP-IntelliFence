@@ -46,14 +46,14 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
 {
   if (state == LORAMAC_HANDLER_NVM_STORE)
   {
-    rtos_printf("[NVM] Data change detected - STORE\r\n");
+    rtos_printf("[NVM] Data change detected - STORE\r\r\n");
     
     // ⭐ FIX: Activar el thread de guardado asíncrono
     osThreadFlagsSet(Thd_LoraStoreContextId, 1);
   }
   else
   {
-    rtos_printf("[NVM] Data change detected - RESTORE\r\n");
+    rtos_printf("[NVM] Data change detected - RESTORE\r\r\n");
   }
 }
 ```
@@ -74,16 +74,16 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       UTIL_TIMER_Stop(&JoinLedTimer);
       HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
 
-      rtos_printf("\r\n###### = JOINED = %s\r\n",
+      rtos_printf("\r\n###### = JOINED = %s\r\r\n",
               (joinParams->Mode == ACTIVATION_TYPE_ABP) ? "ABP" : "OTAA");
       
       // ⭐ WORKAROUND: Guardado manual después del join exitoso
-      rtos_printf(">>> [OnJoinRequest] Join exitoso! Guardando contexto NVM manualmente...\r\n");
+      rtos_printf(">>> [OnJoinRequest] Join exitoso! Guardando contexto NVM manualmente...\r\r\n");
       osThreadFlagsSet(Thd_LoraStoreContextId, 1);
     }
     else
     {
-      rtos_printf("\r\n###### = JOIN FAILED\r\n");
+      rtos_printf("\r\n###### = JOIN FAILED\r\r\n");
     }
   }
 }
@@ -99,21 +99,21 @@ static void StoreContext(void)
 {
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
 
-  rtos_printf("\r\n>>> [StoreContext] Thread ejecutando, llamando LmHandlerNvmDataStore()...\r\n");
+  rtos_printf("\r\n>>> [StoreContext] Thread ejecutando, llamando LmHandlerNvmDataStore()...\r\r\n");
   
   status = LmHandlerNvmDataStore();
 
   if (status == LORAMAC_HANDLER_SUCCESS)
   {
-    rtos_printf(">>> [StoreContext] NVM guardado exitosamente\r\n");
+    rtos_printf(">>> [StoreContext] NVM guardado exitosamente\r\r\n");
   }
   else if (status == LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\r\n");
   }
   else if (status == LORAMAC_HANDLER_ERROR)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\r\n");
   }
 }
 ```
@@ -122,7 +122,7 @@ static void StoreContext(void)
 ```c
 static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 {
-  rtos_printf("\r\n>>> [NVM RESTORE] Reading %lu bytes from Flash @ 0x%08lX <<<\r\n", 
+  rtos_printf("\r\n>>> [NVM RESTORE] Reading %lu bytes from Flash @ 0x%08lX <<<\r\r\n", 
               nvm_size, (uint32_t)LORAWAN_NVM_BASE_ADDRESS);
   
   // Debug: Mostrar primeros bytes de Flash
@@ -131,11 +131,11 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
   for (int i = 0; i < 16; i++) {
     rtos_printf("%02X ", flash_ptr[i]);
   }
-  rtos_printf("\r\n");
+  rtos_printf("\r\r\n");
   
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);
   
-  rtos_printf(">>> [NVM RESTORE] COMPLETE <<<\r\n");
+  rtos_printf(">>> [NVM RESTORE] COMPLETE <<<\r\r\n");
 }
 ```
 

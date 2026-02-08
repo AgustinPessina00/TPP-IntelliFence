@@ -85,7 +85,7 @@ El STM32 debe responder con mensajes de texto legibles que el backend pueda pars
 
 ```c
 // Respuesta de lectura GPS READ (41 00)
-"[SENSOR_ACQ] GPS read: lat 19.432156, lon -99.133208\n"
+"[SENSOR_ACQ] GPS read: lat 19.432156, lon -99.133208\r\n"
 
 // Formato: lat y lon son float con 6 decimales
 // lat 0.0, lon 0.0 indica que no hay fix GPS válido
@@ -95,7 +95,7 @@ El STM32 debe responder con mensajes de texto legibles que el backend pueda pars
 
 ```c
 // Respuesta de lectura IMU READ (42 00)
-"[SENSOR_ACQ] IMU read: (0.125 g, -0.050 g, 0.980 g)\n"
+"[SENSOR_ACQ] IMU read: (0.125 g, -0.050 g, 0.980 g)\r\n"
 
 // Formato: (X g, Y g, Z g) con valores en g (gravedad)
 // Los valores son float divididos por 1000 (mili-g a g)
@@ -105,13 +105,13 @@ El STM32 debe responder con mensajes de texto legibles que el backend pueda pars
 
 ```c
 // Respuesta de lectura INA_GPS READ (43 00)
-"[SENSOR_ACQ] INA GPS current read: 45.5 mA\n"
+"[SENSOR_ACQ] INA GPS current read: 45.5 mA\r\n"
 
 // Respuesta de lectura INA_IMU READ (44 00)
-"[SENSOR_ACQ] INA IMU current read: 12.3 mA\n"
+"[SENSOR_ACQ] INA IMU current read: 12.3 mA\r\n"
 
 // Respuesta de lectura INA_MCU READ (45 00)
-"[SENSOR_ACQ] INA MCU current read: 78.9 mA\n"
+"[SENSOR_ACQ] INA MCU current read: 78.9 mA\r\n"
 
 // Formato: Corriente en mA como float
 ```
@@ -119,19 +119,19 @@ El STM32 debe responder con mensajes de texto legibles que el backend pueda pars
 #### Respuestas de Error:
 
 ```c
-"[ERROR] Invalid command format\n"
-"[ERROR] Unknown module code: XX\n"
-"[ERROR] GPS read failed\n"
-"[ERROR] IMU initialization failed\n"
-"[ERROR] INA sensor not responding\n"
+"[ERROR] Invalid command format\r\n"
+"[ERROR] Unknown module code: XX\r\n"
+"[ERROR] GPS read failed\r\n"
+"[ERROR] IMU initialization failed\r\n"
+"[ERROR] INA sensor not responding\r\n"
 ```
 
 #### Respuestas de Escritura:
 
 ```c
-"[CONSOLE] GPS config updated OK\n"
-"[CONSOLE] IMU config updated OK\n"
-"[ERROR] Write operation failed\n"
+"[CONSOLE] GPS config updated OK\r\n"
+"[CONSOLE] IMU config updated OK\r\n"
+"[ERROR] Write operation failed\r\n"
 ```
 
 ---
@@ -193,7 +193,7 @@ ConsoleCommand_t parse_command(char* cmd_line)
 {
     ConsoleCommand_t cmd = {0};
     
-    // Ejemplo: "41 00\n" o "41 01 A1 B2\n"
+    // Ejemplo: "41 00\r\n" o "41 01 A1 B2\r\n"
     int module, operation;
     char data_str[64] = {0};
     
@@ -238,7 +238,7 @@ void execute_console_command(ConsoleCommand_t* cmd)
     char response[256];
     
     if(!cmd->valid) {
-        send_uart_response("[ERROR] Invalid command format\n");
+        send_uart_response("[ERROR] Invalid command format\r\n");
         return;
     }
     
@@ -250,21 +250,21 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 float lat, lon;
                 if(gps_read_coordinates(&lat, &lon) == HAL_OK) {
                     snprintf(response, sizeof(response),
-                             "[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\n",
+                             "[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\r\n",
                              lat, lon);
                 } else {
                     snprintf(response, sizeof(response),
-                             "[ERROR] GPS read failed\n");
+                             "[ERROR] GPS read failed\r\n");
                 }
             }
             else if(cmd->operation_code == 0x01) {
                 // WRITE GPS (configuración)
                 if(gps_write_config(cmd->data, cmd->data_length) == HAL_OK) {
                     snprintf(response, sizeof(response),
-                             "[CONSOLE] GPS config updated OK\n");
+                             "[CONSOLE] GPS config updated OK\r\n");
                 } else {
                     snprintf(response, sizeof(response),
-                             "[ERROR] GPS write failed\n");
+                             "[ERROR] GPS write failed\r\n");
                 }
             }
             break;
@@ -275,21 +275,21 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 float ax, ay, az;
                 if(imu_read_acceleration(&ax, &ay, &az) == HAL_OK) {
                     snprintf(response, sizeof(response),
-                             "[SENSOR_ACQ] IMU read: (%.3f g, %.3f g, %.3f g)\n",
+                             "[SENSOR_ACQ] IMU read: (%.3f g, %.3f g, %.3f g)\r\n",
                              ax, ay, az);
                 } else {
                     snprintf(response, sizeof(response),
-                             "[ERROR] IMU read failed\n");
+                             "[ERROR] IMU read failed\r\n");
                 }
             }
             else if(cmd->operation_code == 0x01) {
                 // WRITE IMU (configuración)
                 if(imu_write_config(cmd->data, cmd->data_length) == HAL_OK) {
                     snprintf(response, sizeof(response),
-                             "[CONSOLE] IMU config updated OK\n");
+                             "[CONSOLE] IMU config updated OK\r\n");
                 } else {
                     snprintf(response, sizeof(response),
-                             "[ERROR] IMU write failed\n");
+                             "[ERROR] IMU write failed\r\n");
                 }
             }
             break;
@@ -299,11 +299,11 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 float current_ma;
                 if(ina219_read_current(INA_GPS_ADDR, &current_ma) == HAL_OK) {
                     snprintf(response, sizeof(response),
-                             "[SENSOR_ACQ] INA GPS current read: %.1f mA\n",
+                             "[SENSOR_ACQ] INA GPS current read: %.1f mA\r\n",
                              current_ma);
                 } else {
                     snprintf(response, sizeof(response),
-                             "[ERROR] INA GPS read failed\n");
+                             "[ERROR] INA GPS read failed\r\n");
                 }
             }
             break;
@@ -313,11 +313,11 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 float current_ma;
                 if(ina219_read_current(INA_IMU_ADDR, &current_ma) == HAL_OK) {
                     snprintf(response, sizeof(response),
-                             "[SENSOR_ACQ] INA IMU current read: %.1f mA\n",
+                             "[SENSOR_ACQ] INA IMU current read: %.1f mA\r\n",
                              current_ma);
                 } else {
                     snprintf(response, sizeof(response),
-                             "[ERROR] INA IMU read failed\n");
+                             "[ERROR] INA IMU read failed\r\n");
                 }
             }
             break;
@@ -327,18 +327,18 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 float current_ma;
                 if(ina219_read_current(INA_MCU_ADDR, &current_ma) == HAL_OK) {
                     snprintf(response, sizeof(response),
-                             "[SENSOR_ACQ] INA MCU current read: %.1f mA\n",
+                             "[SENSOR_ACQ] INA MCU current read: %.1f mA\r\n",
                              current_ma);
                 } else {
                     snprintf(response, sizeof(response),
-                             "[ERROR] INA MCU read failed\n");
+                             "[ERROR] INA MCU read failed\r\n");
                 }
             }
             break;
             
         default:
             snprintf(response, sizeof(response),
-                     "[ERROR] Unknown module code: %d\n",
+                     "[ERROR] Unknown module code: %d\r\n",
                      cmd->module_code);
             break;
     }
@@ -490,14 +490,14 @@ sequenceDiagram
 
     User->>FE: Click "Leer GPS"
     FE->>BE: POST /api/console/send<br/>{device: "GPS", operation: "READ"}
-    BE->>BE: Convierte a "41 00\n"
-    BE->>STM: UART TX: "41 00\n"
+    BE->>BE: Convierte a "41 00\r\n"
+    BE->>STM: UART TX: "41 00\r\n"
     STM->>STM: Interrupción RX
     STM->>STM: Parse comando
     STM->>Sensor: Lee GPS
     Sensor->>STM: lat, lon
     STM->>STM: Formatea respuesta
-    STM->>BE: UART TX: "[SENSOR_ACQ] GPS read: lat 19.432156, lon -99.133208\n"
+    STM->>BE: UART TX: "[SENSOR_ACQ] GPS read: lat 19.432156, lon -99.133208\r\n"
     BE->>BE: Parsea con regex
     BE->>FE: JSON Response
     FE->>User: Muestra en consola
@@ -507,12 +507,12 @@ sequenceDiagram
 
 1. Usuario en Web → "Leer GPS"
 2. Frontend → `POST /api/console/send {device: "GPS", operation: "READ"}`
-3. Backend → Convierte a `"41 00\n"`
+3. Backend → Convierte a `"41 00\r\n"`
 4. Backend → Envía por UART
 5. STM32 → Recibe en interrupción
 6. STM32 → Parsea comando
 7. STM32 → Lee GPS
-8. STM32 → Formatea respuesta `"[SENSOR_ACQ] GPS read: lat 19.432156, lon -99.133208\n"`
+8. STM32 → Formatea respuesta `"[SENSOR_ACQ] GPS read: lat 19.432156, lon -99.133208\r\n"`
 9. STM32 → Envía por UART
 10. Backend → Recibe y parsea con regex
 11. Backend → Responde a frontend con JSON
@@ -665,7 +665,7 @@ static uint8_t hex_string_to_bytes(char* hex_str, uint8_t* bytes, uint8_t max_le
 
 /**
  * Parse command line
- * Format: "41 00\n" or "41 01 A1 B2\n"
+ * Format: "41 00\r\n" or "41 01 A1 B2\r\n"
  */
 ConsoleCommand_t parse_command(char* cmd_line)
 {
@@ -708,7 +708,7 @@ void execute_console_command(ConsoleCommand_t* cmd)
     char response[RESPONSE_SIZE];
     
     if(!cmd->valid) {
-        send_uart_response("[ERROR] Invalid command format\n");
+        send_uart_response("[ERROR] Invalid command format\r\n");
         return;
     }
     
@@ -725,7 +725,7 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 lon = -99.133208f;
                 
                 snprintf(response, sizeof(response),
-                         "[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\n",
+                         "[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f\r\n",
                          lat, lon);
             }
             else if(cmd->operation_code == OP_WRITE) {
@@ -734,11 +734,11 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 // TODO: Implement gps_write_config()
                 
                 snprintf(response, sizeof(response),
-                         "[CONSOLE] GPS config updated OK\n");
+                         "[CONSOLE] GPS config updated OK\r\n");
             }
             else {
                 snprintf(response, sizeof(response),
-                         "[ERROR] Invalid operation code: %02X\n",
+                         "[ERROR] Invalid operation code: %02X\r\n",
                          cmd->operation_code);
             }
             break;
@@ -755,7 +755,7 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 az = 0.980f;
                 
                 snprintf(response, sizeof(response),
-                         "[SENSOR_ACQ] IMU read: (%.3f g, %.3f g, %.3f g)\n",
+                         "[SENSOR_ACQ] IMU read: (%.3f g, %.3f g, %.3f g)\r\n",
                          ax, ay, az);
             }
             else if(cmd->operation_code == OP_WRITE) {
@@ -764,11 +764,11 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 // TODO: Implement imu_write_config()
                 
                 snprintf(response, sizeof(response),
-                         "[CONSOLE] IMU config updated OK\n");
+                         "[CONSOLE] IMU config updated OK\r\n");
             }
             else {
                 snprintf(response, sizeof(response),
-                         "[ERROR] Invalid operation code: %02X\n",
+                         "[ERROR] Invalid operation code: %02X\r\n",
                          cmd->operation_code);
             }
             break;
@@ -782,12 +782,12 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 current_ma = 45.5f;
                 
                 snprintf(response, sizeof(response),
-                         "[SENSOR_ACQ] INA GPS current read: %.1f mA\n",
+                         "[SENSOR_ACQ] INA GPS current read: %.1f mA\r\n",
                          current_ma);
             }
             else {
                 snprintf(response, sizeof(response),
-                         "[ERROR] Write operation not supported for INA sensors\n");
+                         "[ERROR] Write operation not supported for INA sensors\r\n");
             }
             break;
             
@@ -799,12 +799,12 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 current_ma = 12.3f;
                 
                 snprintf(response, sizeof(response),
-                         "[SENSOR_ACQ] INA IMU current read: %.1f mA\n",
+                         "[SENSOR_ACQ] INA IMU current read: %.1f mA\r\n",
                          current_ma);
             }
             else {
                 snprintf(response, sizeof(response),
-                         "[ERROR] Write operation not supported for INA sensors\n");
+                         "[ERROR] Write operation not supported for INA sensors\r\n");
             }
             break;
             
@@ -816,18 +816,18 @@ void execute_console_command(ConsoleCommand_t* cmd)
                 current_ma = 78.9f;
                 
                 snprintf(response, sizeof(response),
-                         "[SENSOR_ACQ] INA MCU current read: %.1f mA\n",
+                         "[SENSOR_ACQ] INA MCU current read: %.1f mA\r\n",
                          current_ma);
             }
             else {
                 snprintf(response, sizeof(response),
-                         "[ERROR] Write operation not supported for INA sensors\n");
+                         "[ERROR] Write operation not supported for INA sensors\r\n");
             }
             break;
             
         default:
             snprintf(response, sizeof(response),
-                     "[ERROR] Unknown module code: %d\n",
+                     "[ERROR] Unknown module code: %d\r\n",
                      cmd->module_code);
             break;
     }

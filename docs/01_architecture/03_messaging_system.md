@@ -236,7 +236,7 @@ extern "C" {
         // Inicializar sistema de mensajes
         MessageResult_t msg_result = MessagePool_Init();
         if (msg_result != MSG_RESULT_OK) {
-            printf("ERROR: Failed to initialize MessagePool!\n");
+            printf("ERROR: Failed to initialize MessagePool!\r\n");
         }
         
         // Ejecutar tests (opcional)

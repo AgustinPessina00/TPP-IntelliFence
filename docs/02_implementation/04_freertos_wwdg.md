@@ -81,7 +81,7 @@ void dispatcherTask(void *argument) {
     // Marcar estado y usar printf (ahora funciona correctamente)
     dispatcher_status = 1; // running
     
-    printf("[DISPATCHER] Task initialized\n"); // ✅ FUNCIONA después de fix SysTick
+    printf("[DISPATCHER] Task initialized\r\n"); // ✅ FUNCIONA después de fix SysTick
     
     while(1) {
         dispatcher_iterations++; // Variables de debugging útiles
@@ -91,7 +91,7 @@ void dispatcherTask(void *argument) {
             dispatcher_last_message_id = msg->id;
             
             // Printf también funciona aquí si se necesita
-            printf("[DISPATCHER] Message ID %d from %d to %d\n", 
+            printf("[DISPATCHER] Message ID %d from %d to %d\r\n", 
                    msg->id, msg->sender, msg->receiver);
             
             // ... resto del código
@@ -141,7 +141,7 @@ extern volatile uint32_t dispatcher_last_receiver;
 ```cpp
 // Llamar desde main.c (no desde threads)
 void print_dispatcher_debug_info() {
-    printf("[DEBUG] Dispatcher - Status:%u, Iter:%u, Msgs:%u\n",
+    printf("[DEBUG] Dispatcher - Status:%u, Iter:%u, Msgs:%u\r\n",
            (unsigned)dispatcher_status, 
            (unsigned)dispatcher_iterations, 
            (unsigned)dispatcher_messages_received);

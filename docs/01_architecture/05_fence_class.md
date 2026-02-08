@@ -63,9 +63,9 @@ uint8_t limitCount;                // Current count (0-20)
 // Usage example:
 Vertex cercado[5] = {...};
 if (fence.saveVertices(cercado, 5)) {
-    printf("✓ Saved successfully\n");
+    printf("✓ Saved successfully\r\n");
 } else {
-    printf("✗ Error: Too many vertices or null pointer\n");
+    printf("✗ Error: Too many vertices or null pointer\r\n");
 }
 ```
 
@@ -117,7 +117,7 @@ uint8_t getLimitCount() const { return limitCount; }
 ```cpp
 const Vertex* verts = fence.getVertices();
 for (uint8_t i = 0; i < fence.getVertexCount(); i++) {
-    printf("Vertex %d: (%.6f, %.6f)\n", i, verts[i].latitude, verts[i].longitude);
+    printf("Vertex %d: (%.6f, %.6f)\r\n", i, verts[i].latitude, verts[i].longitude);
 }
 ```
 
@@ -196,7 +196,7 @@ HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, fsmTaskParams *f
     
     // Guardar en Fence (con validación automática)
     if (!fsmParams->fence->saveVertices((Vertex*)msgReceived->payload, vertexCount)) {
-        printf("[FSM] ERROR: Failed to save vertices\n");
+        printf("[FSM] ERROR: Failed to save vertices\r\n");
         MessagePool_Free(msgReceived);
         return HAL_ERROR;
     }
@@ -204,7 +204,7 @@ HAL_StatusTypeDef receivedFence(EmbeddedMessage_t *msgReceived, fsmTaskParams *f
     // Crear límites del cerco
     fsmParams->fence->createLimits();
     
-    RTOS_LOG_INFO("[FSM] Fence updated with %d vertices\n", vertexCount);
+    RTOS_LOG_INFO("[FSM] Fence updated with %d vertices\r\n", vertexCount);
     MessagePool_Free(msgReceived);
     return HAL_OK;
 }

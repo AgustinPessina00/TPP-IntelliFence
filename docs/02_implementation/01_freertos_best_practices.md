@@ -36,18 +36,18 @@ int main(void) {
     HAL_Init();
     SystemClock_Config();
     
-    printf("Sistema inicializando...\n");  // ✅ SEGURO
+    printf("Sistema inicializando...\r\n");  // ✅ SEGURO
     
     osKernelInitialize();
     MX_FREERTOS_Init();
     
-    printf("FreeRTOS configurado\n");      // ✅ SEGURO
+    printf("FreeRTOS configurado\r\n");      // ✅ SEGURO
     
     osKernelStart();  // Después de esto, NO más printf directo
     
     // Este código nunca se ejecuta si FreeRTOS funciona
     while(1) {
-        printf("ERROR - FreeRTOS falló\n"); // ✅ SEGURO (contexto de error)
+        printf("ERROR - FreeRTOS falló\r\n"); // ✅ SEGURO (contexto de error)
     }
 }
 ```
@@ -57,10 +57,10 @@ int main(void) {
 ```c
 // threads/anyTask.cpp
 void anyTask(void *argument) {
-    printf("Task iniciado\n");           // ✅ FUNCIONA con SysTick configurado correctamente
+    printf("Task iniciado\r\n");           // ✅ FUNCIONA con SysTick configurado correctamente
     
     while(1) {
-        printf("Iteración %d\n", i++);   // ✅ FUNCIONA, pero considerar performance
+        printf("Iteración %d\r\n", i++);   // ✅ FUNCIONA, pero considerar performance
         osDelay(1000);
     }
 }
@@ -155,7 +155,7 @@ void debugTask(void *argument) {
     DebugMessage_t msg;
     while(1) {
         if (osMessageQueueGet(debugQueueHandle, &msg, NULL, osWaitForever) == osOK) {
-            printf("[%lu] %s\n", msg.timestamp, msg.message);
+            printf("[%lu] %s\r\n", msg.timestamp, msg.message);
         }
     }
 }
@@ -209,25 +209,25 @@ void vApplicationSetupHeap(void) {
 ```c
 // En main.c - Para llamar desde debugger o interrupciones
 void print_system_status(void) {
-    printf("\n=== SYSTEM STATUS ===\n");
+    printf("\n=== SYSTEM STATUS ===\r\n");
     
     // FreeRTOS Stats
     size_t free_heap = xPortGetFreeHeapSize();
     size_t min_heap = xPortGetMinimumEverFreeHeapSize();
-    printf("Heap: %u bytes free, %u min ever free\n", 
+    printf("Heap: %u bytes free, %u min ever free\r\n", 
            (unsigned)free_heap, (unsigned)min_heap);
     
     // Task Stats (requiere configUSE_TRACE_FACILITY = 1)
     UBaseType_t task_count = uxTaskGetNumberOfTasks();
-    printf("Active tasks: %u\n", (unsigned)task_count);
+    printf("Active tasks: %u\r\n", (unsigned)task_count);
     
     // Variables de debugging de threads
     extern volatile uint32_t dispatcher_status;
     extern volatile uint32_t dispatcher_iterations;
-    printf("Dispatcher: status=%u, iterations=%u\n",
+    printf("Dispatcher: status=%u, iterations=%u\r\n",
            (unsigned)dispatcher_status, (unsigned)dispatcher_iterations);
            
-    printf("=====================\n\n");
+    printf("=====================\n\r\n");
 }
 
 // Función para verificar stack overflow
@@ -297,7 +297,7 @@ void vApplicationMallocFailedHook(void) {
 void print_task_stats(void) {
     char stats_buffer[1024];
     vTaskGetRunTimeStats(stats_buffer);
-    printf("Runtime Stats:\n%s\n", stats_buffer);
+    printf("Runtime Stats:\n%s\r\n", stats_buffer);
 }
 ```
 

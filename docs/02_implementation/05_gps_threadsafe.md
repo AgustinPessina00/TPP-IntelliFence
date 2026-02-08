@@ -302,7 +302,7 @@ gps.initSamM10q();  // Ahora incluye inicialización I2C thread-safe
 // Uso normal - ahora thread-safe y embedded-friendly automáticamente
 HAL_StatusTypeDef result = gps.read_gps_position();
 if (result == HAL_OK) {
-    printf("Lat: %.6f, Lon: %.6f\n", gps.latitude, gps.longitude);
+    printf("Lat: %.6f, Lon: %.6f\r\n", gps.latitude, gps.longitude);
 }
 
 // Configuración de tiempo de adquisición (ejemplo de uso interno de arrays)

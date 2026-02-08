@@ -560,32 +560,32 @@ void gps_task(void* argument) {
             double latitude = pvtData.lat * 1e-7;  // deg
             double longitude = pvtData.lon * 1e-7; // deg
             
-            printf("=== DATOS GPS ===\n");
-            printf("Latitud:  %.7f°\n", latitude);
-            printf("Longitud: %.7f°\n", longitude);
-            printf("Altura:   %ld mm\n", pvtData.hMSL);
-            printf("\n");
+            printf("=== DATOS GPS ===\r\n");
+            printf("Latitud:  %.7f°\r\n", latitude);
+            printf("Longitud: %.7f°\r\n", longitude);
+            printf("Altura:   %ld mm\r\n", pvtData.hMSL);
+            printf("\r\n");
             
-            printf("Fecha: %02d/%02d/%04d\n", 
+            printf("Fecha: %02d/%02d/%04d\r\n", 
                    pvtData.day, pvtData.month, pvtData.year);
-            printf("Hora:  %02d:%02d:%02d UTC\n", 
+            printf("Hora:  %02d:%02d:%02d UTC\r\n", 
                    pvtData.hour, pvtData.min, pvtData.sec);
-            printf("\n");
+            printf("\r\n");
             
-            printf("Satélites:  %d\n", pvtData.numSV);
+            printf("Satélites:  %d\r\n", pvtData.numSV);
             printf("Fix Type:   %d ", pvtData.fixType);
             switch(pvtData.fixType) {
-                case 0: printf("(No fix)\n"); break;
-                case 2: printf("(2D fix)\n"); break;
-                case 3: printf("(3D fix)\n"); break;
-                default: printf("\n");
+                case 0: printf("(No fix)\r\n"); break;
+                case 2: printf("(2D fix)\r\n"); break;
+                case 3: printf("(3D fix)\r\n"); break;
+                default: printf("\r\n");
             }
             
-            printf("H.Accuracy: %lu mm\n", pvtData.hAcc);
-            printf("V.Accuracy: %lu mm\n", pvtData.vAcc);
+            printf("H.Accuracy: %lu mm\r\n", pvtData.hAcc);
+            printf("V.Accuracy: %lu mm\r\n", pvtData.vAcc);
             
         } else {
-            printf("Error: No se pudo obtener datos PVT\n");
+            printf("Error: No se pudo obtener datos PVT\r\n");
         }
         
         osDelay(5000); // Actualizar cada 5 segundos
@@ -633,7 +633,7 @@ void geofence_monitoring_task(void* argument) {
         if (gps.getPVT(&pvtData, 2000)) {
             if (pvtData.fixType >= 3) { // Solo con 3D fix
                 if (!isInsideGeofence(&pvtData, &fence)) {
-                    printf("¡ALERTA! Ganado fuera del perímetro\n");
+                    printf("¡ALERTA! Ganado fuera del perímetro\r\n");
                     // Activar alarma, enviar mensaje LoRa, etc.
                 }
             }
@@ -655,12 +655,12 @@ void speed_monitoring_task(void* argument) {
             // Velocidad en mm/s, convertir a km/h
             double speed_kmh = (pvtData.gSpeed / 1000.0) * 3.6;
             
-            printf("Velocidad: %.2f km/h\n", speed_kmh);
-            printf("Rumbo:     %.2f°\n", pvtData.headMot * 1e-5);
+            printf("Velocidad: %.2f km/h\r\n", speed_kmh);
+            printf("Rumbo:     %.2f°\r\n", pvtData.headMot * 1e-5);
             
             // Detección de movimiento anormal
             if (speed_kmh > 15.0) {
-                printf("¡ALERTA! Velocidad anormal detectada\n");
+                printf("¡ALERTA! Velocidad anormal detectada\r\n");
             }
         }
         
@@ -909,7 +909,7 @@ PVTRingBuffer pvtBuffer(10); // Últimos 10 PVT
 Agregar sistema de logging para debugging:
 ```cpp
 #ifdef GPS_DEBUG
-    printf("[GPS] Requesting PVT...\n");
+    printf("[GPS] Requesting PVT...\r\n");
 #endif
 ```
 

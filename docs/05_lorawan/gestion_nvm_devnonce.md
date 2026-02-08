@@ -145,7 +145,7 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
 {
   if (state == LORAMAC_HANDLER_NVM_STORE)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORED\r\r\n");
     
     // 🚨 IMPORTANTE: NO bloqueamos aquí
     // En lugar de guardar directo, activamos el thread dedicado
@@ -153,7 +153,7 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
   }
   else
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA RESTORED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA RESTORED\r\r\n");
   }
 }
 ```
@@ -193,11 +193,11 @@ static void StoreContext(void)
   
   if (status == LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\r\n");
   }
   else if (status == LORAMAC_HANDLER_ERROR)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\r\n");
   }
 }
 ```
@@ -384,7 +384,7 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 
   // Limpiar el buffer NVM para asegurarse de que no hay datos viejos
   //memset(nvm, 0, nvm_size);
-  //APP_LOG(TS_OFF, VLEVEL_M, "NVM CONTEXT IGNORED - FORCING NEW JOIN\r\n");
+  //APP_LOG(TS_OFF, VLEVEL_M, "NVM CONTEXT IGNORED - FORCING NEW JOIN\r\r\n");
   
   // ✅ ACTUALMENTE ESTÁ HABILITADO:
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);
@@ -712,14 +712,14 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
 {
   if (state == LORAMAC_HANDLER_NVM_STORE)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORED\r\r\n");
     
     // 🚨 NO bloqueamos aquí - delegamos a thread
     osThreadFlagsSet(Thd_LoraStoreContextId, 1);
   }
   else  // LORAMAC_HANDLER_NVM_RESTORE
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA RESTORED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA RESTORED\r\r\n");
   }
 }
 ```
@@ -756,11 +756,11 @@ static void StoreContext(void)
   
   if (status == LORAMAC_HANDLER_NVM_DATA_UP_TO_DATE)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA UP TO DATE\r\r\n");
   }
   else if (status == LORAMAC_HANDLER_ERROR)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "NVM DATA STORE FAILED\r\r\n");
   }
 }
 ```
@@ -864,7 +864,7 @@ Si tienes ST-Link y STM32CubeProgrammer:
 // En OnRestoreContextRequest()
 static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 {
-  APP_LOG(TS_OFF, VLEVEL_M, "📖 Restoring NVM context from 0x%08X (%d bytes)\r\n", 
+  APP_LOG(TS_OFF, VLEVEL_M, "📖 Restoring NVM context from 0x%08X (%d bytes)\r\r\n", 
           (uint32_t)LORAWAN_NVM_BASE_ADDRESS, nvm_size);
   
   FLASH_IF_Read(nvm, LORAWAN_NVM_BASE_ADDRESS, nvm_size);
@@ -872,7 +872,7 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
   // Debug: mostrar primeros bytes
   uint8_t *buf = (uint8_t*)nvm;
   APP_LOG(TS_OFF, VLEVEL_M, "First 16 bytes: %02X %02X %02X %02X %02X %02X %02X %02X "
-          "%02X %02X %02X %02X %02X %02X %02X %02X\r\n",
+          "%02X %02X %02X %02X %02X %02X %02X %02X\r\r\n",
           buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
           buf[8], buf[9], buf[10], buf[11], buf[12], buf[13], buf[14], buf[15]);
 }
@@ -880,7 +880,7 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 // En OnStoreContextRequest()
 static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
 {
-  APP_LOG(TS_OFF, VLEVEL_M, "💾 Storing NVM context to 0x%08X (%d bytes)\r\n", 
+  APP_LOG(TS_OFF, VLEVEL_M, "💾 Storing NVM context to 0x%08X (%d bytes)\r\r\n", 
           (uint32_t)LORAWAN_NVM_BASE_ADDRESS, nvm_size);
   
   FLASH_IF_StatusTypedef status = FLASH_IF_Write(LORAWAN_NVM_BASE_ADDRESS, 
@@ -888,11 +888,11 @@ static void OnStoreContextRequest(void *nvm, uint32_t nvm_size)
   
   if (status == FLASH_IF_OK)
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "✅ NVM context stored successfully\r\n");
+    APP_LOG(TS_OFF, VLEVEL_M, "✅ NVM context stored successfully\r\r\n");
   }
   else
   {
-    APP_LOG(TS_OFF, VLEVEL_M, "❌ NVM context store FAILED (error: %d)\r\n", status);
+    APP_LOG(TS_OFF, VLEVEL_M, "❌ NVM context store FAILED (error: %d)\r\r\n", status);
   }
 }
 ```
@@ -957,7 +957,7 @@ def simulate_device_behavior():
         flash_nvm['dev_nonce'] += random.randint(0, 2)
         store_to_flash(flash_nvm)
     
-    print("\n" + "=" * 60)
+    print("\r\n" + "=" * 60)
     print("✅ Resultado: DevNonce sobrevive todos los resets")
     print(f"   DevNonce final: {flash_nvm['dev_nonce']}")
     print("=" * 60)
@@ -1082,13 +1082,13 @@ static const LmHandlerCallbacks_t LmHandlerCallbacks =
 // 2. Verificar que thread existe
 if (Thd_LoraStoreContextId == NULL)
 {
-  APP_LOG(TS_OFF, VLEVEL_M, "ERROR: Store context thread not created!\r\n");
+  APP_LOG(TS_OFF, VLEVEL_M, "ERROR: Store context thread not created!\r\r\n");
 }
 
 // 3. Agregar log en OnNvmDataChange
 static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
 {
-  APP_LOG(TS_OFF, VLEVEL_M, "🔔 OnNvmDataChange called, state=%d\r\n", state);
+  APP_LOG(TS_OFF, VLEVEL_M, "🔔 OnNvmDataChange called, state=%d\r\r\n", state);
   // ...
 }
 ```
@@ -1158,7 +1158,7 @@ static void OnNvmDataChange(LmHandlerNvmContextStates_t state)
    
    // En OnJoinRequest():
    debug_dev_nonce_count++;
-   APP_LOG(TS_OFF, VLEVEL_M, "🔢 Join attempt #%d\r\n", debug_dev_nonce_count);
+   APP_LOG(TS_OFF, VLEVEL_M, "🔢 Join attempt #%d\r\r\n", debug_dev_nonce_count);
    ```
 
 ---

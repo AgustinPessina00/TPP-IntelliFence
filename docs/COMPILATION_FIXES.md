@@ -234,11 +234,11 @@ Se encontraron **58 instancias** de `printf` con formato float en el código, pr
 **Ejemplo de conversión:**
 ```c
 // Antes (requiere float support)
-printf("Lat: %.6f\n", latitude);
+printf("Lat: %.6f\r\n", latitude);
 
 // Después (sin float support)
 int32_t lat_int = (int32_t)(latitude * 1000000);
-printf("Lat: %ld.%06ld\n", lat_int / 1000000, lat_int % 1000000);
+printf("Lat: %ld.%06ld\r\n", lat_int / 1000000, lat_int % 1000000);
 ```
 
 ---

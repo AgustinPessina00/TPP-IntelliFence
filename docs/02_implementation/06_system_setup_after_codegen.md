@@ -346,7 +346,7 @@ osThreadDef(taskName, StartTask, osPriorityNormal, 0, 256); // Era 128
 **Verificar con**:
 ```c
 UBaseType_t watermark = uxTaskGetStackHighWaterMark(NULL);
-printf("Stack remaining: %lu words\n", watermark);
+printf("Stack remaining: %lu words\r\n", watermark);
 ```
 
 ---

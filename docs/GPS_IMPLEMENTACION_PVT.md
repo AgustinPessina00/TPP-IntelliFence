@@ -24,8 +24,8 @@ UBX_NAV_PVT_data_t pvtData;
 if (gps.getPVT(&pvtData, 2000)) {
     double latitude = pvtData.lat * 1e-7;   // deg
     double longitude = pvtData.lon * 1e-7;  // deg
-    printf("Lat: %.7f, Lon: %.7f\n", latitude, longitude);
-    printf("Satélites: %d\n", pvtData.numSV);
+    printf("Lat: %.7f, Lon: %.7f\r\n", latitude, longitude);
+    printf("Satélites: %d\r\n", pvtData.numSV);
 }
 ```
 
@@ -322,7 +322,7 @@ double pdop = pvtData.pDOP * 0.01;
 uint8_t bytesAvail[2];
 I2CResult result = i2cBus->memRead(0x42, 0xFD, I2C_MEMADD_SIZE_8BIT, bytesAvail, 2, 100);
 uint16_t available = (bytesAvail[1] << 8) | bytesAvail[0];
-printf("Bytes disponibles: %d\n", available & 0x7FFF);
+printf("Bytes disponibles: %d\r\n", available & 0x7FFF);
 ```
 
 ### Verificar mensaje UBX recibido:
@@ -330,7 +330,7 @@ printf("Bytes disponibles: %d\n", available & 0x7FFF);
 // Dump del buffer en hexadecimal
 for (int i = 0; i < 100; i++) {
     printf("%02X ", buffer[i]);
-    if ((i+1) % 16 == 0) printf("\n");
+    if ((i+1) % 16 == 0) printf("\r\n");
 }
 ```
 
@@ -341,8 +341,8 @@ for (int i = 2; i < 98; i++) { // Class hasta último byte de payload
     ck_a += buffer[i];
     ck_b += ck_a;
 }
-printf("CK_A calc: %02X recv: %02X\n", ck_a, buffer[98]);
-printf("CK_B calc: %02X recv: %02X\n", ck_b, buffer[99]);
+printf("CK_A calc: %02X recv: %02X\r\n", ck_a, buffer[98]);
+printf("CK_B calc: %02X recv: %02X\r\n", ck_b, buffer[99]);
 ```
 
 ---
