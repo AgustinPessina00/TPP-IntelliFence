@@ -11,6 +11,8 @@
 #include "threads/stimulusTask.h"
 #include "Modules/Buzzer/buzzer.h"
 #include "Modules/Buzzer/buzzer_alarm.h"
+#include "Modules/VibrMotor/vibr_motor.h"
+#include "Modules/VibrMotor/vibr_motor_alarm.h"
 #include "Modules/Messages/EmbeddedMessage.h"
 #include "projdefs.h"
 #include "main.h"
@@ -22,18 +24,23 @@
 /* External handles ----------------------------------------------------------*/
 extern osMessageQueueId_t stimulusQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
-extern TIM_HandleTypeDef htim1;  // BUZZER
+extern TIM_HandleTypeDef htim1;   // BUZZER
+extern TIM_HandleTypeDef htim16;  // VIB_MOTOR_R
+extern TIM_HandleTypeDef htim17;  // VIB_MOTOR_L
 
 /* Private variables ---------------------------------------------------------*/
 static zone_t currentZone = GREEN_ZONE;
 static zone_t previousZone = GREEN_ZONE;
 static bool buzzerInitialized = false;
+static bool vibrMotorInitialized = false;
 static bool alarmInitialized = false;
+static bool vibrAlarmInitialized = false;
 static bool waitingForRedZoneAlarm = false;
 static uint32_t redZoneAlarmStartTime = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 static void initializeBuzzer(void);
+static void initializeVibrMotor(void);
 static void handleZoneChange(zone_t newZone);
 static void sendStimulusFeedback(void);
 
@@ -58,6 +65,41 @@ static void initializeBuzzer(void) {
             // Initialize RTOS alarm system
             if (BuzzerAlarm_Init()) {
                 alarmInitialized = true;
+            }
+        }
+    }
+}
+
+/**
+ * @brief Initialize vibration motor and alarm modules
+ */
+static void initializeVibrMotor(void) {
+    if (!vibrMotorInitialized) {
+        // **CRITICAL FIX**: Ensure PB9 is configured as Alternate Function for TIM17
+        // This is necessary because something may reconfigure it as GPIO output
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        GPIO_InitStruct.Pin = GPIO_PIN_9;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        GPIO_InitStruct.Alternate = GPIO_AF14_TIM17;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        
+        VibrMotorConfig_t config = {
+            .htim_left = &htim17,
+            .htim_right = &htim16,
+            .channel_left = TIM_CHANNEL_1,
+            .channel_right = TIM_CHANNEL_1,
+            .frequency_hz = VIBR_MOTOR_DEFAULT_FREQUENCY,  // 1000 Hz
+            .duty_cycle = 0  // Start off
+        };
+        
+        if (VibrMotor_Init(&config) == VIBR_MOTOR_OK) {
+            vibrMotorInitialized = true;
+            
+            // Initialize RTOS alarm system
+            if (VibrMotorAlarm_Init()) {
+                vibrAlarmInitialized = true;
             }
         }
     }
@@ -102,36 +144,58 @@ static void handleZoneChange(zone_t newZone) {
         case GREEN_ZONE:
             // Safe zone - stop all alarms
             BuzzerAlarm_Stop();
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_Stop();
+            }
             HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case LIGHT_BLUE_ZONE:
-            // Warning zone 1 - slow pulse (500ms on/off)
+            // Warning zone 1 - slow pulse (500ms on/off) + vibration motors 20% duty
             BuzzerAlarm_StartZone(LIGHT_BLUE_ZONE);
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_StartZone(LIGHT_BLUE_ZONE);
+            }
             HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case BLUE_ZONE:
-            // Warning zone 2 - warning pattern (100ms on, 1s off)
+            // Warning zone 2 - warning pattern (100ms on, 1s off) + vibration motors 50% duty
             BuzzerAlarm_StartZone(BLUE_ZONE);
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_StartZone(BLUE_ZONE);
+            }
             HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case DARK_BLUE_ZONE:
-            // Warning zone 3 - fast pulse (200ms on/off)
+            // Warning zone 3 - fast pulse (200ms on/off) + vibration motors 65% duty
             BuzzerAlarm_StartZone(DARK_BLUE_ZONE);
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_StartZone(DARK_BLUE_ZONE);
+            }
             HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case YELLOW_ZONE:
-            // Alert zone - alert pattern (80ms on, 200ms off)
+            // Alert zone - alert pattern (80ms on, 200ms off) + vibration motors alternating
             BuzzerAlarm_StartZone(YELLOW_ZONE);
-            //HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+            
+            // Start vibration motor alarm (alternating left-right)
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_StartZone(YELLOW_ZONE);
+            }
+            
             HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
             
         case RED_ZONE:
             // Critical zone - play alarm sequence FIRST, then LED
+            // Stop vibration motors in RED zone
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_Stop();
+            }
+            
             // Create custom alarm with 10 repetitions (50ms on/off = 1s total)
             {
                 AlarmConfig_t redAlarm = {
@@ -152,6 +216,9 @@ static void handleZoneChange(zone_t newZone) {
         case BLACK_ZONE:
             // Escape zone - silent mode (all off)
             BuzzerAlarm_Stop();
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_Stop();
+            }
             HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             // TODO: Send escape alert via LoRa
             break;
@@ -159,6 +226,9 @@ static void handleZoneChange(zone_t newZone) {
         default:
             // Unknown zone - stop everything
             BuzzerAlarm_Stop();
+            if (vibrAlarmInitialized) {
+                VibrMotorAlarm_Stop();
+            }
             HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
             break;
     }
@@ -175,6 +245,44 @@ void stimulusTask(void *argument) {
     
     // Initialize buzzer module
     initializeBuzzer();
+    
+    // Initialize vibration motor module
+    initializeVibrMotor();
+    
+    // // Hardware test: vibrate motors individually to verify functionality
+    // if (vibrMotorInitialized) {
+    //     RTOS_LOG_INFO("[STIMULUS] *** HARDWARE TEST START ***\r\n");
+    //     RTOS_LOG_INFO("[STIMULUS] TIM17 (LEFT) ARR=%lu CCR1=%lu\r\n", 
+    //                  htim17.Instance->ARR, htim17.Instance->CCR1);
+    //     RTOS_LOG_INFO("[STIMULUS] TIM16 (RIGHT) ARR=%lu CCR1=%lu\r\n", 
+    //                  htim16.Instance->ARR, htim16.Instance->CCR1);
+        
+    //     RTOS_LOG_INFO("[STIMULUS] Testing LEFT motor (PB9/TIM17)...\r\n");
+    //     VibrMotor_SetParams(MOTOR_LEFT, 1000, 80);  // 1kHz, 80% duty
+    //     RTOS_LOG_INFO("[STIMULUS] After SetParams: TIM17 ARR=%lu CCR1=%lu\r\n", 
+    //                  htim17.Instance->ARR, htim17.Instance->CCR1);
+    //     VibrMotor_On(MOTOR_LEFT);
+    //     RTOS_LOG_INFO("[STIMULUS] After On: TIM17 CCR1=%lu CR1=0x%08lX CCER=0x%08lX\r\n", 
+    //                  htim17.Instance->CCR1, htim17.Instance->CR1, htim17.Instance->CCER);
+    //     osDelay(500);  // Vibrate for 500ms
+    //     VibrMotor_Off(MOTOR_LEFT);
+    //     RTOS_LOG_INFO("[STIMULUS] After Off: TIM17 CCR1=%lu\r\n", htim17.Instance->CCR1);
+        
+    //     osDelay(200);  // Small pause between motors
+        
+    //     RTOS_LOG_INFO("[STIMULUS] Testing RIGHT motor (PB8/TIM16)...\r\n");
+    //     VibrMotor_SetParams(MOTOR_RIGHT, 1000, 80);  // 1kHz, 80% duty
+    //     RTOS_LOG_INFO("[STIMULUS] After SetParams: TIM16 ARR=%lu CCR1=%lu\r\n", 
+    //                  htim16.Instance->ARR, htim16.Instance->CCR1);
+    //     VibrMotor_On(MOTOR_RIGHT);
+    //     RTOS_LOG_INFO("[STIMULUS] After On: TIM16 CCR1=%lu CR1=0x%08lX CCER=0x%08lX\r\n", 
+    //                  htim16.Instance->CCR1, htim16.Instance->CR1, htim16.Instance->CCER);
+    //     osDelay(500);  // Vibrate for 500ms
+    //     VibrMotor_Off(MOTOR_RIGHT);
+    //     RTOS_LOG_INFO("[STIMULUS] After Off: TIM16 CCR1=%lu\r\n", htim16.Instance->CCR1);
+        
+    //     RTOS_LOG_INFO("[STIMULUS] *** HARDWARE TEST COMPLETED ***\r\n");
+    //}
     
     static uint32_t stackMonitorCounter = 0;
     while (1) {

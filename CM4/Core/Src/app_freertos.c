@@ -153,7 +153,7 @@ osThreadId_t stimulus_TaskHandle;
 
 const osThreadAttr_t stimulus_Task_attributes = {
   .name = "stimulus_Task",
-  .stack_size = 128 * 4,  // 512 bytes stimulus
+  .stack_size = 256 * 4,  // 1024 bytes - buzzer + vibration motors + alarms
   .priority = (osPriority_t) osPriorityNormal,
   // .cb_mem = &stimulus_TaskBuffer,
   // .cb_size = sizeof(stimulus_TaskBuffer),
@@ -318,10 +318,10 @@ void initialize_system_threads(void) {
     printf("[THREADS] OK - Todos los threads creados exitosamente\r\n");
     printf("[THREADS] - dispatcher_Task: Stack 512B\r\n");
     printf("[THREADS] - fsm_Task: Stack 2KB (FSMs complejas)\r\n");
-    printf("[THREADS] - stimulus_Task: Stack 512B\r\n");
+    printf("[THREADS] - stimulus_Task: Stack 1KB (buzzer + motors + alarms)\r\n");
     printf("[THREADS] - sensorAcq_Task: Stack 2KB (objetos C++ grandes)\r\n");
     printf("[THREADS] - lora_Task: Stack 512B\r\n");
-    printf("[THREADS] Total stack allocated: ~5.5KB\r\n");
+    printf("[THREADS] Total stack allocated: ~6KB\r\n");
 }
 /* USER CODE END FunctionPrototypes */
 
