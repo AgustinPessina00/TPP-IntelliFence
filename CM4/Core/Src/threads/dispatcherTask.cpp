@@ -21,6 +21,7 @@ void dispatcherTask(void *argument) {
     RTOS_LOG_INFO("[DISPATCHER] Task initialized successfully\r\n");
 
     static uint32_t stackMonitorCounter = 0;
+    static uint32_t queueMonitorCounter = 0;
     while(1) {
         // Monitorear stack cada ~10 segundos (cada 10 iteraciones × 1000ms delay)
         if (++stackMonitorCounter >= 10) {
@@ -29,6 +30,28 @@ void dispatcherTask(void *argument) {
                          stackLeft, stackLeft * 4);
             stackMonitorCounter = 0;
         }
+        
+        // Monitorear colas cada 5 segundos (cada 10 iteraciones × 500ms delay)
+        // if (++queueMonitorCounter >= 10) {
+        //     RTOS_LOG_INFO("[QUEUE STATUS] =============================\r\n");
+        //     RTOS_LOG_INFO("  Dispatcher  - Msgs: %u / Spaces: %u\r\n", 
+        //                  osMessageQueueGetCount(dispatcherQueueHandle),
+        //                  osMessageQueueGetSpace(dispatcherQueueHandle));
+        //     RTOS_LOG_INFO("  SensorAcq   - Msgs: %u / Spaces: %u\r\n",
+        //                  osMessageQueueGetCount(sensorAcqQueueHandle),
+        //                  osMessageQueueGetSpace(sensorAcqQueueHandle));
+        //     RTOS_LOG_INFO("  FSM         - Msgs: %u / Spaces: %u\r\n",
+        //                  osMessageQueueGetCount(fsmQueueHandle),
+        //                  osMessageQueueGetSpace(fsmQueueHandle));
+        //     RTOS_LOG_INFO("  Stimulus    - Msgs: %u / Spaces: %u\r\n",
+        //                  osMessageQueueGetCount(stimulusQueueHandle),
+        //                  osMessageQueueGetSpace(stimulusQueueHandle));
+        //     RTOS_LOG_INFO("  LoraTx      - Msgs: %u / Spaces: %u\r\n",
+        //                  osMessageQueueGetCount(loraTxQueueHandle),
+        //                  osMessageQueueGetSpace(loraTxQueueHandle));
+        //     RTOS_LOG_INFO("============================================\r\n");
+        //     queueMonitorCounter = 0;
+        // }
         
         if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, 0) == osOK) {
             // Ahora podemos hacer logging thread-safe
@@ -71,6 +94,6 @@ void dispatcherTask(void *argument) {
             }
         }
         
-        osDelay(1000);
+        osDelay(500);
     }
 }

@@ -106,10 +106,14 @@ void sensorAcqTask(void *argument) {
                     if(gpsData.fix) {
                         msgToSend = MessagePool_Allocate();
                         if (msgToSend != NULL) {
+                            RTOS_LOG_DEBUG("[SENSOR_ACQ] alocado\r\n");
                             EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&gpsData, sizeof(gpsData_t));
                             osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                             RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent GPS data to FSM\r\n");
                             msgToSend = NULL;
+                        }
+                        else {
+                            RTOS_LOG_DEBUG("[SENSOR_ACQ] se lleno la pile\r\n");
                         }
                     }
                     
@@ -270,6 +274,6 @@ void sensorAcqTask(void *argument) {
             msgReceived = NULL;
         }
 
-        osDelay(1000);
+        osDelay(500);
     }
 }
