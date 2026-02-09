@@ -70,20 +70,17 @@ HAL_StatusTypeDef processGpsMessage(EmbeddedMessage_t *msg, Cow& cow, bool& vali
             RTOS_LOG_WARN("[FSM] No GPS fix - position not updated\r\n");
         }
         
-        MessagePool_Free(msg);
         return HAL_OK;
     }
     
     RTOS_LOG_WARN("[FSM] Invalid GPS payload size (expected %d, got %d)\r\n", 
                  sizeof(gpsData_t), msg->length);
     validPosition = false;
-    MessagePool_Free(msg);
     return HAL_ERROR;
 }
 
 HAL_StatusTypeDef processLoRaTxResponse(EmbeddedMessage_t *msg) {
     RTOS_LOG_DEBUG("[FSM] LoRa TX confirmed position send\r\n");
-    MessagePool_Free(msg);
     return HAL_OK;
 }
 
@@ -137,12 +134,10 @@ HAL_StatusTypeDef processFenceMessage(EmbeddedMessage_t *msg, Fence& fence) {
         receivedFragments = 0;
         totalVerticesReceived = 0;
         
-        MessagePool_Free(msg);
         return HAL_OK;
     } else {
         RTOS_LOG_DEBUG("[FSM] Waiting for more fragments (%d/%d)\r\n",
                       receivedFragments, totalExpectedFragments);
-        MessagePool_Free(msg);
         return HAL_BUSY;  // Aún esperando más fragmentos
     }
 }
@@ -158,23 +153,19 @@ HAL_StatusTypeDef processImuMessage(EmbeddedMessage_t *msg, Cow& cow) {
         
         cow.updateAcceleration({ax, ay, az});
         
-        MessagePool_Free(msg);
         return HAL_OK;
     }
     
-    MessagePool_Free(msg);
     return HAL_ERROR;
 }
 
 HAL_StatusTypeDef processGpsConfigResponse(EmbeddedMessage_t *msg) {
     RTOS_LOG_DEBUG("[FSM] GPS config confirmed\r\n");
-    MessagePool_Free(msg);
     return HAL_OK;
 }
 
 HAL_StatusTypeDef processStimulusResponse(EmbeddedMessage_t *msg) {
     RTOS_LOG_DEBUG("[FSM] Stimulus feedback received\r\n");
-    MessagePool_Free(msg);
     return HAL_OK;
 }
 
@@ -247,5 +238,6 @@ static CowState classifyMotion(Acceleration acc) {
 }
 
 void updateState(Cow& cow) {
-    cow.updateState(classifyMotion(cow.getAcceleration()));
+    //cow.updateState(classifyMotion(cow.getAcceleration()));
+    cow.updateState(CowState::MOVEMENT);
 }

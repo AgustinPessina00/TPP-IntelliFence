@@ -55,6 +55,8 @@ void fsmTask(void *argument) {
 
     static uint32_t stackMonitorCounter = 0;
     while(1) {
+
+        
         // Monitorear stack cada ~10 segundos (cada 20 iteraciones × 500ms delay)
         if (++stackMonitorCounter >= 10) {
             UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(nullptr);
@@ -62,6 +64,14 @@ void fsmTask(void *argument) {
                          stackLeft, stackLeft * 4);
             stackMonitorCounter = 0;
         }
+
+        // //test para el stimulus
+        // for(int i = GREEN_ZONE; i <= BLACK_ZONE; i++) {
+        //     zone_t zone = static_cast<zone_t>(i);
+        //     RTOS_LOG_INFO("[FSM] Zone enum value: %d\n", zone);
+        //     sendZoneToStimulus(zone, MODULE_STIMULUS);
+        //     osDelay(10000);
+        // }
 
         if(osMessageQueueGet(fsmQueueHandle, &msg, NULL, 0) == osOK) {
             RTOS_LOG_INFO("[FSM] Received message - ID: %d, Sender: %d, MainFSM: %d\r\n", 
@@ -92,6 +102,12 @@ void fsmTask(void *argument) {
             case MainFSM_t::FENCE_TRANSITION:
                 runFenceTransitionFSM(s_mainFSM, s_fenceTransitionState, timeout, cow, fence, &msg);
                 break;
+        }
+        
+        // CRÍTICO: Liberar el mensaje después de procesarlo en las FSMs
+        if (msg != nullptr) {
+            MessagePool_Free(msg);
+            msg = nullptr;
         }
         
         osDelay(1000);

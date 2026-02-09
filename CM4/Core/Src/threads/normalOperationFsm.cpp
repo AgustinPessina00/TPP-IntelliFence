@@ -62,11 +62,15 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
         case INITIALIZE_WAIT_POSITION:
             if (waitForMessage(MSG_ID_SEND_GPS, timeout, msg, newMessage) == HAL_OK) {
                 bool validPosition = false;
-                if (processGpsMessage(*msg, cow, validPosition) == HAL_OK && validPosition) {
-                    initializeState = INITIALIZE_REQUEST_ZONE;
+                if (processGpsMessage(*msg, cow, validPosition) == HAL_OK) {
+                    if(validPosition) {
+                        sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
+                        initializeState = INITIALIZE_REQUEST_ZONE;
+                    }
+                    
                 }
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] INIT: GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                RTOS_LOG_WARN("[FSM] Normal OP INITIALIZE: GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 initializeState = INITIALIZE_REQUEST_POSITION;
             }
             break;
@@ -85,10 +89,6 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
             }
             break;
             
-        case INITIALIZE_EVALUATE_ZONE:
-            // Ya no se usa - eliminado
-            initializeState = INITIALIZE_END;
-            break;
             
         case INITIALIZE_END:
             initializeState = INITIALIZE_BEGIN;
@@ -122,20 +122,20 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_REQUEST_ACCELERATION:
-            sendMessage(MSG_ID_REQUEST_IMU, MODULE_SENSOR_ACQ);
-            Timeout_Start(&timeout, IMU_TIMEOUT_MS);
+            //sendMessage(MSG_ID_REQUEST_IMU, MODULE_SENSOR_ACQ);
+            //Timeout_Start(&timeout, IMU_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_ACCELERATION;
             break;
             
         case GREEN_ZONE_WAIT_ACCELERATION:
-            if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
-                if (processImuMessage(*msg, cow) == HAL_OK) {
-                    greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
-                }
-            } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
-            }
+            // if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
+            //     if (processImuMessage(*msg, cow) == HAL_OK) {
+                     greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+            //     }
+            // } else if (Timeout_IsExpired(&timeout)) {
+            //     RTOS_LOG_WARN("[FSM] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                //greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
+            //}
             break;
             
         case GREEN_ZONE_EVALUATE_COWSTATE:
@@ -154,15 +154,15 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_GRAZING:
-            updateGpsAdqTime(GpsRate::SLOW);
-            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            //updateGpsAdqTime(GpsRate::SLOW);
+            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_SLEEP:
-            updateGpsAdqTime(GpsRate::STOP);
-            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
-            enterLowPowerSleep();
+            //updateGpsAdqTime(GpsRate::STOP);
+            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            //enterLowPowerSleep();
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
@@ -175,26 +175,26 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_NEAR_LIMIT:
-            updateGpsAdqTime(GpsRate::FAST);
-            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            //updateGpsAdqTime(GpsRate::FAST);
+            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_FAR_LIMIT:
-            updateGpsAdqTime(GpsRate::MEDIUM);
-            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            //updateGpsAdqTime(GpsRate::MEDIUM);
+            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_WAIT_GPS_ADQ_TIME:
-            if (waitForMessage(MSG_ID_GPS_CONFIG_RESPONSE, timeout, msg, newMessage) == HAL_OK) {
-                if (processGpsConfigResponse(*msg) == HAL_OK) {
-                    greenZoneState = GREEN_ZONE_END;
-                }
-            } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
-            }
+            //if (waitForMessage(MSG_ID_GPS_CONFIG_RESPONSE, timeout, msg, newMessage) == HAL_OK) {
+            //     if (processGpsConfigResponse(*msg) == HAL_OK) {
+                     greenZoneState = GREEN_ZONE_END;
+            //     }
+            // } else if (Timeout_IsExpired(&timeout)) {
+            //     RTOS_LOG_WARN("[FSM] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                //greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+            //}
             break;
             
         case GREEN_ZONE_END:
