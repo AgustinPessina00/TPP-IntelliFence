@@ -74,6 +74,10 @@ void Error_Handler(void);
 #define GPS_RESET_N_GPIO_Port GPIOC
 #define LED_RED_Pin GPIO_PIN_11
 #define LED_RED_GPIO_Port GPIOB
+#define VIB_MOTOR_L_Pin GPIO_PIN_9
+#define VIB_MOTOR_L_GPIO_Port GPIOB
+#define VIB_MOTOR_R_Pin GPIO_PIN_8
+#define VIB_MOTOR_R_GPIO_Port GPIOB
 
 #define LED3_GPIO_PORT GPIOB
 #define LED1_GPIO_PORT GPIOB

@@ -79,6 +79,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/IMU
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Messages
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/Buzzer
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Modules/VibrMotor
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Threads
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Types
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Inc/Test
@@ -114,6 +115,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_example.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm.c
     #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Buzzer/buzzer_alarm_example.c
+    # Vibration Motor Module Sources (PWM Control)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/VibrMotor/vibr_motor.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/VibrMotor/vibr_motor_alarm.c
     # Data Model Sources (Cow, Fence, and Zone definitions)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/cow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Types/fence.cpp
