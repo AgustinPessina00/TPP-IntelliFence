@@ -27,11 +27,11 @@ void Fence::init() {
     // DARK_BLUE_ZONE (Advertencia): 30-50m
     // YELLOW_ZONE (Peligro): 10-30m
     // RED_ZONE (Crítica): 0-10m
-    this->lightBlue = 85.0f;  // LIGHT_BLUE_ZONE: 70-85m desde límite
-    this->blue = 70.0f;       // BLUE_ZONE: 50-70m desde límite
-    this->darkBlue = 50.0f;   // DARK_BLUE_ZONE: 30-50m desde límite
-    this->yellow = 30.0f;     // YELLOW_ZONE: 10-30m desde límite
-    this->red = 10.0f;        // RED_ZONE: 0-10m desde límite
+    this->lightBlue = 25.0f;  // LIGHT_BLUE_ZONE: 70-85m desde límite
+    this->blue = 20.0f;       // BLUE_ZONE: 50-70m desde límite
+    this->darkBlue = 15.0f;   // DARK_BLUE_ZONE: 30-50m desde límite
+    this->yellow = 10.0f;     // YELLOW_ZONE: 10-30m desde límite
+    this->red = 5.0f;        // RED_ZONE: 0-10m desde límite
 
     setZoneThresholds();
 
