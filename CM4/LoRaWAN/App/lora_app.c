@@ -633,9 +633,9 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
   // ⚠️ DEBUG: Parpadear LED ROJO para confirmar que la función se llama
   for (uint8_t i = 0; i < 5; i++)
   {
-    HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET);
     HAL_Delay(50);
-    HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
     HAL_Delay(50);
   }
   
@@ -647,7 +647,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
     rtos_printf("params != NULL: YES\r\r\n");
     rtos_printf("IsMcpsIndication: %d\r\r\n", params->IsMcpsIndication);
     
-    HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
+    // HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
 
     UTIL_TIMER_Start(&RxLedTimer);
 
@@ -770,9 +770,9 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 // Parpadear LED para indicar recepción exitosa (LED ROJO)
                 for (uint8_t blink = 0; blink < 3; blink++)
                 {
-                  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET);
+                  // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET);
                   HAL_Delay(100);
-                  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+                  // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
                   HAL_Delay(100);
                 }
               }
@@ -938,9 +938,9 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
                 // Parpadear LED AZUL para indicar recepción exitosa de fence
                 for (uint8_t blink = 0; blink < 2; blink++)
                 {
-                  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET);
+                  // HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET);
                   HAL_Delay(50);
-                  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET);
+                  // HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET);
                   HAL_Delay(50);
                 }
               }
@@ -1014,6 +1014,7 @@ static void SendTxData(void)
             float latitude, longitude;
             memcpy(&latitude, &msg->payload[0], 4);
             memcpy(&longitude, &msg->payload[4], 4);
+            rtos_printf("################################################################\r\n");
             rtos_printf("[LORA_TX] GPS: Lat=%.6f Lon=%.6f\r\r\n", latitude, longitude);
           }
           break;
@@ -1034,13 +1035,14 @@ static void SendTxData(void)
       // NO HAY MENSAJE: Enviar payload vacío
       AppData.BufferSize = 0;
       AppData.Port = LORAWAN_USER_APP_PORT;
+      rtos_printf("################################################################\r\n");
       rtos_printf("[LORA_TX] No message in queue, sending empty payload\r\r\n");
     }
 
     // Detener LED de Join si ya está conectado
     if ((JoinLedTimer.IsRunning) && (LmHandlerJoinStatus() == LORAMAC_HANDLER_SET)) {
       UTIL_TIMER_Stop(&JoinLedTimer);
-      HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
+      // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
     }
 
     // SIEMPRE ENVIAR (con payload o vacío)
@@ -1048,6 +1050,7 @@ static void SendTxData(void)
     
     if (LORAMAC_HANDLER_SUCCESS == status) {
       rtos_printf("[LORA_TX] Uplink sent successfully\r\r\n");
+      rtos_printf("################################################################\r\n");
       
       // Enviar feedback a FSM solo si había mensaje válido
       if (shouldSendFeedback && messageId == MSG_ID_LORA_SEND_POSITION_FEEDBACK) {
@@ -1108,7 +1111,7 @@ static void OnTxData(LmHandlerTxParams_t *params)
     /* Process Tx event only if its a mcps response to prevent some internal events (mlme) */
     if (params->IsMcpsConfirm != 0)
     {
-      HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_SET); /* LED_GREEN */
+      // HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_SET); /* LED_GREEN */
       UTIL_TIMER_Start(&TxLedTimer);
 
       APP_LOG(TS_OFF, VLEVEL_M, "\r\n###### ========== MCPS-Confirm =============\r\r\n");
@@ -1137,7 +1140,7 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
     if (joinParams->Status == LORAMAC_HANDLER_SUCCESS)
     {
       UTIL_TIMER_Stop(&JoinLedTimer);
-      HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
+      // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
 
       rtos_printf("\r\n###### = JOINED = %s\r\r\n",
               (joinParams->Mode == ACTIVATION_TYPE_ABP) ? "ABP" : "OTAA");
@@ -1149,7 +1152,11 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
       EmbeddedMessage_t *msgToFSM = MessagePool_Allocate();
       if (msgToFSM != NULL) {
         EmbeddedMessage_Create(msgToFSM, MSG_ID_LORA_JOINED, MODULE_LORA_RX, MODULE_FSM);
-        osMessageQueuePut(dispatcherQueueHandle, &msgToFSM, 0, 100);
+        osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, &msgToFSM, 0, 100);
+        if (status != osOK) {
+          rtos_printf("[LORA_RX] WARNING: Failed to send join message (status=%d)\r\r\n", status);
+          MessagePool_Free(msgToFSM);
+        }
       }
       
       // Activar el thread de guardado
@@ -1280,9 +1287,9 @@ static void OnSystemReset(void)
 static void StopJoin(void)
 {
   /* USER CODE BEGIN StopJoin_1 */
-  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
-  HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_SET); /* LED_GREEN */
-  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET); /* LED_RED */
+  // HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
+  // HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_SET); /* LED_GREEN */
+  // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_SET); /* LED_RED */
   /* USER CODE END StopJoin_1 */
 
   UTIL_TIMER_Stop(&TxTimer);
@@ -1324,9 +1331,9 @@ static void OnStopJoinTimerEvent(void *context)
     osThreadFlagsSet(Thd_LoraStopJoinId, 1);
   }
   /* USER CODE BEGIN OnStopJoinTimerEvent_Last */
-  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET); /* LED_BLUE */
-  HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET); /* LED_GREEN */
-  HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
+  // HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET); /* LED_BLUE */
+  // HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET); /* LED_GREEN */
+  // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET); /* LED_RED */
   /* USER CODE END OnStopJoinTimerEvent_Last */
 }
 
@@ -1428,12 +1435,12 @@ static void OnRestoreContextRequest(void *nvm, uint32_t nvm_size)
 /* USER CODE BEGIN PrFD_LedEvents */
 static void OnTxTimerLedEvent(void *context)
 {
-  HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET); /* LED_GREEN */
+  // HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET); /* LED_GREEN */
 }
 
 static void OnRxTimerLedEvent(void *context)
 {
-  HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET); /* LED_BLUE */
+  // HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_RESET); /* LED_BLUE */
 }
 
 static void OnJoinTimerLedEvent(void *context)
