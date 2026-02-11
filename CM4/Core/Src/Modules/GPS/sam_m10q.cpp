@@ -152,7 +152,6 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
         // Si falla alguna de las dos escrituras, reintentar
         if (!ramSuccess || !bbrSuccess) {
             i--;
-            continue;
         }
     }
 }
@@ -161,40 +160,25 @@ void SamM10q::configure_gps() {
 
     write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C via UART RAM
     write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR); // Habilito I2C via UART BBR
+    verify_config_with_valget(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Verifico configuración
 
     write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_I2C via uart
     write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Verifico configuración
     
     write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
     write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Verifico configuración
 
     write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
     write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Verifico configuración
 
     write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
     write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Verifico configuración
 
-    // Reemplazo todo lo de abajo con esta función:
     // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
-
-    // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
-    //     const uint8_t* payload = m10q_data_payloads[i].data;
-    //     size_t payload_len = m10q_data_payloads[i].size;
-        
-    //     // Escribir en RAM
-    //     if (!write_register(payload, payload_len, RAM)) {
-    //         // Si falla la escritura en RAM, reintentar
-    //         i--;
-    //         continue;
-    //     }
-        
-    //     // Escribir en BBR (persistente)
-    //     if (!write_register(payload, payload_len, BBR)) {
-    //         // Si falla la escritura en BBR, reintentar
-    //         i--;
-    //         continue;
-    //     }
-    // }
 }
 
 /* ============================================================ */
@@ -453,6 +437,143 @@ HAL_StatusTypeDef SamM10q::send_message_uart(const uint8_t* message, uint16_t me
     BusyDelayMs(delay_ms);
 
     return (result == UART_OK) ? HAL_OK : HAL_ERROR;
+}
+
+/* =========================================================================== */
+/* ========== FUNCIONES PARA VERIFICACION DE CONFIGURACION CON VALGET ========== */
+/* =========================================================================== */
+
+/**
+ * @brief Verifica que la configuración escrita coincida con lo que devuelve VALGET
+ * @param payload_data Datos del payload (keyID + value configurado)
+ * @param payload_len Longitud del payload
+ * @param layer Capa a verificar (RAM o BBR)
+ * @return true si el valor coincide, false si no
+ */
+bool SamM10q::verify_config_with_valget(const uint8_t* payload_data, size_t payload_len, uint8_t layer) {
+    if (!payload_data || payload_len <= UBX_KEYID_SIZE || !uartBus) {
+        return false;
+    }
+
+    // Extraer keyID (primeros 4 bytes)
+    const uint8_t* key_id = payload_data;
+    
+    // Extraer valor esperado (resto de bytes después del keyID)
+    const uint8_t* expected_value = payload_data + UBX_KEYID_SIZE;
+    uint8_t value_size = static_cast<uint8_t>(payload_len - UBX_KEYID_SIZE);
+
+    // Construir mensaje VALGET solo con el keyID
+    uint8_t message[UBX_MAX_MESSAGE_SIZE];
+    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, key_id, UBX_KEYID_SIZE, message, UBX_MAX_MESSAGE_SIZE);
+    
+    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
+        return false;
+    }
+
+    // Enviar mensaje VALGET vía UART
+    if (send_message_uart(message, msg_len, 100) != HAL_OK) {
+        return false;
+    }
+
+    // Esperar y leer respuesta del GPS
+    uint8_t response_buffer[128];
+    uint16_t bytes_received = 0;
+    uint32_t timeout = 1000; // 1 segundo timeout
+    uint32_t start_time = HAL_GetTick();
+    
+    while ((HAL_GetTick() - start_time) < timeout) {
+        uint16_t chunk_received = 0;
+        UARTResult result = uartBus->receiveAvailable(
+            response_buffer + bytes_received,
+            static_cast<uint16_t>(sizeof(response_buffer) - bytes_received),
+            &chunk_received,
+            100
+        );
+        
+        if (result == UART_OK && chunk_received > 0) {
+            bytes_received = static_cast<uint16_t>(bytes_received + chunk_received);
+            
+            // Intentar parsear la respuesta
+            if (parse_valget_response(response_buffer, bytes_received, key_id, expected_value, value_size)) {
+                return true;
+            }
+        }
+        
+        BusyDelayMs(10);
+    }
+    
+    return false;
+}
+
+/**
+ * @brief Parsea la respuesta VALGET y compara con el valor esperado
+ * @param response_buffer Buffer con la respuesta UART
+ * @param buffer_len Longitud del buffer
+ * @param key_id KeyID a buscar (4 bytes)
+ * @param expected_value Valor esperado
+ * @param value_size Tamaño del valor
+ * @return true si encuentra el mensaje y el valor coincide, false si no
+ */
+bool SamM10q::parse_valget_response(const uint8_t* response_buffer, uint16_t buffer_len, 
+                                     const uint8_t* key_id, const uint8_t* expected_value, 
+                                     uint8_t value_size) {
+    if (!response_buffer || buffer_len < 8 || !key_id || !expected_value || value_size == 0) {
+        return false;
+    }
+
+    // Buscar el inicio del mensaje UBX-VALGET en el buffer
+    for (uint16_t i = 0; i + 8 < buffer_len; i++) {
+        // Buscar sincronización UBX
+        if (response_buffer[i] != UBX_HEADER1 || response_buffer[i + 1] != UBX_HEADER2) {
+            continue;
+        }
+        
+        // Verificar que es un mensaje VALGET
+        if (response_buffer[i + 2] != VALGET_CLASS || response_buffer[i + 3] != VALGET_ID) {
+            continue;
+        }
+        
+        // Leer longitud del payload
+        uint16_t payload_len = response_buffer[i + 4] | (response_buffer[i + 5] << 8);
+        uint16_t total_msg_len = static_cast<uint16_t>(6 + payload_len + 2); // header(2) + class(1) + id(1) + len(2) + payload + checksum(2)
+        
+        // Verificar que tenemos el mensaje completo
+        if (i + total_msg_len > buffer_len) {
+            continue;
+        }
+        
+        // Verificar checksum del mensaje
+        if (!verifyUBXChecksum(&response_buffer[i], total_msg_len)) {
+            continue;
+        }
+        
+        // Payload comienza en i+6
+        // Estructura del payload VALGET: version(1) + layer(1) + reserved(2) + keyID(4) + value(N)
+        const uint8_t* payload = &response_buffer[i + 6];
+        
+        // Verificar que el payload tiene suficiente tamaño
+        if (payload_len < (4 + UBX_KEYID_SIZE + value_size)) {
+            continue;
+        }
+        
+        // Saltar header del payload (version + layer + reserved = 4 bytes)
+        const uint8_t* payload_keyid = payload + 4;
+        const uint8_t* payload_value = payload + 4 + UBX_KEYID_SIZE;
+        
+        // Verificar que el keyID coincide
+        if (memcmp(payload_keyid, key_id, UBX_KEYID_SIZE) != 0) {
+            continue;
+        }
+        
+        // Comparar el valor recibido con el esperado
+        if (memcmp(payload_value, expected_value, value_size) == 0) {
+            return true; // Coincide!
+        } else {
+            return false; // KeyID correcto pero valor diferente
+        }
+    }
+    
+    return false; // No se encontró el mensaje VALGET con este keyID
 }
 
 /* =========================================================== */

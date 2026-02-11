@@ -130,6 +130,10 @@ private:
     bool parseUBXMessage(const uint8_t* buffer, uint16_t bufferLen, UBX_NAV_PVT_data_t* pvtData);
     bool verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen);
 
+	// ====== FUNCIONES PRIVADAS PARA VERIFICACION VALGET ======
+	bool verify_config_with_valget(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
+	bool parse_valget_response(const uint8_t* response_buffer, uint16_t buffer_len, const uint8_t* key_id, const uint8_t* expected_value, uint8_t value_size);
+
 public:
 	float latitude = 0;
 	float longitude = 0;
