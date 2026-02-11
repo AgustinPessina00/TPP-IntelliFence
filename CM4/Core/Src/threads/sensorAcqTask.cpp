@@ -36,22 +36,24 @@ void sensorAcqTask(void *argument) {
     }
     
     if (!inaGps.init(configs[gpsIndex].address, configs[gpsIndex].rShunt, 
-                     configs[gpsIndex].currentLSB, Ina226Averaging::AVG_128, 
-                     Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, 
-                     Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
+                     configs[gpsIndex].currentLSB, Ina226Averaging::AVG_64,
+             Ina226BusConvTime::CT_1_1MS,
+             Ina226ShuntConvTime::CT_1_1MS,
+             Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
         RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize INA226 GPS\r\n");
     }
     
     if (!inaImu.init(configs[imuIndex].address, configs[imuIndex].rShunt, 
-                     configs[imuIndex].currentLSB, Ina226Averaging::AVG_128, 
-                     Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, 
-                     Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
+                     configs[imuIndex].currentLSB, Ina226Averaging::AVG_64,
+            Ina226BusConvTime::CT_1_1MS,
+            Ina226ShuntConvTime::CT_1_1MS,
+            Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
         RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize INA226 IMU\r\n");
     }
     
     if (!inaMcu.init(configs[mcuIndex].address, configs[mcuIndex].rShunt, 
                      configs[mcuIndex].currentLSB, Ina226Averaging::AVG_128, 
-                     Ina226ConvTime::CT_1_1MS, Ina226ConvTime::CT_1_1MS, 
+                     Ina226BusConvTime::CT_1_1MS, Ina226ShuntConvTime::CT_1_1MS, 
                      Ina226Mode::SHUNT_BUS_CONTINUOUS)) {
         RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to initialize INA226 MCU\r\n");
     }
@@ -121,6 +123,8 @@ void sensorAcqTask(void *argument) {
 
                 case MSG_ID_REQUEST_IMU:
                     // Leer IMU solo cuando se solicita
+
+                    
                     imu.readAcceleration();
                     imuData[0] = imu.ax;
                     imuData[1] = imu.ay;

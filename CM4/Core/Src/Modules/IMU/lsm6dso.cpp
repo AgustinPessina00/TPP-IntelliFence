@@ -116,6 +116,8 @@ I2CResult Lsm6dso::readAcceleration()
     return I2C_OK;
 }
 
+
+
 I2CResult Lsm6dso::readGyroscope()
 {
     if (!initialized) {

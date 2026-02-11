@@ -23,7 +23,7 @@ enum class Ina226Averaging : uint16_t {
     AVG_1024 = (0b111 << CFG_AVG0)
 };
 
-enum class Ina226ConvTime : uint16_t {
+enum class Ina226BusConvTime : uint16_t {
     CT_140US   = (0b000 << CFG_VBUSCT0),
     CT_204US   = (0b001 << CFG_VBUSCT0),
     CT_332US   = (0b010 << CFG_VBUSCT0),
@@ -32,6 +32,17 @@ enum class Ina226ConvTime : uint16_t {
     CT_2_116MS = (0b101 << CFG_VBUSCT0),
     CT_4_156MS = (0b110 << CFG_VBUSCT0),
     CT_8_244MS = (0b111 << CFG_VBUSCT0)
+};
+
+enum class Ina226ShuntConvTime : uint16_t {
+    CT_140US   = (0b000 << CFG_VSHCT0),
+    CT_204US   = (0b001 << CFG_VSHCT0),
+    CT_332US   = (0b010 << CFG_VSHCT0),
+    CT_588US   = (0b011 << CFG_VSHCT0),
+    CT_1_1MS   = (0b100 << CFG_VSHCT0),
+    CT_2_116MS = (0b101 << CFG_VSHCT0),
+    CT_4_156MS = (0b110 << CFG_VSHCT0),
+    CT_8_244MS = (0b111 << CFG_VSHCT0)
 };
 
 enum class Ina226Mode : uint16_t {
@@ -52,9 +63,9 @@ public:
     Ina226();
     
     // Must be called explicitly after HAL_Init() and MX_I2C_Init()
-    bool init(uint8_t i2cAddr, float rShunt, float currentLSB, 
-              Ina226Averaging avg, Ina226ConvTime vbusCt, 
-              Ina226ConvTime vshCt, Ina226Mode mode);
+    bool init(uint8_t i2cAddr, float rShunt, float currentLSB,
+          Ina226Averaging avg, Ina226BusConvTime vbusCt,
+          Ina226ShuntConvTime vshCt, Ina226Mode mode);
     
     I2CResult readShuntVoltage_mV();
     I2CResult readBusVoltage_mV();
@@ -65,8 +76,9 @@ public:
     void testINA();
 
 private:
-    I2CResult configure(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
-    uint16_t setConfiguration(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode);
+    I2CResult configure(Ina226Averaging avg, Ina226BusConvTime vbusCt,
+                    Ina226ShuntConvTime vshCt, Ina226Mode mode);
+    uint16_t setConfiguration(Ina226Averaging avg, Ina226BusConvTime vbusCt, Ina226ShuntConvTime vshCt, Ina226Mode mode);
     I2CResult writeRegister(uint8_t reg, uint16_t value);
     I2CResult readRegister(uint8_t reg, uint16_t &value);
     uint16_t calculateCalibration();
@@ -86,8 +98,8 @@ private:
     
     // Configuration storage
     Ina226Averaging avgConfig;
-    Ina226ConvTime vbusCtConfig;
-    Ina226ConvTime vshCtConfig;
+    Ina226BusConvTime vbusCtConfig;
+    Ina226ShuntConvTime vshCtConfig;
     Ina226Mode modeConfig;
 };
 

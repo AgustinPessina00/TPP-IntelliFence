@@ -94,13 +94,16 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
                 cow.updateDistanceToLimit(minDistance);
                 
                 RTOS_LOG_DEBUG("[FSM] FENCE_TRANS: Zone calculated: %d, Distance: %.2fm\r\n", calculatedZone, minDistance);
-                fenceTransitionState = FENCE_TRANSITION_END;
+
+                if (calculatedZone != GREEN_ZONE) {
+                    RTOS_LOG_INFO("[FSM] FENCE_TRANS: Zone is not green, please move the cow to a safe area\r\n");
+                    fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
+                }
+                else {
+                    fenceTransitionState = FENCE_TRANSITION_END;
+                }
+                
             }
-            break;
-            
-        case FENCE_TRANSITION_EVALUATE_ZONE:
-            // Ya no se usa - eliminado
-            fenceTransitionState = FENCE_TRANSITION_END;
             break;
             
         case FENCE_TRANSITION_END:
@@ -108,5 +111,6 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             mainFSM = MainFSM_t::NORMAL_OPERATION;
             RTOS_LOG_INFO("[FSM] Fence transition complete\r\n");
             break;
+
     }
 }

@@ -122,24 +122,23 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_REQUEST_ACCELERATION:
-            //sendMessage(MSG_ID_REQUEST_IMU, MODULE_SENSOR_ACQ);
-            //Timeout_Start(&timeout, IMU_TIMEOUT_MS);
+            sendMessage(MSG_ID_REQUEST_IMU, MODULE_SENSOR_ACQ);
+            Timeout_Start(&timeout, IMU_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_ACCELERATION;
             break;
             
         case GREEN_ZONE_WAIT_ACCELERATION:
-            // if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
-            //     if (processImuMessage(*msg, cow) == HAL_OK) {
+            if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
+                if (processImuMessage(*msg, cow) == HAL_OK) {
                      greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
-            //     }
-            // } else if (Timeout_IsExpired(&timeout)) {
-            //     RTOS_LOG_WARN("[FSM] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                //greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
-            //}
+                }
+            } else if (Timeout_IsExpired(&timeout)) {
+                RTOS_LOG_WARN("[FSM] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
+            }
             break;
             
         case GREEN_ZONE_EVALUATE_COWSTATE:
-            updateState(cow);
             switch (cow.getState()) {
                 case CowState::GRAZING:
                     greenZoneState = GREEN_ZONE_GRAZING;

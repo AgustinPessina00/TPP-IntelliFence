@@ -152,6 +152,7 @@ HAL_StatusTypeDef processImuMessage(EmbeddedMessage_t *msg, Cow& cow) {
         RTOS_LOG_DEBUG("[FSM] IMU: ax=%.2f, ay=%.2f, az=%.2f g\r\n", ax, ay, az);
         
         cow.updateAcceleration({ax, ay, az});
+        updateState(cow);
         
         return HAL_OK;
     }
@@ -238,6 +239,5 @@ static CowState classifyMotion(Acceleration acc) {
 }
 
 void updateState(Cow& cow) {
-    //cow.updateState(classifyMotion(cow.getAcceleration()));
-    cow.updateState(CowState::MOVEMENT);
+    cow.updateState(classifyMotion(cow.getAcceleration()));
 }

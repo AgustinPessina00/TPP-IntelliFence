@@ -140,11 +140,6 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             }
             break;
             
-        case STARTUP_ROUTINE_EVALUATE_ZONE:
-            // Ya no se usa - eliminado
-            *state = STARTUP_ROUTINE_END;
-            break;
-            
         case STARTUP_ROUTINE_END:
             *state = STARTUP_ROUTINE_BEGIN;
             if (isInGreenZone(cow) == HAL_OK) {

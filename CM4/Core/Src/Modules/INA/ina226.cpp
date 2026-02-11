@@ -8,71 +8,97 @@
 #include <stdio.h>
 
 // Trivial constructor - does NOT access hardware, allocate memory, or block
-Ina226::Ina226() 
-    : i2cAddr(0), i2cBus(nullptr), rShunt(0.0f), currentLSB(0.0f), 
-      initialized(false), avgConfig(Ina226Averaging::AVG_1),
-      vbusCtConfig(Ina226ConvTime::CT_1_1MS), vshCtConfig(Ina226ConvTime::CT_1_1MS),
-      modeConfig(Ina226Mode::SHUNT_BUS_CONTINUOUS) {
-    // Constructor does nothing - initialization is explicit via init()
+Ina226::Ina226()
+    : shuntVoltage(0.0f),
+      busVoltage(0.0f),
+      current(0.0f),
+      power(0.0f),
+      i2cAddr(0),
+      i2cBus(nullptr),
+      rShunt(0.0f),
+      currentLSB(0.0f),
+      initialized(false),
+      avgConfig(Ina226Averaging::AVG_1),
+      vbusCtConfig(Ina226BusConvTime::CT_1_1MS),
+      vshCtConfig(Ina226ShuntConvTime::CT_1_1MS),
+      modeConfig(Ina226Mode::SHUNT_BUS_CONTINUOUS)
+{
+    // Constructor intentionally does not access hardware
 }
 
-bool Ina226::init(uint8_t i2cAddr, float rShunt, float currentLSB, 
-                  Ina226Averaging avg, Ina226ConvTime vbusCt, 
-                  Ina226ConvTime vshCt, Ina226Mode mode) {
+
+
+bool Ina226::init(uint8_t i2cAddr, float rShunt, float currentLSB,
+                  Ina226Averaging avg,
+                  Ina226BusConvTime vbusCt,
+                  Ina226ShuntConvTime vshCt,
+                  Ina226Mode mode)
+{
     if (initialized) {
         return true; // Already initialized
     }
-    
+
     // Store parameters
-    this->i2cAddr = i2cAddr;
-    this->rShunt = rShunt;
-    this->currentLSB = currentLSB;
-    this->avgConfig = avg;
+    this->i2cAddr     = i2cAddr;
+    this->rShunt      = rShunt;
+    this->currentLSB  = currentLSB;
+
+    this->avgConfig   = avg;
     this->vbusCtConfig = vbusCt;
-    this->vshCtConfig = vshCt;
-    this->modeConfig = mode;
-    
+    this->vshCtConfig  = vshCt;
+    this->modeConfig  = mode;
+
     // Ensure I2CManager is initialized
     if (!I2CManager::isInitialized()) {
         if (!I2CManager::initializeAll()) {
             return false;
         }
     }
-    
+
     // Get reference to I2C2 bus (same as GPS)
     i2cBus = &I2CManager::getBus2();
     if (!i2cBus) {
         return false;
     }
-    
+
     // Configure the INA226 with provided parameters
     if (configure(avg, vbusCt, vshCt, mode) != I2C_OK) {
         return false;
     }
-    
+
     initialized = true;
     return true;
 }
 
-I2CResult Ina226::configure(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode) {
-    uint16_t config = setConfiguration(avg, vbusCt, vshCt, mode);
-    //float lsb = 0.001f;
-    uint16_t cal = calculateCalibration();
+
+I2CResult Ina226::configure(Ina226Averaging avg,
+                            Ina226BusConvTime vbusCt,
+                            Ina226ShuntConvTime vshCt,
+                            Ina226Mode mode)
+{
+    const uint16_t config = setConfiguration(avg, vbusCt, vshCt, mode);
+    const uint16_t cal    = calculateCalibration();
+
     I2CResult result = writeRegister(REG_CFG, config);
-    if (result != I2C_OK)
+    if (result != I2C_OK) {
         return result;
+    }
 
     result = writeRegister(REG_CALIB, cal);
     return result;
 }
 
-
-uint16_t Ina226::setConfiguration(Ina226Averaging avg, Ina226ConvTime vbusCt, Ina226ConvTime vshCt, Ina226Mode mode) {
-    return (static_cast<uint16_t>(avg) & INA226_CFG_AVG_MASK) |
+uint16_t Ina226::setConfiguration(Ina226Averaging avg,
+                                  Ina226BusConvTime vbusCt,
+                                  Ina226ShuntConvTime vshCt,
+                                  Ina226Mode mode)
+{
+    return (static_cast<uint16_t>(avg)    & INA226_CFG_AVG_MASK) |
            (static_cast<uint16_t>(vbusCt) & INA226_CFG_VBUSCT_MASK) |
-           (static_cast<uint16_t>(vshCt) & INA226_CFG_VSHCT_MASK) |
-           (static_cast<uint16_t>(mode) & INA226_CFG_MODE_MASK);
+           (static_cast<uint16_t>(vshCt)  & INA226_CFG_VSHCT_MASK) |
+           (static_cast<uint16_t>(mode)   & INA226_CFG_MODE_MASK);
 }
+
 
 uint16_t Ina226::calculateCalibration() {
     float cal = 0.00512f / (currentLSB * rShunt);
