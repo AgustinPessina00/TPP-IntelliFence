@@ -225,19 +225,180 @@ HAL_StatusTypeDef isInGreenZone(Cow& cow) {
     return (cow.getCurrentZone() == GREEN_ZONE) ? HAL_OK : HAL_ERROR;
 }
 
-static CowState classifyMotion(Acceleration acc) {
-    double abs_ax = fabs(acc.ax);
-    double abs_ay = fabs(acc.ay);
-    double abs_az = fabs(acc.az);
-    
-    if (abs_ax < 0.05f && abs_ay < 0.05f && abs_az < 0.05f)
-        return CowState::SLEEP;
-    else if (abs_ax < 0.05f && abs_ay < 0.05f && abs_az > 0.1f)
-        return CowState::GRAZING;
-    else
-        return CowState::MOVEMENT;
+// ============================================================================
+// BURST CLASSIFICATION SYSTEM
+// ============================================================================
+
+// Helper: absolute value for uint32_t from int32_t
+static inline uint32_t uabs32(int32_t x) {
+    return (x < 0) ? (uint32_t)(-x) : (uint32_t)x;
 }
 
+// Compute burst features from N raw samples
+static BurstFeatures computeBurstFeatures(const AccRaw* samples, uint16_t N, 
+                                         uint32_t g2, uint32_t th_peak) {
+    uint64_t sum_d = 0;
+    uint64_t sum_a2 = 0;
+    uint16_t peaks = 0;
+
+    for (uint16_t i = 0; i < N; i++) {
+        int32_t ax = samples[i].ax;
+        int32_t ay = samples[i].ay;
+        int32_t az = samples[i].az;
+
+        // a² = ax² + ay² + az²
+        uint32_t a2 = (uint32_t)(ax*ax + ay*ay + az*az);
+        sum_a2 += a2;
+
+        // d = |a² - g²|
+        uint32_t d = uabs32((int32_t)a2 - (int32_t)g2);
+        sum_d += d;
+
+        if (d > th_peak) peaks++;
+    }
+
+    BurstFeatures features;
+    features.E = (uint32_t)(sum_d / N);
+    features.peaks = peaks;
+    
+    return features;
+}
+
+// Classify cow state from burst features
+static CowState classifyFromFeatures(uint32_t E, uint16_t peaks,
+                                    uint32_t th_rest,
+                                    uint32_t th_move_strong,
+                                    uint16_t th_peaks_graze) {
+    // Quieta (rest state - not necessarily sleeping yet)
+    if (E < th_rest) {
+        return CowState::SLEEP;  // Note: actual sleep determined by FSM time tracking
+    }
+
+    // Active: grazing has high peak count but lower overall energy
+    if ((peaks >= th_peaks_graze) && (E < th_move_strong)) {
+        return CowState::GRAZING;
+    }
+
+    return CowState::MOVEMENT;
+}
+
+// State tracking for persistence and anti-flapping
+static struct {
+    CowState history[5];     // Last 5 classifications
+    uint8_t historyIndex;    // Circular buffer index
+    uint8_t historyCount;    // How many valid entries
+    CowState lastCommitted;  // Last state sent to Cow
+    uint32_t quietTicks;     // Consecutive ticks in quiet state
+    uint32_t g2;             // Calibrated g² value (auto-updated)
+    bool g2Initialized;      // g² calibration flag
+} stateTracker = {
+    .history = {CowState::MOVEMENT, CowState::MOVEMENT, CowState::MOVEMENT, 
+                CowState::MOVEMENT, CowState::MOVEMENT},
+    .historyIndex = 0,
+    .historyCount = 0,
+    .lastCommitted = CowState::MOVEMENT,
+    .quietTicks = 0,
+    .g2 = 268000000,  // Initial estimate for ±2g (~16384² LSB)
+    .g2Initialized = false
+};
+
+// Configuration parameters
+#define QUIET_MINUTES_TO_SLEEP  5      // Minutes of quiet before declaring SLEEP
+#define TICKS_PER_MINUTE        30     // Assuming ~2s burst period
+#define SLEEP_THRESHOLD_TICKS   (QUIET_MINUTES_TO_SLEEP * TICKS_PER_MINUTE)
+
+// Update g² calibration (IIR filter when quiet)
+static void updateG2Calibration(const AccRaw* samples, uint16_t N, uint32_t E) {
+    // Only calibrate when quiet (low E)
+    uint32_t th_quiet = stateTracker.g2 / 100;  // 1% of g²
+    
+    if (E < th_quiet) {
+        // Calculate average a²
+        uint64_t sum_a2 = 0;
+        for (uint16_t i = 0; i < N; i++) {
+            int32_t ax = samples[i].ax;
+            int32_t ay = samples[i].ay;
+            int32_t az = samples[i].az;
+            sum_a2 += (uint32_t)(ax*ax + ay*ay + az*az);
+        }
+        uint32_t avg_a2 = (uint32_t)(sum_a2 / N);
+        
+        // IIR: g2 = 0.95*g2 + 0.05*avg_a2 → (g2*19 + avg_a2)/20
+        stateTracker.g2 = (stateTracker.g2 * 19 + avg_a2) / 20;
+        stateTracker.g2Initialized = true;
+        
+        RTOS_LOG_DEBUG("[FSM] g² calibrated: %lu\r\n", stateTracker.g2);
+    }
+}
+
+// Process burst and update cow state with persistence
+void updateStateFromBurst(Cow& cow, const AccRaw* samples, uint16_t N) {
+    // Calculate dynamic thresholds based on current g²
+    uint32_t th_peak        = stateTracker.g2 / 50;   // ~2%
+    uint32_t th_rest        = stateTracker.g2 / 200;  // ~0.5%
+    uint32_t th_move_strong = stateTracker.g2 / 20;   // ~5%
+    uint16_t th_peaks_graze = N / 3;                  // ~33% of samples
+    
+    // Compute features
+    BurstFeatures features = computeBurstFeatures(samples, N, stateTracker.g2, th_peak);
+    
+    RTOS_LOG_DEBUG("[FSM] Burst: E=%lu, peaks=%u, g²=%lu\r\n", 
+                  features.E, features.peaks, stateTracker.g2);
+    
+    // Update g² calibration
+    updateG2Calibration(samples, N, features.E);
+    
+    // Classify
+    CowState candidate = classifyFromFeatures(features.E, features.peaks,
+                                             th_rest, th_move_strong, th_peaks_graze);
+    
+    // Add to history
+    stateTracker.history[stateTracker.historyIndex] = candidate;
+    stateTracker.historyIndex = (stateTracker.historyIndex + 1) % 5;
+    if (stateTracker.historyCount < 5) stateTracker.historyCount++;
+    
+    // Persistence check: need 2 consecutive matching states to commit
+    bool shouldCommit = false;
+    if (stateTracker.historyCount >= 2) {
+        uint8_t prev = (stateTracker.historyIndex + 5 - 2) % 5;
+        uint8_t curr = (stateTracker.historyIndex + 5 - 1) % 5;
+        
+        if (stateTracker.history[prev] == stateTracker.history[curr]) {
+            shouldCommit = true;
+        }
+    }
+    
+    if (shouldCommit) {
+        CowState newState = candidate;
+        
+        // Handle quiet → sleep transition (requires X minutes)
+        if (candidate == CowState::SLEEP) {
+            stateTracker.quietTicks++;
+            
+            if (stateTracker.quietTicks >= SLEEP_THRESHOLD_TICKS) {
+                newState = CowState::SLEEP;  // Real sleep after X minutes
+                RTOS_LOG_INFO("[FSM] Entering SLEEP after %lu ticks\r\n", stateTracker.quietTicks);
+            } else {
+                // Still quiet, but not yet sleeping - keep previous active state
+                newState = stateTracker.lastCommitted;
+            }
+        } else {
+            // Any activity resets quiet counter and exits sleep
+            stateTracker.quietTicks = 0;
+        }
+        
+        // Only update if changed
+        if (newState != stateTracker.lastCommitted) {
+            cow.updateState(newState);
+            stateTracker.lastCommitted = newState;
+            RTOS_LOG_INFO("[FSM] State committed: %d\r\n", (int)newState);
+        }
+    }
+}
+
+// Legacy single-sample version (DEPRECATED - use updateStateFromBurst instead)
 void updateState(Cow& cow) {
-    cow.updateState(classifyMotion(cow.getAcceleration()));
+    RTOS_LOG_WARN("[FSM] updateState(single sample) is deprecated - use updateStateFromBurst\r\n");
+    // Fallback: assume some default state
+    cow.updateState(CowState::MOVEMENT);
 }

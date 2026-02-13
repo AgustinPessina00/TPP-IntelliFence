@@ -27,6 +27,10 @@ extern "C" {
 
 #include "cow.h"
 #include "fence.h"
+#include "lsm6dso.h"  // For AccRaw
+
+// Burst classification configuration
+#define BURST_SIZE 52  // 2 seconds @ 26 Hz
 
 // External queue handles
 extern osMessageQueueId_t fsmQueueHandle;
@@ -154,7 +158,24 @@ void enterLowPowerSleep();
 HAL_StatusTypeDef isInGreenZone(Cow& cow);
 
 /**
- * @brief Update cow state based on current acceleration
+ * @brief Update cow state from burst of IMU samples (PREFERRED METHOD)
+ * 
+ * Processes N raw accelerometer samples to:
+ * - Compute burst features (E = avg deviation, peaks count)
+ * - Classify cow state with dynamic thresholds
+ * - Apply persistence and anti-flapping logic
+ * - Auto-calibrate g² during quiet periods
+ * - Detect sleep after X minutes of quiet
+ * 
+ * @param cow Cow object to update
+ * @param samples Array of N raw accelerometer samples (axRaw, ayRaw, azRaw)
+ * @param N Number of samples (typically 52 for 2s @ 26Hz)
+ */
+void updateStateFromBurst(Cow& cow, const AccRaw* samples, uint16_t N);
+
+/**
+ * @brief Update cow state based on current acceleration (DEPRECATED)
+ * @deprecated Use updateStateFromBurst() for robust burst-based classification
  * @param cow Cow object to update
  */
 void updateState(Cow& cow);

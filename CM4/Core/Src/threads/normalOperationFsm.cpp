@@ -128,11 +128,27 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_WAIT_ACCELERATION:
-            if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
-                if (processImuMessage(*msg, cow) == HAL_OK) {
-                     greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+            // Prioridad: MSG_ID_SEND_IMU_BURST (preferido)
+            if (waitForMessage(MSG_ID_SEND_IMU_BURST, timeout, msg, newMessage) == HAL_OK) {
+                // Procesar burst completo
+                if ((*msg)->length == sizeof(AccRaw) * BURST_SIZE) {
+                    AccRaw* samples = (AccRaw*)(*msg)->payload;
+                    updateStateFromBurst(cow, samples, BURST_SIZE);
+                    RTOS_LOG_DEBUG("[FSM] GREEN: Processed IMU burst (%d samples)\r\n", BURST_SIZE);
+                    greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+                } else {
+                    RTOS_LOG_ERROR("[FSM] GREEN: Invalid burst size (expected %d, got %d)\r\n", sizeof(AccRaw) * BURST_SIZE, (*msg)->length);
+                    greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
                 }
-            } else if (Timeout_IsExpired(&timeout)) {
+            }
+            // // Fallback: MSG_ID_SEND_IMU (single sample - legacy/deprecated)
+            // else if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
+            //     RTOS_LOG_WARN("[FSM] GREEN: Received single IMU sample (deprecated - use burst)\r\n");
+            //     if (processImuMessage(*msg, cow) == HAL_OK) {
+            //         greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+            //     }
+            // }
+            else if (Timeout_IsExpired(&timeout)) {
                 RTOS_LOG_WARN("[FSM] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
             }

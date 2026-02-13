@@ -430,6 +430,20 @@ typedef struct {
   lsm6dso_data_ois_t ois;
 } lsm6dso_data_t;
 
+// === BURST PROCESSING ===
+
+// Raw accelerometer sample (int16_t for efficient burst processing)
+typedef struct {
+  int16_t ax;
+  int16_t ay;
+  int16_t az;
+} AccRaw;
+
+// Burst features for cow state classification
+typedef struct {
+  uint32_t E;      // avg of d (deviation from g²)
+  uint16_t peaks;  // count of peaks above threshold
+} BurstFeatures;
 
 // == LSM6DSO ==
 

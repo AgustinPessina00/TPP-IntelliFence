@@ -14,7 +14,8 @@
 
 // Sensor Acquisition
 #define MSG_ID_SEND_GPS          0x20
-#define MSG_ID_SEND_IMU          0x21
+#define MSG_ID_SEND_IMU          0x21  // Single IMU sample (deprecated)
+#define MSG_ID_SEND_IMU_BURST    0x2A  // Burst of N IMU samples (AccRaw[])
 #define MSG_ID_SEND_INA_MCU      0x22
 #define MSG_ID_SEND_INA_GPS      0x23
 #define MSG_ID_SEND_INA_IMU      0x24

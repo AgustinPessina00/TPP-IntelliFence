@@ -7,6 +7,7 @@
 #include "cmsis_os.h"
 #include "EmbeddedMessage.h"
 #include "gps_data.h"
+#include "fsm_helper.h"  // Para BURST_SIZE
 #define RTOS_PRINTF_AUTO  // Enable smart printf routing
 #include "rtos_printf.h"
 #include <string.h>
@@ -121,24 +122,59 @@ void sensorAcqTask(void *argument) {
                     
                     break;
 
-                case MSG_ID_REQUEST_IMU:
-                    // Leer IMU solo cuando se solicita
-
+                case MSG_ID_REQUEST_IMU: {
+                    // Colectar burst de BURST_SIZE muestras @ 26 Hz (2 segundos)
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] Starting IMU burst collection (%d samples)\r\n", BURST_SIZE);
                     
-                    imu.readAcceleration();
-                    imuData[0] = imu.ax;
-                    imuData[1] = imu.ay;
-                    imuData[2] = imu.az;
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU read on request: (%.3f, %.3f, %.3f) mg\r\n", imu.ax, imu.ay, imu.az);
+                    // Buffer para burst (312 bytes en stack = 52 × 6 bytes)
+                    AccRaw samples[BURST_SIZE];
+                    TickType_t xLastWakeTime = xTaskGetTickCount();
+                    uint16_t successfulReads = 0;
                     
+                    // Colectar BURST_SIZE muestras con timing preciso
+                    for (uint16_t i = 0; i < BURST_SIZE; i++) {
+                        // Leer aceleración raw del LSM6DSO
+                        if (imu.readAcceleration() == I2C_OK) {
+                            samples[i].ax = imu.axRaw;
+                            samples[i].ay = imu.ayRaw;
+                            samples[i].az = imu.azRaw;
+                            successfulReads++;
+                        } else {
+                            // Error I2C: repetir último valor válido (evita ceros falsos)
+                            if (i > 0) {
+                                samples[i] = samples[i-1];
+                            } else {
+                                samples[i].ax = 0;
+                                samples[i].ay = 0;
+                                samples[i].az = 0;
+                            }
+                            RTOS_LOG_WARN("[SENSOR_ACQ] IMU read error at sample %d\r\n", i);
+                        }
+                        
+                        // Timing preciso: esperar hasta próxima muestra (26 Hz = 38.46 ms)
+                        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(38));
+                    }
+                    
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] Burst collected: %d/%d successful reads\r\n", 
+                                  successfulReads, BURST_SIZE);
+                    
+                    // Enviar burst completo a FSM
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
-                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_IMU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)imuData, sizeof(float) * 3);
-                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent IMU data to FSM\r\n");
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_IMU_BURST, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)samples, sizeof(AccRaw) * BURST_SIZE);                        
+                        osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 100);
+                        if (status == osOK) {
+                            RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU burst sent (%d samples, %d bytes)\r\n", BURST_SIZE, sizeof(AccRaw) * BURST_SIZE);
+                        } else {
+                            RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to send IMU burst (status: %d)\r\n", status);
+                            MessagePool_Free(msgToSend);  // Liberar si falló el envío
+                        }
                         msgToSend = NULL;
+                    } else {
+                        RTOS_LOG_ERROR("[SENSOR_ACQ] Failed to allocate message for IMU burst\r\n");
                     }
                     break;
+                }
         
                 case MSG_ID_REQUEST_INA_MCU:
                     // Leer INA MCU solo cuando se solicita
