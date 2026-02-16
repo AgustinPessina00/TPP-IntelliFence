@@ -70,7 +70,7 @@ void inaTask(void *argument) {
                     
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
-                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_MCU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaMcu.current), sizeof(float));
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_MCU, MODULE_INA, MODULE_FSM, (uint8_t*)&(inaMcu.current), sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[INA_TASK] Sent INA MCU data to FSM\r\n");
                         msgToSend = NULL;
@@ -84,7 +84,7 @@ void inaTask(void *argument) {
                     
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
-                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaGps.current), sizeof(float));
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_GPS, MODULE_INA, MODULE_FSM, (uint8_t*)&(inaGps.current), sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[INA_TASK] Sent INA GPS data to FSM\r\n");
                         msgToSend = NULL;
@@ -98,7 +98,7 @@ void inaTask(void *argument) {
                     
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
-                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_IMU, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&(inaImu.current), sizeof(float));
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_INA_IMU, MODULE_INA, MODULE_FSM, (uint8_t*)&(inaImu.current), sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[INA_TASK] Sent INA IMU data to FSM\r\n");
                         msgToSend = NULL;
@@ -111,7 +111,7 @@ void inaTask(void *argument) {
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_GPS_DATA, 
-                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         MODULE_INA, MODULE_CONSOLE, 
                                                          (uint8_t*)&(inaGps.current), sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[INA_TASK] Sent INA GPS data to console\r\n");
@@ -125,7 +125,7 @@ void inaTask(void *argument) {
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_IMU_DATA, 
-                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         MODULE_INA, MODULE_CONSOLE, 
                                                          (uint8_t*)&(inaImu.current), sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[INA_TASK] Sent INA IMU data to console\r\n");
@@ -139,7 +139,7 @@ void inaTask(void *argument) {
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_INA_MCU_DATA, 
-                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         MODULE_INA, MODULE_CONSOLE, 
                                                          (uint8_t*)&(inaMcu.current), sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[INA_TASK] Sent INA MCU data to console\r\n");

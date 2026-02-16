@@ -58,7 +58,7 @@ void gpsTask(void *argument) {
                         msgToSend = MessagePool_Allocate();
                         if (msgToSend != NULL) {
                             RTOS_LOG_DEBUG("[GPS_TASK] alocado\r\n");
-                            EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&gpsData, sizeof(gpsData_t));
+                            EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_GPS, MODULE_FSM, (uint8_t*)&gpsData, sizeof(gpsData_t));
                             osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                             RTOS_LOG_DEBUG("[GPS_TASK] Sent GPS data to FSM\r\n");
                             msgToSend = NULL;
@@ -88,7 +88,7 @@ void gpsTask(void *argument) {
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_GPS_DATA, 
-                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         MODULE_GPS, MODULE_CONSOLE, 
                                                          (uint8_t*)&gpsData, sizeof(gpsData_t));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[GPS_TASK] Sent GPS data to console\r\n");

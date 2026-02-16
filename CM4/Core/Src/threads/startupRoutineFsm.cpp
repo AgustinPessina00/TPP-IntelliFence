@@ -39,7 +39,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_REQUEST_POSITION:
-            sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
+            sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS);
             Timeout_Start(&timeout, GPS_TIMEOUT_MS);
             RTOS_LOG_DEBUG("[FSM] Requesting initial GPS position (timeout: %lums)\r\n", timeout.timeoutMs);
             *state = STARTUP_ROUTINE_WAIT_POSITION;
@@ -102,7 +102,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
-            sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
+            sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS);
             Timeout_Start(&timeout, GPS_TIMEOUT_MS);
             RTOS_LOG_DEBUG("[FSM] Requesting GPS position after fence update\r\n");
             *state = STARTUP_ROUTINE_WAIT_NEW_POSITION;

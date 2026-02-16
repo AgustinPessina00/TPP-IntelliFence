@@ -13,7 +13,7 @@
 
 // Enum para módulos (mantenemos compatibilidad)
 typedef enum {
-    MODULE_SENSOR_ACQ   = 1,
+    MODULE_SENSOR_ACQ   = 1,  // LEGACY - deprecado, usar MODULE_IMU/GPS/INA
     MODULE_STIMULUS     = 2,
     MODULE_GPS          = 3,
     MODULE_LORA_TX      = 4,
@@ -22,7 +22,9 @@ typedef enum {
     MODULE_DISTANCE     = 7,
     MODULE_FENCE_UPDATE = 8,
     MODULE_DISPATCHER   = 9,
-    MODULE_CONSOLE      = 10
+    MODULE_CONSOLE      = 10,
+    MODULE_IMU          = 11,
+    MODULE_INA          = 12
 } ModuleId_t;
 
 // Estructura de mensaje embedded-friendly

@@ -60,77 +60,65 @@ void dispatcherTask(void *argument) {
             RTOS_LOG_DEBUG("[DISPATCHER] Routing msg ID:%d from:%d to:%d\r\n", 
                           msg->id, msg->sender, msg->receiver);
             
-            // Ruteo inteligente basado en MSG_ID (prioridad sobre receiver)
-            // Esto permite que mensajes de sensores vayan a tareas especializadas
-            switch (msg->id) {
-                // === IMU Messages ===
-                case MSG_ID_REQUEST_IMU:
-                case MSG_ID_CONSOLE_READ_IMU:
+            // Ruteo basado en MODULE_RECEIVER
+            switch (msg->receiver) {
+                case MODULE_SENSOR_ACQ:  // LEGACY - deprecado
+                    if (osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to SENSOR_ACQ (legacy)\r\n");
+                        MessagePool_Free(msg);
+                    }
+                    break;
+                    
+                case MODULE_IMU:
                     if (osMessageQueuePut(imuQueueHandle, &msg, 0, 0) != osOK) {
                         RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to IMU\r\n");
                         MessagePool_Free(msg);
                     }
                     break;
                     
-                // === GPS Messages ===
-                case MSG_ID_REQUEST_GPS:
-                case MSG_ID_GPS_REQUEST_CONFIG:
-                case MSG_ID_CONSOLE_READ_GPS:
+                case MODULE_GPS:
                     if (osMessageQueuePut(gpsQueueHandle, &msg, 0, 0) != osOK) {
                         RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to GPS\r\n");
                         MessagePool_Free(msg);
                     }
                     break;
                     
-                // === INA Messages ===
-                case MSG_ID_REQUEST_INA_MCU:
-                case MSG_ID_REQUEST_INA_GPS:
-                case MSG_ID_REQUEST_INA_IMU:
-                case MSG_ID_CONSOLE_READ_INA_GPS:
-                case MSG_ID_CONSOLE_READ_INA_IMU:
-                case MSG_ID_CONSOLE_READ_INA_MCU:
+                case MODULE_INA:
                     if (osMessageQueuePut(inaQueueHandle, &msg, 0, 0) != osOK) {
                         RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to INA\r\n");
                         MessagePool_Free(msg);
                     }
                     break;
                     
-                // === Fallback: Enrutar por MODULE_RECEIVER ===
-                default:
-                    switch (msg->receiver) {
-                        case MODULE_SENSOR_ACQ:  // LEGACY - deprecado
-                            if (osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0) != osOK) {
-                                RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to SENSOR_ACQ (legacy)\r\n");
-                                MessagePool_Free(msg);
-                            }
-                            break;
-                        case MODULE_FSM:
-                            if (osMessageQueuePut(fsmQueueHandle, &msg, 0, 0) != osOK) {
-                                RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to FSM\r\n");
-                                MessagePool_Free(msg);
-                            }
-                            break;
-                        case MODULE_STIMULUS:
-                            if (osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0) != osOK) {
-                                    RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to STIMULUS\r\n");
-                                    MessagePool_Free(msg);
-                            }
-                            break;
-                        case MODULE_LORA_TX:
-                            if (osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0) != osOK) {
-                                RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to LORA_TX\r\n");
-                                MessagePool_Free(msg);
-                            }
-                            break;
-                        case MODULE_GPS:
-                        case MODULE_LORA_RX:
-                        case MODULE_DISTANCE:
-                        case MODULE_FENCE_UPDATE:
-                        default:
-                            RTOS_LOG_WARN("[DISPATCHER] Unknown receiver module: %d (msg_id=%d)\r\n", msg->receiver, msg->id);
-                            MessagePool_Free(msg);
-                            break;
+                case MODULE_FSM:
+                    if (osMessageQueuePut(fsmQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to FSM\r\n");
+                        MessagePool_Free(msg);
                     }
+                    break;
+                    
+                case MODULE_STIMULUS:
+                    if (osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to STIMULUS\r\n");
+                        MessagePool_Free(msg);
+                    }
+                    break;
+                    
+                case MODULE_LORA_TX:
+                    if (osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to LORA_TX\r\n");
+                        MessagePool_Free(msg);
+                    }
+                    break;
+                    
+                case MODULE_LORA_RX:
+                case MODULE_DISTANCE:
+                case MODULE_FENCE_UPDATE:
+                case MODULE_DISPATCHER:
+                case MODULE_CONSOLE:
+                default:
+                    RTOS_LOG_WARN("[DISPATCHER] Unknown or unimplemented receiver module: %d (msg_id=%d)\r\n", msg->receiver, msg->id);
+                    MessagePool_Free(msg);
                     break;
             }
         }

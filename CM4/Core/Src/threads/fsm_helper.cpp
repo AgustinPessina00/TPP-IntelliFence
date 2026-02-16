@@ -203,7 +203,7 @@ void updateGpsAdqTime(GpsRate gpsRate) {
     EmbeddedMessage_t *msg = MessagePool_Allocate();
     if (msg != nullptr) {
         EmbeddedMessage_CreateWithPayload(msg, MSG_ID_GPS_REQUEST_CONFIG, MODULE_FSM, 
-                                         MODULE_SENSOR_ACQ, (uint8_t*)&gpsRate, sizeof(GpsRate));
+                                         MODULE_GPS, (uint8_t*)&gpsRate, sizeof(GpsRate));
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
         RTOS_LOG_DEBUG("[FSM] GPS rate updated: %d\r\n", (int)gpsRate);
     }

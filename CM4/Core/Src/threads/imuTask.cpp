@@ -159,7 +159,7 @@ void imuTask(void *argument) {
                     // Enviar solo features (12 bytes) en vez de burst completo (312 bytes)
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
-                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_IMU_BURST, MODULE_SENSOR_ACQ, msgReceived->sender, (uint8_t*)&features, sizeof(BurstFeatures));
+                        EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_IMU_BURST, MODULE_IMU, msgReceived->sender, (uint8_t*)&features, sizeof(BurstFeatures));
                         osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 100);
                         
                         if (status == osOK) {
@@ -184,7 +184,7 @@ void imuTask(void *argument) {
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_IMU_DATA, 
-                                                         MODULE_SENSOR_ACQ, MODULE_CONSOLE, 
+                                                         MODULE_IMU, MODULE_CONSOLE, 
                                                          (uint8_t*)imuData, 3 * sizeof(float));
                         osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                         RTOS_LOG_DEBUG("[IMU_TASK] Sent IMU data to console\r\n");

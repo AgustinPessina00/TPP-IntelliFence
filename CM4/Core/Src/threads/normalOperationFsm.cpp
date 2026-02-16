@@ -54,7 +54,7 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
             break;
             
         case INITIALIZE_REQUEST_POSITION:
-            sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
+            sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS);
             Timeout_Start(&timeout, GPS_TIMEOUT_MS);
             initializeState = INITIALIZE_WAIT_POSITION;
             break;
@@ -122,7 +122,7 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_REQUEST_ACCELERATION:
-            sendMessage(MSG_ID_REQUEST_IMU, MODULE_SENSOR_ACQ);
+            sendMessage(MSG_ID_REQUEST_IMU, MODULE_IMU);
             Timeout_Start(&timeout, IMU_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_ACCELERATION;
             break;

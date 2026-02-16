@@ -171,7 +171,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     EmbeddedMessage_Create(msgToSend, 
                                           MSG_ID_CONSOLE_READ_GPS,
                                           MODULE_CONSOLE,
-                                          MODULE_SENSOR_ACQ);
+                                          MODULE_GPS);
                     
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
@@ -203,7 +203,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     EmbeddedMessage_Create(msgToSend, 
                                           MSG_ID_CONSOLE_READ_IMU,
                                           MODULE_CONSOLE,
-                                          MODULE_SENSOR_ACQ);
+                                          MODULE_IMU);
                     
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
@@ -234,7 +234,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     EmbeddedMessage_Create(msgToSend, 
                                           MSG_ID_CONSOLE_READ_INA_GPS,
                                           MODULE_CONSOLE,
-                                          MODULE_SENSOR_ACQ);
+                                          MODULE_INA);
                     
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
@@ -261,7 +261,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     EmbeddedMessage_Create(msgToSend, 
                                           MSG_ID_CONSOLE_READ_INA_IMU,
                                           MODULE_CONSOLE,
-                                          MODULE_SENSOR_ACQ);
+                                          MODULE_INA);
                     
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);
@@ -288,7 +288,7 @@ static void execute_console_command(ConsoleCommand_t* cmd) {
                     EmbeddedMessage_Create(msgToSend, 
                                           MSG_ID_CONSOLE_READ_INA_MCU,
                                           MODULE_CONSOLE,
-                                          MODULE_SENSOR_ACQ);
+                                          MODULE_INA);
                     
                     osStatus_t status = osMessageQueuePut(dispatcherQueueHandle, 
                                                          &msgToSend, 0, 100);

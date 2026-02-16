@@ -67,7 +67,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             break;
             
         case FENCE_TRANSITION_REQUEST_POSITION:
-            sendMessage(MSG_ID_REQUEST_GPS, MODULE_SENSOR_ACQ);
+            sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS);
             Timeout_Start(&timeout, GPS_TIMEOUT_MS);
             fenceTransitionState = FENCE_TRANSITION_WAIT_POSITION;
             break;
