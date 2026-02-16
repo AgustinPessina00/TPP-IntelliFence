@@ -25,6 +25,8 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "rtos_printf.h"
+#define RTOS_PRINTF_AUTO
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -333,6 +335,25 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/**
+ * @brief  Idle Hook - Se ejecuta cuando no hay tareas listas para correr
+ * @note   El micro entra en modo SLEEP (WFI) para ahorrar energía
+ *         Se despierta automáticamente con cualquier interrupción:
+ *         - Tick de FreeRTOS (cada 1ms)
+ *         - Interrupciones de periféricos (UART, Timers, GPS, etc.)
+ *         - Cuando otra tarea pasa a estado READY
+ */
+void vApplicationIdleHook(void)
+{
+    /* Entrar en modo SLEEP (WFI - Wait For Interrupt)
+     * Consumo: ~1mA en SLEEP vs ~10mA en RUN
+     * Se despierta automáticamente con cualquier IRQ */
+    //RTOS_LOG_DEBUG("*************************************\r\n");
+    //RTOS_LOG_DEBUG("[IDLE] Entering idle mode (WFI)...\r\n");
+    //RTOS_LOG_DEBUG("*************************************\r\n");
+    __WFI();
+}
 
 /* USER CODE END 4 */
 
