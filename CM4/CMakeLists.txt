@@ -134,6 +134,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/normalOperationFsm.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/fenceTransitionFsm.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/sensorAcqTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/imuTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/gpsTask.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/inaTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/stimulusTask.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Threads/loraTask.cpp
 

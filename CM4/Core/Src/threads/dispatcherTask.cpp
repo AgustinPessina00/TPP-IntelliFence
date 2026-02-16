@@ -8,7 +8,10 @@
 
 // Declaraciones externas de las colas que deberían estar definidas en main.c
 extern osMessageQueueId_t dispatcherQueueHandle;
-extern osMessageQueueId_t sensorAcqQueueHandle;
+extern osMessageQueueId_t sensorAcqQueueHandle;  // LEGACY
+extern osMessageQueueId_t imuQueueHandle;
+extern osMessageQueueId_t gpsQueueHandle;
+extern osMessageQueueId_t inaQueueHandle;
 extern osMessageQueueId_t fsmQueueHandle;
 extern osMessageQueueId_t stimulusQueueHandle;
 extern osMessageQueueId_t loraTxQueueHandle;
@@ -21,7 +24,6 @@ void dispatcherTask(void *argument) {
     RTOS_LOG_INFO("[DISPATCHER] Task initialized successfully\r\n");
 
     static uint32_t stackMonitorCounter = 0;
-    static uint32_t queueMonitorCounter = 0;
     while(1) {
         // Monitorear stack cada ~10 segundos (cada 10 iteraciones × 1000ms delay)
         if (++stackMonitorCounter >= 10) {
@@ -58,38 +60,77 @@ void dispatcherTask(void *argument) {
             RTOS_LOG_DEBUG("[DISPATCHER] Routing msg ID:%d from:%d to:%d\r\n", 
                           msg->id, msg->sender, msg->receiver);
             
-            switch (msg->receiver) {
-                case MODULE_SENSOR_ACQ:
-                    if (osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0) != osOK) {
-                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to SENSOR_ACQ\r\n");
+            // Ruteo inteligente basado en MSG_ID (prioridad sobre receiver)
+            // Esto permite que mensajes de sensores vayan a tareas especializadas
+            switch (msg->id) {
+                // === IMU Messages ===
+                case MSG_ID_REQUEST_IMU:
+                case MSG_ID_CONSOLE_READ_IMU:
+                    if (osMessageQueuePut(imuQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to IMU\r\n");
                         MessagePool_Free(msg);
                     }
                     break;
-                case MODULE_FSM:
-                    if (osMessageQueuePut(fsmQueueHandle, &msg, 0, 0) != osOK) {
-                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to FSM\r\n");
+                    
+                // === GPS Messages ===
+                case MSG_ID_REQUEST_GPS:
+                case MSG_ID_GPS_REQUEST_CONFIG:
+                case MSG_ID_CONSOLE_READ_GPS:
+                    if (osMessageQueuePut(gpsQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to GPS\r\n");
                         MessagePool_Free(msg);
                     }
                     break;
-                case MODULE_STIMULUS:
-                    if (osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0) != osOK) {
-                            RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to STIMULUS\r\n");
-                            MessagePool_Free(msg);
-                    }
-                    break;
-                case MODULE_LORA_TX:
-                    if (osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0) != osOK) {
-                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to LORA_TX\r\n");
+                    
+                // === INA Messages ===
+                case MSG_ID_REQUEST_INA_MCU:
+                case MSG_ID_REQUEST_INA_GPS:
+                case MSG_ID_REQUEST_INA_IMU:
+                case MSG_ID_CONSOLE_READ_INA_GPS:
+                case MSG_ID_CONSOLE_READ_INA_IMU:
+                case MSG_ID_CONSOLE_READ_INA_MCU:
+                    if (osMessageQueuePut(inaQueueHandle, &msg, 0, 0) != osOK) {
+                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to INA\r\n");
                         MessagePool_Free(msg);
                     }
                     break;
-                case MODULE_GPS:
-                case MODULE_LORA_RX:
-                case MODULE_DISTANCE:
-                case MODULE_FENCE_UPDATE:
+                    
+                // === Fallback: Enrutar por MODULE_RECEIVER ===
                 default:
-                    RTOS_LOG_WARN("[DISPATCHER] Unknown receiver module: %d\r\n", msg->receiver);
-                    MessagePool_Free(msg);
+                    switch (msg->receiver) {
+                        case MODULE_SENSOR_ACQ:  // LEGACY - deprecado
+                            if (osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0) != osOK) {
+                                RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to SENSOR_ACQ (legacy)\r\n");
+                                MessagePool_Free(msg);
+                            }
+                            break;
+                        case MODULE_FSM:
+                            if (osMessageQueuePut(fsmQueueHandle, &msg, 0, 0) != osOK) {
+                                RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to FSM\r\n");
+                                MessagePool_Free(msg);
+                            }
+                            break;
+                        case MODULE_STIMULUS:
+                            if (osMessageQueuePut(stimulusQueueHandle, &msg, 0, 0) != osOK) {
+                                    RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to STIMULUS\r\n");
+                                    MessagePool_Free(msg);
+                            }
+                            break;
+                        case MODULE_LORA_TX:
+                            if (osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0) != osOK) {
+                                RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to LORA_TX\r\n");
+                                MessagePool_Free(msg);
+                            }
+                            break;
+                        case MODULE_GPS:
+                        case MODULE_LORA_RX:
+                        case MODULE_DISTANCE:
+                        case MODULE_FENCE_UPDATE:
+                        default:
+                            RTOS_LOG_WARN("[DISPATCHER] Unknown receiver module: %d (msg_id=%d)\r\n", msg->receiver, msg->id);
+                            MessagePool_Free(msg);
+                            break;
+                    }
                     break;
             }
         }

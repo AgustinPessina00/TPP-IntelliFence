@@ -35,6 +35,9 @@
 extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
 extern void sensorAcqTask(void *argument);
+extern void imuTask(void *argument);
+extern void gpsTask(void *argument);
+extern void inaTask(void *argument);
 extern void stimulusTask(void *argument);
 extern void loraTask(void *argument);
 
@@ -70,10 +73,26 @@ const osMessageQueueAttr_t dispatcherQueue_attributes = {
   .name = "dispatcherQueue"
 };
 
-// Cola para adquisición de sensores
+// Cola para adquisición de sensores (LEGACY - usar colas individuales)
 osMessageQueueId_t sensorAcqQueueHandle;
 const osMessageQueueAttr_t sensorAcqQueue_attributes = {
   .name = "sensorAcqQueue"
+};
+
+// Colas para sensores individuales
+osMessageQueueId_t imuQueueHandle;
+const osMessageQueueAttr_t imuQueue_attributes = {
+  .name = "imuQueue"
+};
+
+osMessageQueueId_t gpsQueueHandle;
+const osMessageQueueAttr_t gpsQueue_attributes = {
+  .name = "gpsQueue"
+};
+
+osMessageQueueId_t inaQueueHandle;
+const osMessageQueueAttr_t inaQueue_attributes = {
+  .name = "inaQueue"
 };
 
 // Cola para la máquina de estados finite state machine
@@ -160,7 +179,7 @@ const osThreadAttr_t stimulus_Task_attributes = {
   // .stack_mem = stimulus_TaskStack,
 };
 
-// Thread sensor acquisition - adquisición de datos de sensores
+// Thread sensor acquisition - adquisición de datos de sensores (LEGACY)
 osThreadId_t sensorAcq_TaskHandle;
 
 // Buffers estáticos en RAM1 para sensorAcq (COMENTADO - ahora usa heap dinámico)
@@ -174,6 +193,30 @@ const osThreadAttr_t sensorAcq_Task_attributes = {
   // .cb_mem = &sensorAcq_TaskBuffer,
   // .cb_size = sizeof(sensorAcq_TaskBuffer),
   // .stack_mem = sensorAcq_TaskStack,
+};
+
+// Thread IMU - adquisición de acelerómetro
+osThreadId_t imu_TaskHandle;
+const osThreadAttr_t imu_Task_attributes = {
+  .name = "imu_Task",
+  .stack_size = 512 * 4,  // 2048 bytes - burst buffers + objetos C++ LSM6DSO
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// Thread GPS - adquisición de posición
+osThreadId_t gps_TaskHandle;
+const osThreadAttr_t gps_Task_attributes = {
+  .name = "gps_Task",
+  .stack_size = 384 * 4,  // 1536 bytes - objeto C++ SAM-M10Q
+  .priority = (osPriority_t) osPriorityNormal,
+};
+
+// Thread INA - adquisición de corrientes
+osThreadId_t ina_TaskHandle;
+const osThreadAttr_t ina_Task_attributes = {
+  .name = "ina_Task",
+  .stack_size = 384 * 4,  // 1536 bytes - 3 objetos C++ INA226
+  .priority = (osPriority_t) osPriorityNormal,
 };
 
 // Thread LoRa TX - transmisión LoRa
@@ -223,10 +266,29 @@ void initialize_message_queues(void) {
         Error_Handler();
     }
     
-    //Cola para adquisición de sensores
+    //Cola para adquisición de sensores (LEGACY - no se usa más)
     sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
     if (sensorAcqQueueHandle == NULL) {
         printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\r\n");
+        Error_Handler();
+    }
+    
+    // Colas para sensores individuales
+    imuQueueHandle = osMessageQueueNew(12, sizeof(void*), &imuQueue_attributes);
+    if (imuQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación imuQueue\r\n");
+        Error_Handler();
+    }
+    
+    gpsQueueHandle = osMessageQueueNew(12, sizeof(void*), &gpsQueue_attributes);
+    if (gpsQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación gpsQueue\r\n");
+        Error_Handler();
+    }
+    
+    inaQueueHandle = osMessageQueueNew(12, sizeof(void*), &inaQueue_attributes);
+    if (inaQueueHandle == NULL) {
+        printf("[QUEUES] ERROR - Fallo creación inaQueue\r\n");
         Error_Handler();
     }
 
@@ -265,8 +327,11 @@ void initialize_message_queues(void) {
     
     printf("[QUEUES] OK - Todas las colas creadas exitosamente\r\n");
     printf("[QUEUES] - DispatcherQueue: 32 slots\r\n");
-    printf("[QUEUES] - SensorAcqQueue: 16 slots\r\n");
     printf("[QUEUES] - FSMQueue: 16 slots\r\n");
+    printf("[QUEUES] - IMUQueue: 12 slots\r\n");
+    printf("[QUEUES] - GPSQueue: 12 slots\r\n");
+    printf("[QUEUES] - INAQueue: 12 slots\r\n");
+    printf("[QUEUES] - SensorAcqQueue (legacy): 16 slots\r\n");
     printf("[QUEUES] - Colas adicionales: 4-12 slots c/u\r\n");
     printf("[QUEUES] - Tamaño por slot: %u bytes (puntero EmbeddedMessage_t*)\r\n", 
            (unsigned int)sizeof(void*));
@@ -300,17 +365,38 @@ void initialize_system_threads(void) {
         Error_Handler();
     }
 
-    //Thread sensor acquisition - prioridad normal (adquisición periódica)
-#ifdef ENABLE_TEST_MODE
-    // TEST MODE: Usar tarea mock con datos predefinidos
-    sensorAcq_TaskHandle = osThreadNew(sensorAcqTask_Test, NULL, &sensorAcq_Task_attributes);
-    printf("[THREADS] ** TEST MODE ** - Using mock sensor task\r\n");
-#else
-    // PRODUCTION MODE: Usar tarea real con sensores de hardware
-    sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
-#endif
-    if (sensorAcq_TaskHandle == NULL) {
-        printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\r\n");
+    //Thread sensor acquisition - prioridad normal (LEGACY - comentado)
+// #ifdef ENABLE_TEST_MODE
+//     // TEST MODE: Usar tarea mock con datos predefinidos
+//     sensorAcq_TaskHandle = osThreadNew(sensorAcqTask_Test, NULL, &sensorAcq_Task_attributes);
+//     printf("[THREADS] ** TEST MODE ** - Using mock sensor task\r\n");
+// #else
+//     // PRODUCTION MODE: Usar tarea real con sensores de hardware
+//     sensorAcq_TaskHandle = osThreadNew(sensorAcqTask, NULL, &sensorAcq_Task_attributes);
+// #endif
+//     if (sensorAcq_TaskHandle == NULL) {
+//         printf("[THREADS] ERROR - Fallo creación sensorAcq_Task\r\n");
+//         Error_Handler();
+//     }
+    
+    // Thread IMU - acelerómetro LSM6DSO
+    imu_TaskHandle = osThreadNew(imuTask, NULL, &imu_Task_attributes);
+    if (imu_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación imu_Task\r\n");
+        Error_Handler();
+    }
+    
+    // Thread GPS - SAM-M10Q
+    gps_TaskHandle = osThreadNew(gpsTask, NULL, &gps_Task_attributes);
+    if (gps_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación gps_Task\r\n");
+        Error_Handler();
+    }
+    
+    // Thread INA - INA226 (GPS, IMU, MCU)
+    ina_TaskHandle = osThreadNew(inaTask, NULL, &ina_Task_attributes);
+    if (ina_TaskHandle == NULL) {
+        printf("[THREADS] ERROR - Fallo creación ina_Task\r\n");
         Error_Handler();
     }
 
@@ -319,9 +405,11 @@ void initialize_system_threads(void) {
     printf("[THREADS] - dispatcher_Task: Stack 512B\r\n");
     printf("[THREADS] - fsm_Task: Stack 2KB (FSMs complejas)\r\n");
     printf("[THREADS] - stimulus_Task: Stack 1KB (buzzer + motors + alarms)\r\n");
-    printf("[THREADS] - sensorAcq_Task: Stack 2KB (objetos C++ grandes)\r\n");
+    printf("[THREADS] - imu_Task: Stack 2KB (burst buffers + LSM6DSO)\r\n");
+    printf("[THREADS] - gps_Task: Stack 1.5KB (SAM-M10Q)\r\n");
+    printf("[THREADS] - ina_Task: Stack 1.5KB (3x INA226)\r\n");
     printf("[THREADS] - lora_Task: Stack 512B\r\n");
-    printf("[THREADS] Total stack allocated: ~6KB\r\n");
+    printf("[THREADS] Total stack allocated: ~8.5KB\r\n");
 }
 /* USER CODE END FunctionPrototypes */
 
