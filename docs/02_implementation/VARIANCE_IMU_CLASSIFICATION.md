@@ -714,14 +714,81 @@ if (axis_imbalance > 10.0 && var_total > 15000) {
 }
 ```
 
-### 2. Histéresis en Thresholds
+### 2. Histéresis en Thresholds ✅ IMPLEMENTADO (2026-02-16)
 
-Evitar flapping con thresholds diferentes para subida/bajada:
+**PROBLEMA DETECTADO EN CAMPO:**
+- Vibraciones de mesa (alguien se apoya, movimiento ligero) generaban `var=1400-5400, range=300-750`
+- Thresholds QUIET originales (var<1000, range<500) demasiado estrictos para ambiente real
+- **Falsos positivos:** Mesa con vibración clasificada como MOVEMENT ❌
+
+**SOLUCIÓN IMPLEMENTADA:**
+
+1. **QUIET con 2 niveles:**
+```cpp
+// QUIET STRICT: Condiciones ideales (sin vibraciones externas)
+TH_VAR_QUIET_STRICT = 1000      // Basado en calibración original (var max=284)
+TH_RANGE_QUIET_STRICT = 500     // Basado en calibración original (range max=139)
+
+// QUIET LOOSE (anti-vibración): Tolerancia para vibraciones ambientales
+TH_VAR_QUIET_LOOSE = 5000       // Tolera vibraciones de mesa (var~1200-5400)
+TH_RANGE_QUIET_LOOSE = 900      // Tolera amplitud de vibraciones (range~300-750)
+
+// Guards anti-grazing para QUIET_LOOSE:
+TH_RANGE_Z_ANTI_GRAZING = 450   // range_z bajo → no es grazing
+TH_Z_RATIO_ANTI_GRAZING = 55    // z_ratio bajo → no es grazing
+```
+
+2. **Histéresis para MOVEMENT:**
+```cpp
+// Para ENTRAR a MOVEMENT desde QUIET/SLEEP: umbral más alto
+TH_VAR_MOVE_ENTER = 8000        // Requiere movimiento más intenso
+TH_RANGE_MOVE_ENTER = 1200      // Requiere amplitud más grande
+
+// Si no alcanza umbral alto → mantiene QUIET (absorbe vibraciones)
+if (currentState == QUIET || currentState == SLEEP) {
+    if (var_total > 8000 || range_total > 1200) {
+        candidate = MOVEMENT;
+    } else {
+        candidate = QUIET;  // Absorbe vibraciones pequeñas
+    }
+}
+```
+
+**LÓGICA DE CLASIFICACIÓN (orden de evaluación):**
 
 ```cpp
-// Subir a GRAZING: var > 10k
-// Bajar a SLEEP: var < 8k  (2k de histéresis)
+// 1. QUIET STRICT: condiciones ideales
+if (var < 1000 && range < 500) → QUIET
+
+// 2. QUIET LOOSE: vibraciones ambientales (anti-vibración)
+else if (var < 5000 && range < 900 && (range_z < 450 || z_ratio < 55)) → QUIET
+
+// 3. GRAZING: movimiento vertical lento
+else if (range_z > 500 && z_ratio > 60% && var < 20000) → GRAZING
+
+// 4. MOVEMENT: con histéresis desde QUIET
+else if (desde QUIET/SLEEP) {
+    if (var > 8000 || range > 1200) → MOVEMENT
+    else → QUIET  // No alcanza umbral → mantiene QUIET
+}
+else → MOVEMENT  // Desde otros estados: catch-all normal
 ```
+
+**RESULTADOS:**
+
+| Escenario | Antes | Después |
+|---|---|---|
+| Mesa quieta (var=250, range=130) | ✅ QUIET | ✅ QUIET |
+| Mesa con vibración leve (var=1500, range=350) | ❌ MOVEMENT | ✅ QUIET (LOOSE) |
+| Mesa con apoyón (var=3000, range=600) | ❌ MOVEMENT | ✅ QUIET (LOOSE) |
+| Vibración fuerte (var=9000, range=800) | ❌ MOVEMENT | ✅ MOVEMENT (supera umbral) |
+| Movimiento real (var>20k, range>2k) | ✅ MOVEMENT | ✅ MOVEMENT |
+
+**VENTAJAS:**
+- ✅ Elimina falsos positivos por vibraciones ambientales
+- ✅ No requiere re-calibración (thresholds basados en logs reales)
+- ✅ Histéresis evita "flapping" (cambios rápidos QUIET↔MOVEMENT)
+- ✅ Guard anti-grazing previene clasificación incorrecta de vibraciones verticales
 
 ### 3. Tiempo de Persistencia Variable
 

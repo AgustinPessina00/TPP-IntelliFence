@@ -270,32 +270,68 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
     // - MOVEMENT: var=96k-95M, range=2.2k-50k → 100% accuracy
     // - Margen de seguridad: 3.5× sobre valores máximos observados
     
-    const uint32_t TH_VAR_QUIET = 1000;     // Was 10k (QUIET max=284 × 3.5 ≈ 1000)
-    const uint16_t TH_RANGE_QUIET = 500;    // Was 1k (QUIET max=139 × 3.5 ≈ 500)
+    // QUIET STRICT: Condiciones ideales (sin vibraciones externas)
+    const uint32_t TH_VAR_QUIET_STRICT = 1000;     // Was 10k (QUIET max=284 × 3.5 ≈ 1000)
+    const uint16_t TH_RANGE_QUIET_STRICT = 500;    // Was 1k (QUIET max=139 × 3.5 ≈ 500)
     
-    const uint32_t TH_VAR_MOVE = 20000;     // Unchanged (min movement=96k, safety margin)
-    const uint16_t TH_RANGE_Z = 500;        // Was 1.5k (min grazing z=271-857, margin=2×)
-    const uint16_t TH_Z_RATIO = 60;         // Was 50% (grazing observado: 60-80%)
+    // QUIET LOOSE (anti-vibración): Tolerancia para vibraciones ambientales (mesa, apoyos)
+    // Basado en logs reales: var=1200-5400, range=280-750 en "mesa con vibración"
+    const uint32_t TH_VAR_QUIET_LOOSE = 5000;      // Tolera vibraciones de mesa (var~1200-5400)
+    const uint16_t TH_RANGE_QUIET_LOOSE = 900;     // Tolera amplitud de vibraciones (range~300-750)
+    const uint16_t TH_RANGE_Z_ANTI_GRAZING = 450;  // Guard: range_z bajo descarta grazing falso
+    const uint16_t TH_Z_RATIO_ANTI_GRAZING = 55;   // Guard: z_ratio bajo descarta grazing falso
+    
+    // MOVEMENT: Histéresis para evitar entradas falsas desde QUIET
+    const uint32_t TH_VAR_MOVE_ENTER = 8000;       // Para ENTRAR a MOVEMENT desde QUIET (más estricto)
+    const uint16_t TH_RANGE_MOVE_ENTER = 1200;     // Para ENTRAR a MOVEMENT desde QUIET (más estricto)
+    
+    const uint32_t TH_VAR_MOVE = 20000;            // Unchanged (min movement=96k, safety margin)
+    const uint16_t TH_RANGE_Z = 500;               // Was 1.5k (min grazing z=271-857, margin=2×)
+    const uint16_t TH_Z_RATIO = 60;                // Was 50% (grazing observado: 60-80%)
     
     const uint8_t QUIET_TO_SLEEP_COUNT = 10; // Repeticiones de QUIET para confirmar SLEEP
     
-    RTOS_LOG_INFO("[FSM] 📊 Features: var=%lu, range=%u (z=%u), z_ratio=%u%% | TH: var_quiet<%lu, range_quiet<%u, var_move<%lu\r\n", 
-                  var_total, range_total, range_z, z_ratio, TH_VAR_QUIET, TH_RANGE_QUIET, TH_VAR_MOVE);
+    RTOS_LOG_INFO("[FSM] 📊 Features: var=%lu, range=%u (z=%u), z_ratio=%u%% | TH: var_quiet_s<%lu, var_quiet_l<%lu, range_quiet_s<%u, range_quiet_l<%u, var_move_enter<%lu\r\n", 
+                  var_total, range_total, range_z, z_ratio, 
+                  TH_VAR_QUIET_STRICT, TH_VAR_QUIET_LOOSE, 
+                  TH_RANGE_QUIET_STRICT, TH_RANGE_QUIET_LOOSE, 
+                  TH_VAR_MOVE_ENTER);
     
-    // === CLASIFICACIÓN MULTI-FEATURE ===
+    // Get current state for hysteresis logic
+    CowState currentState = cow.getState();
+    
+    // === CLASIFICACIÓN MULTI-FEATURE CON ANTI-VIBRACIÓN E HISTÉRESIS ===
     CowState candidate;
     
-    // QUIET: varianza baja Y rango bajo (quieta, sin movimientos amplios)
-    if (var_total < TH_VAR_QUIET && range_total < TH_RANGE_QUIET) {
+    // QUIET STRICT: varianza baja Y rango bajo (condiciones ideales)
+    if (var_total < TH_VAR_QUIET_STRICT && range_total < TH_RANGE_QUIET_STRICT) {
+        candidate = CowState::QUIET;
+    }
+    // QUIET LOOSE (anti-vibración): tolera vibraciones de mesa/ambiente
+    // - var y range moderados
+    // - NO puede ser grazing (range_z bajo O z_ratio bajo)
+    else if (var_total < TH_VAR_QUIET_LOOSE && range_total < TH_RANGE_QUIET_LOOSE &&
+             (range_z < TH_RANGE_Z_ANTI_GRAZING || z_ratio < TH_Z_RATIO_ANTI_GRAZING)) {
         candidate = CowState::QUIET;
     }
     // GRAZING: rango Z alto + dominancia vertical + varianza no muy alta (movimiento lento vertical)
     else if (range_z > TH_RANGE_Z && z_ratio > TH_Z_RATIO && var_total < TH_VAR_MOVE) {
         candidate = CowState::GRAZING;
     }
-    // MOVEMENT: varianza alta o actividad en múltiples ejes (caminata, agitación)
+    // MOVEMENT con HISTÉRESIS: más difícil entrar desde QUIET que desde otros estados
     else {
-        candidate = CowState::MOVEMENT;
+        // Si estaba en QUIET o SLEEP, requiere umbrales más altos para entrar a MOVEMENT
+        if (currentState == CowState::QUIET || currentState == CowState::SLEEP) {
+            if (var_total > TH_VAR_MOVE_ENTER || range_total > TH_RANGE_MOVE_ENTER) {
+                candidate = CowState::MOVEMENT;
+            } else {
+                // No alcanza umbral estricto → mantener QUIET (absorbe vibraciones pequeñas)
+                candidate = CowState::QUIET;
+            }
+        } else {
+            // Desde otros estados (GRAZING, MOVEMENT), umbral normal (catch-all)
+            candidate = CowState::MOVEMENT;
+        }
     }
     
     // Log classification result (orden DEBE coincidir con enum CowState: SLEEP=0, QUIET=1, GRAZING=2, MOVEMENT=3)
