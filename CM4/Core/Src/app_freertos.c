@@ -157,7 +157,7 @@ osThreadId_t fsm_TaskHandle;
 
 const osThreadAttr_t fsm_Task_attributes = {
   .name = "fsm_Task",
-  .stack_size = 512 * 4,  // 2048 bytes - FSMs complejas anidadas
+  .stack_size = 312 * 4,  // 2048 bytes - FSMs complejas anidadas
   .priority = (osPriority_t) osPriorityNormal,
   // .cb_mem = &fsm_TaskBuffer,
   // .cb_size = sizeof(fsm_TaskBuffer),
@@ -199,7 +199,7 @@ const osThreadAttr_t sensorAcq_Task_attributes = {
 osThreadId_t imu_TaskHandle;
 const osThreadAttr_t imu_Task_attributes = {
   .name = "imu_Task",
-  .stack_size = 512 * 4,  // 2048 bytes - burst buffers + objetos C++ LSM6DSO
+  .stack_size = 192 * 4,  // 2048 bytes - burst buffers + objetos C++ LSM6DSO
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -207,7 +207,7 @@ const osThreadAttr_t imu_Task_attributes = {
 osThreadId_t gps_TaskHandle;
 const osThreadAttr_t gps_Task_attributes = {
   .name = "gps_Task",
-  .stack_size = 384 * 4,  // 1536 bytes - objeto C++ SAM-M10Q
+  .stack_size = 292 * 4,  // 1536 bytes - objeto C++ SAM-M10Q
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -215,7 +215,7 @@ const osThreadAttr_t gps_Task_attributes = {
 osThreadId_t ina_TaskHandle;
 const osThreadAttr_t ina_Task_attributes = {
   .name = "ina_Task",
-  .stack_size = 384 * 4,  // 1536 bytes - 3 objetos C++ INA226
+  .stack_size = 228 * 4,  // 1536 bytes - 3 objetos C++ INA226
   .priority = (osPriority_t) osPriorityNormal,
 };
 
