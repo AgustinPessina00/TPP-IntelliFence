@@ -13,6 +13,7 @@ struct DeviceUID {
 
 enum class CowState {
     SLEEP,
+    QUIET,
     GRAZING,
     MOVEMENT,
 };

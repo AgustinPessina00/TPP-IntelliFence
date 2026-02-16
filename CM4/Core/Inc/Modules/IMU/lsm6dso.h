@@ -439,10 +439,14 @@ typedef struct {
   int16_t az;
 } AccRaw;
 
-// Burst features for cow state classification
+// Burst features for cow state classification - VARIANCE + RANGE + Z_RATIO
 typedef struct {
-  uint32_t E;      // avg of d (deviation from g²)
-  uint16_t peaks;  // count of peaks above threshold
+  uint32_t var_total;   // Total variance (var_x + var_y + var_z)
+  uint16_t range_z;     // Z-axis range (max_az - min_az) - captures amplitude
+  uint16_t range_total; // Total range (range_x + range_y + range_z)
+  uint16_t z_ratio;     // Z dominance: (range_z * 100) / (range_total + 1) [percentage 0-100]
+  uint8_t  reserved;    // Padding for alignment
+                        // Total: 4+2+2+2+1 = 11 bytes → aligned to 12 bytes
 } BurstFeatures;
 
 // == LSM6DSO ==

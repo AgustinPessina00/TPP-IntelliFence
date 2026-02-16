@@ -235,53 +235,6 @@ static inline uint32_t uabs32(int32_t x) {
 }
 
 // Compute burst features from N raw samples
-static BurstFeatures computeBurstFeatures(const AccRaw* samples, uint16_t N, 
-                                         uint32_t g2, uint32_t th_peak) {
-    uint64_t sum_d = 0;
-    uint64_t sum_a2 = 0;
-    uint16_t peaks = 0;
-
-    for (uint16_t i = 0; i < N; i++) {
-        int32_t ax = samples[i].ax;
-        int32_t ay = samples[i].ay;
-        int32_t az = samples[i].az;
-
-        // a² = ax² + ay² + az²
-        uint32_t a2 = (uint32_t)(ax*ax + ay*ay + az*az);
-        sum_a2 += a2;
-
-        // d = |a² - g²|
-        uint32_t d = uabs32((int32_t)a2 - (int32_t)g2);
-        sum_d += d;
-
-        if (d > th_peak) peaks++;
-    }
-
-    BurstFeatures features;
-    features.E = (uint32_t)(sum_d / N);
-    features.peaks = peaks;
-    
-    return features;
-}
-
-// Classify cow state from burst features
-static CowState classifyFromFeatures(uint32_t E, uint16_t peaks,
-                                    uint32_t th_rest,
-                                    uint32_t th_move_strong,
-                                    uint16_t th_peaks_graze) {
-    // Quieta (rest state - not necessarily sleeping yet)
-    if (E < th_rest) {
-        return CowState::SLEEP;  // Note: actual sleep determined by FSM time tracking
-    }
-
-    // Active: grazing has high peak count but lower overall energy
-    if ((peaks >= th_peaks_graze) && (E < th_move_strong)) {
-        return CowState::GRAZING;
-    }
-
-    return CowState::MOVEMENT;
-}
-
 // State tracking for persistence and anti-flapping
 static struct {
     CowState history[5];     // Last 5 classifications
@@ -289,17 +242,13 @@ static struct {
     uint8_t historyCount;    // How many valid entries
     CowState lastCommitted;  // Last state sent to Cow
     uint32_t quietTicks;     // Consecutive ticks in quiet state
-    uint32_t g2;             // Calibrated g² value (auto-updated)
-    bool g2Initialized;      // g² calibration flag
 } stateTracker = {
     .history = {CowState::MOVEMENT, CowState::MOVEMENT, CowState::MOVEMENT, 
                 CowState::MOVEMENT, CowState::MOVEMENT},
     .historyIndex = 0,
     .historyCount = 0,
     .lastCommitted = CowState::MOVEMENT,
-    .quietTicks = 0,
-    .g2 = 268000000,  // Initial estimate for ±2g (~16384² LSB)
-    .g2Initialized = false
+    .quietTicks = 0
 };
 
 // Configuration parameters
@@ -307,50 +256,53 @@ static struct {
 #define TICKS_PER_MINUTE        30     // Assuming ~2s burst period
 #define SLEEP_THRESHOLD_TICKS   (QUIET_MINUTES_TO_SLEEP * TICKS_PER_MINUTE)
 
-// Update g² calibration (IIR filter when quiet)
-static void updateG2Calibration(const AccRaw* samples, uint16_t N, uint32_t E) {
-    // Only calibrate when quiet (low E)
-    uint32_t th_quiet = stateTracker.g2 / 100;  // 1% of g²
+// Update cow state based on VARIANCE + RANGE + Z_RATIO (robust multi-feature approach)
+void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uint16_t range_total, uint16_t z_ratio) {
+    // === MULTI-FEATURE THRESHOLDS ===
+    // Basados en física del acelerómetro y comportamiento bovino real:
+    // - Varianza captura "velocidad" del movimiento (alta = sacudidas/golpecitos)
+    // - Rango captura "amplitud" del movimiento (alto = bajar/subir cabeza aunque sea lento)
+    // - Z_ratio captura "verticalidad" (alto = principalmente movimiento vertical = pastando)
     
-    if (E < th_quiet) {
-        // Calculate average a²
-        uint64_t sum_a2 = 0;
-        for (uint16_t i = 0; i < N; i++) {
-            int32_t ax = samples[i].ax;
-            int32_t ay = samples[i].ay;
-            int32_t az = samples[i].az;
-            sum_a2 += (uint32_t)(ax*ax + ay*ay + az*az);
-        }
-        uint32_t avg_a2 = (uint32_t)(sum_a2 / N);
-        
-        // IIR: g2 = 0.95*g2 + 0.05*avg_a2 → (g2*19 + avg_a2)/20
-        stateTracker.g2 = (stateTracker.g2 * 19 + avg_a2) / 20;
-        stateTracker.g2Initialized = true;
-        
-        RTOS_LOG_DEBUG("[FSM] g² calibrated: %lu\r\n", stateTracker.g2);
+    // === THRESHOLDS CALIBRADOS EMPÍRICAMENTE (2026-02-15) ===
+    // Basados en análisis estadístico de 23 muestras reales:
+    // - QUIET: var=219-284 (mean=247), range=112-139 (mean=126) → 100% accuracy
+    // - MOVEMENT: var=96k-95M, range=2.2k-50k → 100% accuracy
+    // - Margen de seguridad: 3.5× sobre valores máximos observados
+    
+    const uint32_t TH_VAR_QUIET = 1000;     // Was 10k (QUIET max=284 × 3.5 ≈ 1000)
+    const uint16_t TH_RANGE_QUIET = 500;    // Was 1k (QUIET max=139 × 3.5 ≈ 500)
+    
+    const uint32_t TH_VAR_MOVE = 20000;     // Unchanged (min movement=96k, safety margin)
+    const uint16_t TH_RANGE_Z = 500;        // Was 1.5k (min grazing z=271-857, margin=2×)
+    const uint16_t TH_Z_RATIO = 60;         // Was 50% (grazing observado: 60-80%)
+    
+    const uint8_t QUIET_TO_SLEEP_COUNT = 10; // Repeticiones de QUIET para confirmar SLEEP
+    
+    RTOS_LOG_INFO("[FSM] 📊 Features: var=%lu, range=%u (z=%u), z_ratio=%u%% | TH: var_quiet<%lu, range_quiet<%u, var_move<%lu\r\n", 
+                  var_total, range_total, range_z, z_ratio, TH_VAR_QUIET, TH_RANGE_QUIET, TH_VAR_MOVE);
+    
+    // === CLASIFICACIÓN MULTI-FEATURE ===
+    CowState candidate;
+    
+    // QUIET: varianza baja Y rango bajo (quieta, sin movimientos amplios)
+    if (var_total < TH_VAR_QUIET && range_total < TH_RANGE_QUIET) {
+        candidate = CowState::QUIET;
     }
-}
-
-// Process burst and update cow state with persistence
-void updateStateFromBurst(Cow& cow, const AccRaw* samples, uint16_t N) {
-    // Calculate dynamic thresholds based on current g²
-    uint32_t th_peak        = stateTracker.g2 / 50;   // ~2%
-    uint32_t th_rest        = stateTracker.g2 / 200;  // ~0.5%
-    uint32_t th_move_strong = stateTracker.g2 / 20;   // ~5%
-    uint16_t th_peaks_graze = N / 3;                  // ~33% of samples
+    // GRAZING: rango Z alto + dominancia vertical + varianza no muy alta (movimiento lento vertical)
+    else if (range_z > TH_RANGE_Z && z_ratio > TH_Z_RATIO && var_total < TH_VAR_MOVE) {
+        candidate = CowState::GRAZING;
+    }
+    // MOVEMENT: varianza alta o actividad en múltiples ejes (caminata, agitación)
+    else {
+        candidate = CowState::MOVEMENT;
+    }
     
-    // Compute features
-    BurstFeatures features = computeBurstFeatures(samples, N, stateTracker.g2, th_peak);
-    
-    RTOS_LOG_DEBUG("[FSM] Burst: E=%lu, peaks=%u, g²=%lu\r\n", 
-                  features.E, features.peaks, stateTracker.g2);
-    
-    // Update g² calibration
-    updateG2Calibration(samples, N, features.E);
-    
-    // Classify
-    CowState candidate = classifyFromFeatures(features.E, features.peaks,
-                                             th_rest, th_move_strong, th_peaks_graze);
+    // Log classification result (orden DEBE coincidir con enum CowState: SLEEP=0, QUIET=1, GRAZING=2, MOVEMENT=3)
+    const char* stateNames[] = {"SLEEP", "QUIET", "GRAZING", "MOVEMENT"};
+    const char* stateEmojis[] = {"😴", "🤫", "🐄", "🚶"};
+    RTOS_LOG_INFO("[FSM] %s Classified as: %s (state %d)\r\n", 
+                  stateEmojis[(int)candidate], stateNames[(int)candidate], (int)candidate);
     
     // Add to history
     stateTracker.history[stateTracker.historyIndex] = candidate;
@@ -368,31 +320,48 @@ void updateStateFromBurst(Cow& cow, const AccRaw* samples, uint16_t N) {
         }
     }
     
+    // Contador para transición QUIET → SLEEP
+    static uint8_t quietConsecutiveCount = 0;
+    
+    // Commit state change if persistent
     if (shouldCommit) {
-        CowState newState = candidate;
+        CowState newState = stateTracker.history[(stateTracker.historyIndex + 5 - 1) % 5];
+        CowState oldState = cow.getState();
         
-        // Handle quiet → sleep transition (requires X minutes)
-        if (candidate == CowState::SLEEP) {
-            stateTracker.quietTicks++;
+        // Contador de QUIET consecutivos
+        if (newState == CowState::QUIET) {
+            quietConsecutiveCount++;
+            RTOS_LOG_DEBUG("[FSM] QUIET count: %d/%d\r\n", quietConsecutiveCount, QUIET_TO_SLEEP_COUNT);
             
-            if (stateTracker.quietTicks >= SLEEP_THRESHOLD_TICKS) {
-                newState = CowState::SLEEP;  // Real sleep after X minutes
-                RTOS_LOG_INFO("[FSM] Entering SLEEP after %lu ticks\r\n", stateTracker.quietTicks);
-            } else {
-                // Still quiet, but not yet sleeping - keep previous active state
-                newState = stateTracker.lastCommitted;
+            // Después de N repeticiones de QUIET → cambiar a SLEEP
+            if (quietConsecutiveCount >= QUIET_TO_SLEEP_COUNT) {
+                RTOS_LOG_INFO("[FSM] 😴 QUIET repeated %d times → transitioning to SLEEP\r\n", quietConsecutiveCount);
+                newState = CowState::SLEEP;
+                quietConsecutiveCount = 0; // Reset counter
             }
         } else {
-            // Any activity resets quiet counter and exits sleep
-            stateTracker.quietTicks = 0;
+            // Cualquier otro estado resetea el contador
+            if (quietConsecutiveCount > 0) {
+                RTOS_LOG_DEBUG("[FSM] QUIET interrupted at count %d\r\n", quietConsecutiveCount);
+            }
+            quietConsecutiveCount = 0;
         }
         
-        // Only update if changed
-        if (newState != stateTracker.lastCommitted) {
+        RTOS_LOG_DEBUG("[FSM] 🔄 Persistence check OK - Candidate committed\r\n");
+        
+        // Update cow state
+        if (newState != oldState) {
+            const char* stateNames[] = {"SLEEP", "QUIET", "GRAZING", "MOVEMENT"};
+            const char* stateEmojis[] = {"😴", "🤫", "🐄", "🚶"};
             cow.updateState(newState);
-            stateTracker.lastCommitted = newState;
-            RTOS_LOG_INFO("[FSM] State committed: %d\r\n", (int)newState);
+            RTOS_LOG_INFO("[FSM] ════════════════════════════════════════\r\n");
+            RTOS_LOG_INFO("[FSM] ✨ STATE CHANGE: %s %s → %s %s\r\n", 
+                         stateEmojis[(int)oldState], stateNames[(int)oldState],
+                         stateEmojis[(int)newState], stateNames[(int)newState]);
+            RTOS_LOG_INFO("[FSM] ════════════════════════════════════════\r\n");
         }
+    } else {
+        RTOS_LOG_DEBUG("[FSM] ⏸️  Waiting for persistence (need 2 consecutive matches)\r\n");
     }
 }
 

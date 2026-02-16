@@ -130,14 +130,18 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
         case GREEN_ZONE_WAIT_ACCELERATION:
             // Prioridad: MSG_ID_SEND_IMU_BURST (preferido)
             if (waitForMessage(MSG_ID_SEND_IMU_BURST, timeout, msg, newMessage) == HAL_OK) {
-                // Procesar burst completo
-                if ((*msg)->length == sizeof(AccRaw) * BURST_SIZE) {
-                    AccRaw* samples = (AccRaw*)(*msg)->payload;
-                    updateStateFromBurst(cow, samples, BURST_SIZE);
-                    RTOS_LOG_DEBUG("[FSM] GREEN: Processed IMU burst (%d samples)\r\n", BURST_SIZE);
+                // Procesar BurstFeatures (variance + range + z_ratio) - 12 bytes
+                if ((*msg)->length == sizeof(BurstFeatures)) {
+                    BurstFeatures* features = (BurstFeatures*)(*msg)->payload;
+                    RTOS_LOG_DEBUG("[FSM] GREEN: Received features (var=%lu, range=%u, z=%u, ratio=%u%%)\r\n", 
+                                  features->var_total, features->range_total, features->range_z, features->z_ratio);
+                    
+                    // Clasificar con multi-feature (variance + range + z_ratio)
+                    updateStateFromFeatures(cow, features->var_total, features->range_z, features->range_total, features->z_ratio);
+                    RTOS_LOG_DEBUG("[FSM] GREEN: Processed features, state=%d\r\n", (int)cow.getState());
                     greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
                 } else {
-                    RTOS_LOG_ERROR("[FSM] GREEN: Invalid burst size (expected %d, got %d)\r\n", sizeof(AccRaw) * BURST_SIZE, (*msg)->length);
+                    RTOS_LOG_ERROR("[FSM] GREEN: Invalid burst features size (expected %d, got %d)\r\n", sizeof(BurstFeatures), (*msg)->length);
                     greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
                 }
             }
@@ -158,12 +162,19 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             switch (cow.getState()) {
                 case CowState::GRAZING:
                     greenZoneState = GREEN_ZONE_GRAZING;
+                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE GRAZING: \r\n");
                     break;
                 case CowState::SLEEP:
                     greenZoneState = GREEN_ZONE_SLEEP;
+                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE SLEEP: \r\n");
+                    break;
+                case CowState::QUIET:
+                    greenZoneState = GREEN_ZONE_SLEEP; // QUIET usa mismo path que SLEEP
+                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE QUIET: \r\n");
                     break;
                 case CowState::MOVEMENT:
                     greenZoneState = GREEN_ZONE_MOVEMENT;
+                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE MOVEMENT: \r\n");
                     break;
             }
             break;

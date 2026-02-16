@@ -174,6 +174,16 @@ HAL_StatusTypeDef isInGreenZone(Cow& cow);
 void updateStateFromBurst(Cow& cow, const AccRaw* samples, uint16_t N);
 
 /**
+ * @brief Update cow state based on variance features (simple & robust)
+ * @param cow Cow object to update
+ * @param var_total Total variance (var_x + var_y + var_z)
+ * @param range_z Z-axis range (max - min)
+ * @param range_total Total range across all axes
+ * @param z_ratio Z dominance ratio (0-100%)
+ */
+void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uint16_t range_total, uint16_t z_ratio);
+
+/**
  * @brief Update cow state based on current acceleration (DEPRECATED)
  * @deprecated Use updateStateFromBurst() for robust burst-based classification
  * @param cow Cow object to update
