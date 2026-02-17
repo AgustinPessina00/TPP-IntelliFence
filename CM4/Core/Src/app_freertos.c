@@ -514,6 +514,37 @@ void StartDefaultTask(void *argument)
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
+// /**
+//  * @brief  Configure the DWT cycle counter for runtime stats
+//  * @note   Called automatically by FreeRTOS during initialization
+//  */
+// void vConfigureTimerForRunTimeStats(void)
+// {
+//     /* Enable TRC (Trace) */
+//     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    
+//     /* Reset the cycle counter */
+//     DWT->CYCCNT = 0;
+    
+//     /* Enable the cycle counter */
+//     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+// }
+
+// /**
+//  * @brief  Get current value of the runtime counter
+//  * @retval Current cycle count value
+//  * @note   Called by FreeRTOS to measure task execution time
+//  */
+// uint32_t vGetRunTimeCounterValue(void)
+// {
+//     /* Return current cycle count */
+//     return DWT->CYCCNT;
+// }
+
+/* Runtime stats counter with overflow handling */
+static uint32_t ulHighFrequencyTimerTicks = 0;
+static uint32_t ulLastCycleCount = 0;
+
 /**
  * @brief  Configure the DWT cycle counter for runtime stats
  * @note   Called automatically by FreeRTOS during initialization
@@ -528,17 +559,35 @@ void vConfigureTimerForRunTimeStats(void)
     
     /* Enable the cycle counter */
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    
+    /* Reset overflow tracking variables */
+    ulHighFrequencyTimerTicks = 0;
+    ulLastCycleCount = 0;
 }
 
 /**
- * @brief  Get current value of the runtime counter
- * @retval Current cycle count value
+ * @brief  Get current value of the runtime counter with overflow handling
+ * @retval Current tick count (increments every ~1ms at 48MHz with /48000 divider)
  * @note   Called by FreeRTOS to measure task execution time
+ *         Uses software overflow detection for long runtime periods
  */
 uint32_t vGetRunTimeCounterValue(void)
 {
-    /* Return current cycle count */
-    return DWT->CYCCNT;
+    uint32_t ulCurrentCycleCount = DWT->CYCCNT;
+    
+    /* Detect overflow: if current < last, 32-bit counter wrapped around */
+    if (ulCurrentCycleCount < ulLastCycleCount) {
+        /* Handle overflow: add what was remaining + new value */
+        ulHighFrequencyTimerTicks += ((UINT32_MAX - ulLastCycleCount) + ulCurrentCycleCount) / 48000U;
+    } else {
+        /* Normal case: add difference since last call */
+        ulHighFrequencyTimerTicks += (ulCurrentCycleCount - ulLastCycleCount) / 48000U;
+    }
+    
+    ulLastCycleCount = ulCurrentCycleCount;
+    
+    return ulHighFrequencyTimerTicks;
 }
+
 
 /* USER CODE END Application */

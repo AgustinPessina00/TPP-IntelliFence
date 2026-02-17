@@ -29,20 +29,27 @@ void gpsTask(void *argument) {
     gpsData_t gpsData = {0.0, 0.0, 0};
     
     RTOS_LOG_INFO("[GPS_TASK] Task initialized successfully\r\n");
-    
+      
     static uint32_t stackMonitorCounter = 0;
     
     while(1) {
         // Monitorear stack cada ~10 segundos
-        if (++stackMonitorCounter >= 10) {
-            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-            RTOS_LOG_INFO("[GPS_TASK] Stack libre: %u words (%u bytes)\r\n", 
-                         stackLeft, stackLeft * 4);
-            stackMonitorCounter = 0;
-        }
+        // if (++stackMonitorCounter >= 10) {
+        //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+        //     RTOS_LOG_INFO("[GPS_TASK] Stack libre: %u words (%u bytes)\r\n", 
+        //                  stackLeft, stackLeft * 4);
+        //     stackMonitorCounter = 0;
+        // }
+        // Monitorear stack cada ~10 segundos
+        // if (++stackMonitorCounter >= 10) {
+        //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+        //     RTOS_LOG_INFO("[GPS_TASK] Stack libre: %u words (%u bytes)\r\n", 
+        //                  stackLeft, stackLeft * 4);
+        //     stackMonitorCounter = 0;
+        // }
 
         // Verificar si hay mensajes de solicitud
-        if (osMessageQueueGet(gpsQueueHandle, &msgReceived, NULL, 0) == osOK) {
+        if (osMessageQueueGet(gpsQueueHandle, &msgReceived, NULL, osWaitForever) == osOK) {
             RTOS_LOG_DEBUG("[GPS_TASK] Received message ID:%d from module:%d\r\n", msgReceived->id, msgReceived->sender);
             
             switch (msgReceived->id) {
@@ -105,6 +112,6 @@ void gpsTask(void *argument) {
             msgReceived = NULL;
         }
 
-        osDelay(500);
+        //osDelay(1500);
     }
 }

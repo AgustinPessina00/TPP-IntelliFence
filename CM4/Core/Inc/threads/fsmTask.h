@@ -22,7 +22,7 @@ extern "C" {
 #define GPS_TIMEOUT_MS       10000  // 120 segundos - GPS puede tardar en obtener fix
 #define LORA_TX_TIMEOUT_MS   10000  // 10 segundos - Transmisión LoRa
 #define LORA_RX_TIMEOUT_MS   10000  // 60 segundos - Espera de mensajes LoRa entrantes
-#define IMU_TIMEOUT_MS        2500  // 2.5 segundos - Burst collection (52 samples @ 26Hz = 2000ms) + processing
+#define IMU_TIMEOUT_MS       10000  // 10 segundos - Burst collection (52 samples @ 26Hz = 2000ms) + processing
 #define DISTANCE_TIMEOUT_MS   3000  // 3 segundos  - Cálculo de zona y distancia
 #define STIMULUS_TIMEOUT_MS   5000  // 5 segundos  - Respuesta del módulo de estímulo
 #define GPS_CONFIG_TIMEOUT_MS 5000  // 5 segundos  - Configuración de tasa GPS
