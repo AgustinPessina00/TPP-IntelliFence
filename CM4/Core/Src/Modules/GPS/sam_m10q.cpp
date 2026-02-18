@@ -6,6 +6,10 @@
 #include "../../Modules/UART/UARTManager.h"
 #include <stdio.h>
 #include <cstring>
+#define RTOS_PRINTF_AUTO  // Enable smart printf routing
+#include "rtos_printf.h"
+
+
 
 /* Private includes ----------------------------------------------------------*/
 void BusyDelayMs(uint32_t ms);
@@ -157,6 +161,9 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
 }
 
 void SamM10q::configure_gps() {
+
+    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // DesHabilito CFG-UART1OUTPROT-NMEA RAM
+    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR); // DesHabilito CFG-UART1OUTPROT-NMEA DISABLED BBR
 
     write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C via UART RAM
     write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR); // Habilito I2C via UART BBR
@@ -491,16 +498,27 @@ bool SamM10q::verify_config_with_valget(const uint8_t* payload_data, size_t payl
         );
         
         if (result == UART_OK && chunk_received > 0) {
+            RTOS_LOG_DEBUG("[VALGET DEBUG] Chunk recibido: %u bytes\r\n", chunk_received);
+            RTOS_LOG_DEBUG("[VALGET DEBUG] Contenido (hex): ");
+            for (uint16_t i = 0; i < chunk_received; i++) {
+                RTOS_LOG_DEBUG("%02X ", response_buffer[bytes_received + i]);
+            }
+            RTOS_LOG_DEBUG("\r\n");
+            
             bytes_received = static_cast<uint16_t>(bytes_received + chunk_received);
+            RTOS_LOG_DEBUG("[VALGET DEBUG] Total acumulado: %u bytes\r\n", bytes_received);
             
             // Intentar parsear la respuesta
             if (parse_valget_response(response_buffer, bytes_received, key_id, expected_value, value_size)) {
+                RTOS_LOG_DEBUG("[VALGET DEBUG] Parseado exitoso!\r\n");
                 return true;
             }
         }
         
         BusyDelayMs(10);
     }
+    
+    printf("[VALGET DEBUG] Timeout - Total recibido: %u bytes\r\n", bytes_received);
     
     return false;
 }

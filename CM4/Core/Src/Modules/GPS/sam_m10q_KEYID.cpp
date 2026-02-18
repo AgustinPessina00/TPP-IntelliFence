@@ -158,8 +158,8 @@ static const uint8_t m10q_data_45[] = {0x09, 0x00, 0xD0, 0x10, 0x01}; // PM-WAIT
 static const uint8_t m10q_data_46[] = {0x0C, 0x00, 0xD0, 0x10, 0x01}; // PM-EXTINTWAKE
 static const uint8_t m10q_data_47[] = {0x01, 0x00, 0xD0, 0x20, 0x01}; // PM-OPERATEMODE
 
-// static const uint8_t m10q_data_49[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
-// static const uint8_t m10q_data_50[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-UART1OUTPROT-NMEA ENABLED
+static const uint8_t m10q_data_48[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
+// static const uint8_t m10q_data_49[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-UART1OUTPROT-NMEA ENABLED
 
 // Tabla de payloads con tamaño incluido (ahorro de memoria vs arrays paralelos)
 const M10QPayload m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
@@ -178,5 +178,6 @@ const M10QPayload m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
     {m10q_data_36, sizeof(m10q_data_36)}, {m10q_data_37, sizeof(m10q_data_37)}, {m10q_data_38, sizeof(m10q_data_38)}, 
     {m10q_data_39, sizeof(m10q_data_39)}, {m10q_data_40, sizeof(m10q_data_40)}, {m10q_data_41, sizeof(m10q_data_41)}, 
     {m10q_data_42, sizeof(m10q_data_42)}, {m10q_data_43, sizeof(m10q_data_43)}, {m10q_data_44, sizeof(m10q_data_44)}, 
-    {m10q_data_45, sizeof(m10q_data_45)}, {m10q_data_46, sizeof(m10q_data_46)}, {m10q_data_47, sizeof(m10q_data_47)}
+    {m10q_data_45, sizeof(m10q_data_45)}, {m10q_data_46, sizeof(m10q_data_46)}, {m10q_data_47, sizeof(m10q_data_47)}, 
+    {m10q_data_48, sizeof(m10q_data_48)}
 };
