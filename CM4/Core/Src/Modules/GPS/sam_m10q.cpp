@@ -165,43 +165,39 @@ void SamM10q::configure_gps() {
 
     // PASO 1: Deshabilitar todos los mensajes automáticos por UART para poder verificar limpiamente
     write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Deshabilitar NMEA por UART
-    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
+    //write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
     
     // Limpiar buffer UART de mensajes NMEA residuales antes de verificar
     flush_uart_buffer();
-    verify_config_with_valget(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM);
-
-    write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM); // Deshabilitar UBX por UART
-    write_register_uart(m10q_data_payloads[49].data, m10q_data_payloads[49].size, BBR);
-    verify_config_with_valget(m10q_data_payloads[49].data, m10q_data_payloads[49].size, RAM);
+    verify_config_with_valget(m10q_data_payloads[48].data, m10q_data_payloads[48].size, 0);
 
     // PASO 2: Configurar I2C y protocolos
     write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C
-    write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR);
-    verify_config_with_valget(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM);
+    //write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[0].data, m10q_data_payloads[0].size, 0);
 
     write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita UBX_NAV_PVT por I2C
-    write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
-    verify_config_with_valget(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM);
+    //write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
     
     write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita UBX por I2C
-    write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
-    verify_config_with_valget(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM);
+    //write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[2].data, m10q_data_payloads[2].size, 0);
 
     write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Desabilita NMEA por I2C
-    write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
-    verify_config_with_valget(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM);
+    //write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[3].data, m10q_data_payloads[3].size, 0);
 
     // NOTA: payload[4] habilita UBX_NAV_PVT por UART - NO lo configuramos aquí para evitar saturar UART
     // Si necesitas debug por UART, habilitalo manualmente al final de la configuración
     
     write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita UBX_NAV_PVT por UART
-    write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
-    verify_config_with_valget(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM);
+    //write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
+    verify_config_with_valget(m10q_data_payloads[4].data, m10q_data_payloads[4].size, 0);
 
 
     // Resto de configuraciones (señales GNSS, power management, etc.) se harán después
-    // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
+    //configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
 }
 
 /* ============================================================ */
