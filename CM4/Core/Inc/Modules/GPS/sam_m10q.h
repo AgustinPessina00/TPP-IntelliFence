@@ -32,6 +32,11 @@ class UARTBus;
 #define NAV_CLASS 0x01
 #define PVT_ID 0x07
 
+// UBX-ACK
+#define ACK_CLASS 0x05
+#define ACK_ACK_ID 0x01
+#define ACK_NAK_ID 0x00
+
 // Estructura para almacenar datos PVT (Position, Velocity, Time)
 // Basada en la especificación UBX-NAV-PVT del protocolo u-blox
 typedef struct {
@@ -131,8 +136,10 @@ private:
     bool verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen);
 
 	// ====== FUNCIONES PRIVADAS PARA VERIFICACION VALGET ======
+	void flush_uart_buffer(uint32_t timeout_ms = 500);
 	bool verify_config_with_valget(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
 	bool parse_valget_response(const uint8_t* response_buffer, uint16_t buffer_len, const uint8_t* key_id, const uint8_t* expected_value, uint8_t value_size);
+	int8_t check_ack_response(const uint8_t* response_buffer, uint16_t buffer_len, uint8_t expected_class, uint8_t expected_id);
 
 public:
 	float latitude = 0;
