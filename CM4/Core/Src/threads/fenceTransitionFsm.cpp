@@ -36,7 +36,16 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
         case FENCE_TRANSITION_WAIT_STIMULUS_RESPONSE:
             if (waitForMessage(MSG_ID_STIMULUS_FEEDBACK, timeout, msg, newMessage) == HAL_OK) {
                 if (processStimulusResponse(*msg) == HAL_OK) {
-                    fenceTransitionState = FENCE_TRANSITION_UPDATE_FENCE;
+                    // Fence ya fue procesado antes de entrar a FENCE_TRANSITION
+                    // Simplemente verificamos que esté válido
+                    if (fence.getHasValidFence()) {
+                        RTOS_LOG_INFO("[FSM] FENCE_TRANS: Fence already saved (%d limits)\r\n", fence.getLimitCount());
+                        fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
+                    } else {
+                        RTOS_LOG_ERROR("[FSM] FENCE_TRANS: No valid fence found!\r\n");
+                        // Volver a NORMAL_OPERATION si no hay fence válido
+                        fenceTransitionState = FENCE_TRANSITION_END;
+                    }
                 }
             } else if (Timeout_IsExpired(&timeout)) {
                 RTOS_LOG_WARN("[FSM] FENCE_TRANS: Stimulus timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
@@ -44,26 +53,21 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             }
             break;
             
-        case FENCE_TRANSITION_UPDATE_FENCE:
-            processFenceMessage(*msg, fence);
-            fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
-            break;
-            
         case FENCE_TRANSITION_GPSRATE_FAST:
-            updateGpsAdqTime(GpsRate::FAST);
-            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            // updateGpsAdqTime(GpsRate::FAST);
+            // Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             fenceTransitionState = FENCE_TRANSITION_WAIT_GPS_ADQ_TIME;
             break;
             
         case FENCE_TRANSITION_WAIT_GPS_ADQ_TIME:
-            if (waitForMessage(MSG_ID_GPS_CONFIG_RESPONSE, timeout, msg, newMessage) == HAL_OK) {
-                if (processGpsConfigResponse(*msg) == HAL_OK) {
+            // if (waitForMessage(MSG_ID_GPS_CONFIG_RESPONSE, timeout, msg, newMessage) == HAL_OK) {
+            //     if (processGpsConfigResponse(*msg) == HAL_OK) {
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
-                }
-            } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] FENCE_TRANS: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
-            }
+            //     }
+            // } else if (Timeout_IsExpired(&timeout)) {
+            //     RTOS_LOG_WARN("[FSM] FENCE_TRANS: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+            //     fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
+            // }
             break;
             
         case FENCE_TRANSITION_REQUEST_POSITION:

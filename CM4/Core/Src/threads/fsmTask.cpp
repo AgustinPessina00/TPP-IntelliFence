@@ -76,8 +76,24 @@ void fsmTask(void *argument) {
         if(osMessageQueueGet(fsmQueueHandle, &msg, NULL, 0) == osOK) {
             RTOS_LOG_INFO("[FSM] Received message - ID: %d, Sender: %d, MainFSM: %d\r\n", 
                          msg->id, msg->sender, (int)s_mainFSM);
-            if (s_mainFSM == MainFSM_t::NORMAL_OPERATION && fence.getHasValidFence() && msg->id == MSG_ID_LORA_VERTEXES_RECEIVED) {
-                receivedNewFence = true;
+            
+            // Si llega un fence nuevo durante NORMAL_OPERATION, procesarlo e ir a FENCE_TRANSITION
+            if (s_mainFSM == MainFSM_t::NORMAL_OPERATION && 
+                fence.getHasValidFence() && 
+                msg->id == MSG_ID_LORA_VERTEXES_RECEIVED) {
+                
+                RTOS_LOG_INFO("--------------------------------------------------\r\n");
+                RTOS_LOG_INFO("[FSM] New fence received !!!\r\n");
+                RTOS_LOG_INFO("--------------------------------------------------\r\n");
+                
+                // Procesar el fence ANTES de cambiar de estado
+                if (processFenceMessage(msg, fence) == HAL_OK) {
+                    RTOS_LOG_INFO("[FSM] Fence processed successfully, entering FENCE_TRANSITION\r\n");
+                    receivedNewFence = true;
+                } else {
+                    RTOS_LOG_WARN("[FSM] Fence processing returned BUSY (waiting more fragments)\r\n");
+                    // Si hay más fragmentos, se procesarán en el próximo ciclo
+                }
             }
             
         }
