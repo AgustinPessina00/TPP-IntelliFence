@@ -41,8 +41,8 @@ void imuTask(void *argument) {
             
             switch (msgReceived->id) {
                 case MSG_ID_REQUEST_IMU: {
-                    RTOS_LOG_INFO("[IMU_TASK] 📡 MSG_ID_REQUEST_IMU received from module %d\r\n", msgReceived->sender);
-                    RTOS_LOG_DEBUG("[IMU_TASK] 🚀 Starting IMU burst collection (%d samples @ 26Hz)\r\n", BURST_SIZE);
+                    RTOS_LOG_INFO("[IMU_TASK] MSG_ID_REQUEST_IMU received from module %d\r\n", msgReceived->sender);
+                    RTOS_LOG_DEBUG("[IMU_TASK] Starting IMU burst collection (%d samples @ 26Hz)\r\n", BURST_SIZE);
                     
                     // Use static buffer (defined at function scope) - CRITICAL for async message processing
                     TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -62,12 +62,12 @@ void imuTask(void *argument) {
                             // Error I2C: repetir último valor válido (evita ceros falsos)
                             if (i > 0) {
                                 imuBurstBuffer[i] = imuBurstBuffer[i-1];
-                                RTOS_LOG_WARN("[IMU_TASK] ⚠️  I2C error at sample %d (using previous value)\r\n", i);
+                                RTOS_LOG_WARN("[IMU_TASK]  I2C error at sample %d (using previous value)\r\n", i);
                             } else {
                                 imuBurstBuffer[i].ax = 0;
                                 imuBurstBuffer[i].ay = 0;
                                 imuBurstBuffer[i].az = 0;
-                                RTOS_LOG_ERROR("[IMU_TASK] ❌ I2C error at sample %d (no previous value, using zeros)\r\n", i);
+                                RTOS_LOG_ERROR("[IMU_TASK] I2C error at sample %d (no previous value, using zeros)\r\n", i);
                             }
                         }
                         
@@ -77,7 +77,7 @@ void imuTask(void *argument) {
                     
                     // Solo reportar errores I2C si hubo
                     if (errorCount > 0) {
-                        RTOS_LOG_WARN("[IMU_TASK] ⚠️  %d I2C errors during burst (%d/%d OK)\r\n", errorCount, successfulReads, BURST_SIZE);
+                        RTOS_LOG_WARN("[IMU_TASK]  %d I2C errors during burst (%d/%d OK)\r\n", errorCount, successfulReads, BURST_SIZE);
                     }
                     
                     // Compute VARIANCE + RANGE + Z_RATIO features (12 bytes payload)
@@ -156,12 +156,12 @@ void imuTask(void *argument) {
                         if (status == osOK) {
                             // Success
                         } else {
-                            RTOS_LOG_ERROR("[IMU_TASK] ❌ Failed to send IMU features (osStatus: %d)\r\n", status);
+                            RTOS_LOG_ERROR("[IMU_TASK] Failed to send IMU features (osStatus: %d)\r\n", status);
                             MessagePool_Free(msgToSend);
                         }
                         msgToSend = NULL;
                     } else {
-                        RTOS_LOG_ERROR("[IMU_TASK] ❌ Failed to allocate message for IMU features (pool full?)\r\n");
+                        RTOS_LOG_ERROR("[IMU_TASK] Failed to allocate message for IMU features (pool full?)\r\n");
                     }
                     break;
                 }

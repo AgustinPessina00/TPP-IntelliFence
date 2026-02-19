@@ -68,8 +68,8 @@ static void startNextPhase(void) {
             } else {
                 motor_to_use = MOTOR_RIGHT;
             }
-            RTOS_LOG_INFO("[VIBR_ALARM] Alternating: using motor %d (left=%d)\\r\\n", 
-                         motor_to_use, s_alarmState.alternating_left);
+            // RTOS_LOG_INFO("[VIBR_ALARM] Alternating: using motor %d (left=%d)\\r\\n", 
+            //              motor_to_use, s_alarmState.alternating_left);
             s_alarmState.alternating_left = !s_alarmState.alternating_left;
         }
         
