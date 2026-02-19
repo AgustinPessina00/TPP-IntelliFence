@@ -45,6 +45,12 @@ void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 
+// Funciones de buffer circular GPS (USART1)
+void GPS_StartReception(void);
+uint16_t GPS_GetAvailableBytes(uint8_t* pData, uint16_t maxSize);
+void GPS_ResetBuffer(void);
+void GPS_RxCallback(void);  // Función interna para callback
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

@@ -9,6 +9,10 @@
 #define RTOS_PRINTF_AUTO  // Enable smart printf routing
 #include "rtos_printf.h"
 
+// Declaración externa de función para iniciar recepción GPS por interrupción
+extern "C" {
+    void GPS_StartReception(void);
+}
 
 
 /* Private includes ----------------------------------------------------------*/
@@ -48,6 +52,9 @@ bool SamM10q::init(uint8_t i2cAddr) {
     if (!uartBus) {
         return false;
     }
+    
+    // Iniciar recepción por interrupción para GPS (USART1)
+    GPS_StartReception();
     
     configure_gps();
     
