@@ -13,16 +13,18 @@
 #define MSG_ID_TIME_SYNC         0x13  // Sincronización de tiempo
 
 // Sensor Acquisition
-#define MSG_ID_SEND_GPS          0x20
-#define MSG_ID_SEND_IMU          0x21
-#define MSG_ID_SEND_INA_MCU      0x22
-#define MSG_ID_SEND_INA_GPS      0x23
-#define MSG_ID_SEND_INA_IMU      0x24
-#define MSG_ID_REQUEST_GPS       0x25
-#define MSG_ID_REQUEST_IMU       0x26
-#define MSG_ID_REQUEST_INA_MCU   0x27
-#define MSG_ID_REQUEST_INA_GPS   0x28
-#define MSG_ID_REQUEST_INA_IMU   0x29
+#define MSG_ID_SEND_GPS                         0x20
+#define MSG_ID_SEND_IMU                         0x21
+#define MSG_ID_SEND_INA_MCU                     0x22
+#define MSG_ID_SEND_INA_GPS                     0x23
+#define MSG_ID_SEND_INA_IMU                     0x24
+#define MSG_ID_REQUEST_GPS                      0x25
+#define MSG_ID_REQUEST_IMU                      0x26
+#define MSG_ID_REQUEST_INA_MCU                  0x27
+#define MSG_ID_REQUEST_INA_GPS                  0x28
+#define MSG_ID_REQUEST_INA_IMU                  0x29
+#define MSG_ID_REQUEST_GPS_CONFIGURATION_PSM    0x2A
+#define MSG_ID_SEND_GPS_CONFIGURATION_PSM       0x2B
 
 // Cerca virtual
 #define MSG_ID_FENCE_UPDATE                         0x30    // Nueva cerca virtual enviada
