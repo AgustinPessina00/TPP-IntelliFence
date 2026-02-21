@@ -51,7 +51,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
                 if (processGpsMessage(*msg, cow, validPosition) == HAL_OK) {
                     if (validPosition) {
                         RTOS_LOG_DEBUG("[FSM] Valid GPS position received after %lums\r\n", Timeout_GetElapsed(&timeout));
-                        *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
+                        *state = STARTUP_ROUTINE_REQUEST_GPS_CONFIGURATION_PSM;
                     } else {
                         RTOS_LOG_WARN("[FSM] GPS without fix, retrying...\r\n");
                         *state = STARTUP_ROUTINE_REQUEST_POSITION;
@@ -62,7 +62,24 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
                 *state = STARTUP_ROUTINE_REQUEST_POSITION;
             }
             break;
+
+        case STARTUP_ROUTINE_REQUEST_GPS_CONFIGURATION_PSM:
+            sendMessage(MSG_ID_REQUEST_GPS_CONFIGURATION_PSM, MODULE_SENSOR_ACQ);
+            Timeout_Start(&timeout, GPS_PSM_TIMEOUT_MS);
+            RTOS_LOG_DEBUG("[FSM] Requesting GPS configuration PSM (timeout: %lums)\r\n", timeout.timeoutMs);
+            *state = STARTUP_ROUTINE_WAIT_GPS_CONFIGURATION_PSM;
+            break;
             
+        case STARTUP_ROUTINE_WAIT_GPS_CONFIGURATION_PSM:
+            if (waitForMessage(MSG_ID_SEND_GPS_CONFIGURATION_PSM, timeout, msg, newMessage) == HAL_OK) {
+                RTOS_LOG_DEBUG("[FSM] GPS configuration PSM received after %lums\r\n", Timeout_GetElapsed(&timeout));
+                *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
+            } else if (Timeout_IsExpired(&timeout)) {
+                RTOS_LOG_WARN("[FSM] GPS configuration PSM timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                *state = STARTUP_ROUTINE_REQUEST_GPS_CONFIGURATION_PSM;
+            }
+            break;
+
         case STARTUP_ROUTINE_SEND_POSITION_LORA:
             sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
             Timeout_Start(&timeout, LORA_TX_TIMEOUT_MS);
