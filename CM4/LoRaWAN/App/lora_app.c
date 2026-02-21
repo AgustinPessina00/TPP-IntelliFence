@@ -1045,6 +1045,10 @@ static void SendTxData(void)
       // HAL_GPIO_WritePin(LED3_GPIO_PORT, LED3_PIN, GPIO_PIN_RESET);
     }
 
+    // ⚠️ FORZAR DR0 CON ADR OFF: Aplicar antes de cada envío para asegurar que no se pise
+    LmHandlerSetAdrEnable(false);
+    LmHandlerSetTxDatarate(DR_0);
+
     // SIEMPRE ENVIAR (con payload o vacío)
     status = LmHandlerSend(&AppData, LmHandlerParams.IsTxConfirmed, false);
     
@@ -1144,6 +1148,11 @@ static void OnJoinRequest(LmHandlerJoinParams_t *joinParams)
 
       rtos_printf("\r\n###### = JOINED = %s\r\r\n",
               (joinParams->Mode == ACTIVATION_TYPE_ABP) ? "ABP" : "OTAA");
+      
+      // ⚠️ FORZAR DR0 CON ADR OFF: Aplicar después del join para evitar que el stack lo pise
+      LmHandlerSetAdrEnable(false);
+      LmHandlerSetTxDatarate(DR_0);
+      rtos_printf(">>> [OnJoinRequest] ADR=OFF, DR=DR_0 forzado\r\r\n");
       
       // ⚠️ WORKAROUND: El stack NO llama OnNvmDataChange automáticamente en dual-core
       // Guardamos manualmente el contexto NVM después del join exitoso
