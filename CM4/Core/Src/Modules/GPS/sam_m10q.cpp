@@ -147,68 +147,96 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
 void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads) {
     const uint8_t* payload;
     size_t payload_len;
-    for(size_t i = 0; i < numPayloads; i++) {
+    for(size_t i = 0; i <= numPayloads; i++) {
         payload = configPayloads[i].data;
         payload_len = configPayloads[i].size;
         
         bool ramSuccess = false;
-        bool bbrSuccess = false;
+        bool bbrSuccess = true;
         bool valgetRamSuccess = false;
-        bool valgetBbrSuccess = false;
+        bool valgetBbrSuccess = true;
 
         // Escribir en RAM
         ramSuccess = write_register(payload, payload_len, RAM);
         valgetRamSuccess = verify_config_with_valget_i2c(payload, payload_len, 0);
         
         // Escribir en BBR (persistente)
-        bbrSuccess = write_register(payload, payload_len, BBR);
-        valgetBbrSuccess = verify_config_with_valget_i2c(payload, payload_len, 1);
+        // bbrSuccess = write_register(payload, payload_len, BBR);
+        // valgetBbrSuccess = verify_config_with_valget_i2c(payload, payload_len, 1);
         
         // Si falla alguna de las dos escrituras, reintentar
         if (!ramSuccess || !bbrSuccess || !valgetRamSuccess || !valgetBbrSuccess) {
             i--;
+        } else {
+            // Si ambas escrituras fueron exitosas, imprimir debug
+            RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en RAM. Verificación ValGet: %s\r\n", i, valgetRamSuccess ? "OK" : "FALLA");
+            // RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en BBR. Verificación ValGet: %s\r\n", i, valgetBbrSuccess ? "OK" : "FALLA");
         }
     }
 }
 
 void SamM10q::configure_gps() {
 
-
+    bool configOK = false;
     // PASO 1: Deshabilitar todos los mensajes automáticos por UART para poder verificar limpiamente
     write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Deshabilitar NMEA por UART
     //write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
     
     // Limpiar buffer UART de mensajes NMEA residuales antes de verificar
     flush_uart_buffer();
-    verify_config_with_valget_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, 0);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, 0);
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 0 completado: NMEA deshabilitado por UART y verificado\r\n");
 
     // PASO 2: Configurar I2C y protocolos
     write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C
     //write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR);
-    verify_config_with_valget_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, 0);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, 0);
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 1 completado: NMEA deshabilitado por UART y verificado\r\n");
+
 
     write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita UBX_NAV_PVT por I2C
     //write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
-    verify_config_with_valget_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
-    
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 2 completado: NMEA deshabilitado por UART y verificado\r\n");
+
+
     write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita UBX por I2C
     //write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
-    verify_config_with_valget_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, 0);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, 0);
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 3 completado: NMEA deshabilitado por UART y verificado\r\n");
+
 
     write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Desabilita NMEA por I2C
     //write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
-    verify_config_with_valget_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, 0);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, 0);
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 4 completado: NMEA deshabilitado por UART y verificado\r\n");
+
 
     // NOTA: payload[4] habilita UBX_NAV_PVT por UART - NO lo configuramos aquí para evitar saturar UART
     // Si necesitas debug por UART, habilitalo manualmente al final de la configuración
     
     write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita UBX_NAV_PVT por UART
     //write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
-    verify_config_with_valget_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, 0);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, 0);
+
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 5 completado: NMEA deshabilitado por UART y verificado\r\n");
 
 
     // Resto de configuraciones (señales GNSS, power management, etc.) se harán después
-    //configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
+    // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
+    configure_all_registers(m10q_data_payloads, 39);
 }
 
 /* ============================================================ */
@@ -658,9 +686,9 @@ bool SamM10q::verify_config_with_valget_i2c(const uint8_t* payload_data, size_t 
     // Imprimir buffer completo al final
     if (bytes_received > 0) {
         RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Buffer completo recibido (%u bytes): ", bytes_received);
-        for (uint16_t i = 0; i < bytes_received; i++) {
-            RTOS_LOG_DEBUG("%02X ", response_buffer[i]);
-        }
+        // for (uint16_t i = 0; i < bytes_received; i++) {
+        //     RTOS_LOG_DEBUG("%02X ", response_buffer[i]);
+        // }
         RTOS_LOG_DEBUG("\r\n");
     }
     
