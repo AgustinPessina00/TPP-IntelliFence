@@ -149,16 +149,16 @@ static const uint8_t m10q_data_36[] = {0xC5, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-
 static const uint8_t m10q_data_37[] = {0xB0, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-NMEA_ID_VTG_I2C
 static const uint8_t m10q_data_38[] = {0xB4, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-NMEA_ID_VTG_SPI
 static const uint8_t m10q_data_39[] = {0xB1, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-NMEA_ID_VTG_UART1
-static const uint8_t m10q_data_40[] = {0x02, 0x00, 0xD0, 0x40, 0x3C, 0x00, 0x00, 0x00}; // PM-POSUPDATEPERIOD -> POSICION CADA 60 SEGUNDOS
-static const uint8_t m10q_data_41[] = {0x03, 0x00, 0xD0, 0x40, 0x0A, 0x00, 0x00, 0x00}; // PM-ACQPERIOD -> PODRIAMOS LLEVARLO AL MISMO VALOR QUE EL POSUPDATEPERIOD. LO DEJO DE 10S PORQUE ASI EN CAMPO ABIERTO TENGO MAS ACTUALIZACIONES Y NO PERDEMOS EL FIX.
-static const uint8_t m10q_data_42[] = {0x05, 0x00, 0xD0, 0x30, 0x05, 0x00}; // PM-ONTIME -> 5 SEGUNDOS ACTUALMENTE, PODEMOS AUMENTARLO UN POCO AL TIEMPO QUE EL RECEPTOR PERMANECE ENCENDIDO CADA VEZ QUE ENTRA EN UN CICLO DE ADQUISICIÓN PARA NO PERDER MUESTRAS.
-static const uint8_t m10q_data_43[] = {0x06, 0x00, 0xD0, 0x20, 0x02}; // PM-MINACQTIME
-static const uint8_t m10q_data_44[] = {0x07, 0x00, 0xD0, 0x20, 0x0A}; // PM-MAXACQTIME -> SI AUMENTAMOS EL PM-ONTIME DEBERIAMOS AUMENTAR EL MAXACQTIME PARA QUE NO CORTARA LA ADQUISICIÓN ANTES DE TIEMPO.
+static const uint8_t m10q_data_40[] = {0x02, 0x00, 0xD0, 0x40, 0x78, 0x00, 0x00, 0x00}; // PM-POSUPDATEPERIOD -> POSICION CADA 60 SEGUNDOS
+static const uint8_t m10q_data_41[] = {0x03, 0x00, 0xD0, 0x40, 0x78, 0x00, 0x00, 0x00}; // PM-ACQPERIOD -> PODRIAMOS LLEVARLO AL MISMO VALOR QUE EL POSUPDATEPERIOD. LO DEJO DE 10S PORQUE ASI EN CAMPO ABIERTO TENGO MAS ACTUALIZACIONES Y NO PERDEMOS EL FIX.
+static const uint8_t m10q_data_42[] = {0x05, 0x00, 0xD0, 0x30, 0x1E, 0x00}; // PM-ONTIME -> 5 SEGUNDOS ACTUALMENTE, PODEMOS AUMENTARLO UN POCO AL TIEMPO QUE EL RECEPTOR PERMANECE ENCENDIDO CADA VEZ QUE ENTRA EN UN CICLO DE ADQUISICIÓN PARA NO PERDER MUESTRAS.
+static const uint8_t m10q_data_43[] = {0x06, 0x00, 0xD0, 0x20, 0x05}; // PM-MINACQTIME
+static const uint8_t m10q_data_44[] = {0x07, 0x00, 0xD0, 0x20, 0x3C}; // PM-MAXACQTIME -> SI AUMENTAMOS EL PM-ONTIME DEBERIAMOS AUMENTAR EL MAXACQTIME PARA QUE NO CORTARA LA ADQUISICIÓN ANTES DE TIEMPO.
 static const uint8_t m10q_data_45[] = {0x09, 0x00, 0xD0, 0x10, 0x01}; // PM-WAITTIMEFIX
-static const uint8_t m10q_data_46[] = {0x0C, 0x00, 0xD0, 0x10, 0x01}; // PM-EXTINTWAKE
+static const uint8_t m10q_data_46[] = {0x0C, 0x00, 0xD0, 0x10, 0x00}; // PM-EXTINTWAKE
 static const uint8_t m10q_data_47[] = {0x01, 0x00, 0xD0, 0x20, 0x01}; // PM-OPERATEMODE
 
-static const uint8_t m10q_data_48[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
+// static const uint8_t m10q_data_48[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
 
 // static const uint8_t m10q_data_49[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-UART1OUTPROT-NMEA ENABLED
 
@@ -179,6 +179,5 @@ const M10QPayload m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
     {m10q_data_36, sizeof(m10q_data_36)}, {m10q_data_37, sizeof(m10q_data_37)}, {m10q_data_38, sizeof(m10q_data_38)}, 
     {m10q_data_39, sizeof(m10q_data_39)}, {m10q_data_40, sizeof(m10q_data_40)}, {m10q_data_41, sizeof(m10q_data_41)}, 
     {m10q_data_42, sizeof(m10q_data_42)}, {m10q_data_43, sizeof(m10q_data_43)}, {m10q_data_44, sizeof(m10q_data_44)}, 
-    {m10q_data_45, sizeof(m10q_data_45)}, {m10q_data_46, sizeof(m10q_data_46)}, {m10q_data_47, sizeof(m10q_data_47)}, 
-    {m10q_data_48, sizeof(m10q_data_48)}
+    {m10q_data_45, sizeof(m10q_data_45)}, {m10q_data_46, sizeof(m10q_data_46)}, {m10q_data_47, sizeof(m10q_data_47)}
 };

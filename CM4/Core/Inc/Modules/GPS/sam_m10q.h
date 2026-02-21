@@ -115,9 +115,12 @@ public:
 
 	void configure_gps_uart();  // Configuración inicial via UART
 
+    void configure_gps(size_t startIndex, size_t numPayloads);
+
 private:
-	void configure_gps();
-	void configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads);
+	// void configure_gps();
+	// void configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads);
+    void configure_all_registers(const M10QPayload configPayloads[], size_t startIndex, size_t numPayloads);
 
     bool verify_config_with_valget_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
 
@@ -147,6 +150,7 @@ public:
 	uint32_t fechaUTC = 0; //yymmdd	//TODO: Chequear uint32_t
 	uint32_t horaUTC = 0; //hhmmss	//TODO: Chequear uint32_t
     uint8_t flags;
+    uint32_t iTow; // GPS time of week (ms)
 
 private:
     uint8_t i2cAddr;

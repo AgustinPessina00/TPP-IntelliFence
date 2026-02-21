@@ -56,7 +56,7 @@ bool SamM10q::init(uint8_t i2cAddr) {
     // Iniciar recepción por interrupción para GPS (USART1)
     GPS_StartReception();
     
-    configure_gps();
+    configure_gps(0, M10Q_NUM_INIT_PSM_DATA_ELEMENTS); // Configuración inicial del GPS (sin PSMOO)
     
     initialized = true;
     return true;
@@ -122,16 +122,16 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
     switch (gpsRate)
     {
     case gpsRateSpeed::STOP:
-        configure_all_registers(m10q_new_acq_time_stop, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_stop, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     case gpsRateSpeed::SLOW:
-        configure_all_registers(m10q_new_acq_time_slow, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_slow, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     case gpsRateSpeed::MEDIUM:
-        configure_all_registers(m10q_new_acq_time_medium, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_medium, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     case gpsRateSpeed::FAST:
-        configure_all_registers(m10q_new_acq_time_fast, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_fast, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     default:
         break;
@@ -144,25 +144,25 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
 /* ========== CONFIGURACION INICIAL DEL GPS VIA I2C ========== */
 /* =========================================================== */
 
-void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads) {
+void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t startIndex, size_t numPayloads) {
     const uint8_t* payload;
     size_t payload_len;
-    for(size_t i = 0; i <= numPayloads; i++) {
+    for(size_t i = startIndex; i < numPayloads; i++) {
         payload = configPayloads[i].data;
         payload_len = configPayloads[i].size;
         
         bool ramSuccess = false;
-        bool bbrSuccess = true;
+        bool bbrSuccess = false;
         bool valgetRamSuccess = false;
-        bool valgetBbrSuccess = true;
+        bool valgetBbrSuccess = false;
 
         // Escribir en RAM
         ramSuccess = write_register(payload, payload_len, RAM);
         valgetRamSuccess = verify_config_with_valget_i2c(payload, payload_len, 0);
         
         // Escribir en BBR (persistente)
-        // bbrSuccess = write_register(payload, payload_len, BBR);
-        // valgetBbrSuccess = verify_config_with_valget_i2c(payload, payload_len, 1);
+        bbrSuccess = write_register(payload, payload_len, BBR);
+        valgetBbrSuccess = verify_config_with_valget_i2c(payload, payload_len, 1);
         
         // Si falla alguna de las dos escrituras, reintentar
         if (!ramSuccess || !bbrSuccess || !valgetRamSuccess || !valgetBbrSuccess) {
@@ -170,24 +170,24 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
         } else {
             // Si ambas escrituras fueron exitosas, imprimir debug
             RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en RAM. Verificación ValGet: %s\r\n", i, valgetRamSuccess ? "OK" : "FALLA");
-            // RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en BBR. Verificación ValGet: %s\r\n", i, valgetBbrSuccess ? "OK" : "FALLA");
+            RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en BBR. Verificación ValGet: %s\r\n", i, valgetBbrSuccess ? "OK" : "FALLA");
         }
     }
 }
 
-void SamM10q::configure_gps() {
+void SamM10q::configure_gps(size_t startIndex, size_t numPayloads) {
 
     bool configOK = false;
-    // PASO 1: Deshabilitar todos los mensajes automáticos por UART para poder verificar limpiamente
-    write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Deshabilitar NMEA por UART
-    //write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
+    // // PASO 1: Deshabilitar todos los mensajes automáticos por UART para poder verificar limpiamente
+    // write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Deshabilitar NMEA por UART
+    // //write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
     
-    // Limpiar buffer UART de mensajes NMEA residuales antes de verificar
-    flush_uart_buffer();
-    configOK = verify_config_with_valget_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, 0);
+    // // Limpiar buffer UART de mensajes NMEA residuales antes de verificar
+    // flush_uart_buffer();
+    // configOK = verify_config_with_valget_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, 0);
 
-    if(configOK)
-        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 0 completado: NMEA deshabilitado por UART y verificado\r\n");
+    // if(configOK)
+    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 0 completado: NMEA deshabilitado por UART y verificado\r\n");
 
     // PASO 2: Configurar I2C y protocolos
     write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C
@@ -198,12 +198,12 @@ void SamM10q::configure_gps() {
         RTOS_LOG_DEBUG("[GPS CONFIG] Paso 1 completado: NMEA deshabilitado por UART y verificado\r\n");
 
 
-    write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita UBX_NAV_PVT por I2C
-    //write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
-    configOK = verify_config_with_valget_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
+    // write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita UBX_NAV_PVT por I2C
+    // //write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
+    // configOK = verify_config_with_valget_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
 
-    if(configOK)
-        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 2 completado: NMEA deshabilitado por UART y verificado\r\n");
+    // if(configOK)
+    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 2 completado: NMEA deshabilitado por UART y verificado\r\n");
 
 
     write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita UBX por I2C
@@ -222,21 +222,21 @@ void SamM10q::configure_gps() {
         RTOS_LOG_DEBUG("[GPS CONFIG] Paso 4 completado: NMEA deshabilitado por UART y verificado\r\n");
 
 
-    // NOTA: payload[4] habilita UBX_NAV_PVT por UART - NO lo configuramos aquí para evitar saturar UART
-    // Si necesitas debug por UART, habilitalo manualmente al final de la configuración
+    // // NOTA: payload[4] habilita UBX_NAV_PVT por UART - NO lo configuramos aquí para evitar saturar UART
+    // // Si necesitas debug por UART, habilitalo manualmente al final de la configuración
     
-    write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita UBX_NAV_PVT por UART
-    //write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
-    configOK = verify_config_with_valget_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, 0);
+    // write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita UBX_NAV_PVT por UART
+    // //write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
+    // configOK = verify_config_with_valget_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, 0);
 
 
-    if(configOK)
-        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 5 completado: NMEA deshabilitado por UART y verificado\r\n");
+    // if(configOK)
+    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 5 completado: NMEA deshabilitado por UART y verificado\r\n");
 
 
     // Resto de configuraciones (señales GNSS, power management, etc.) se harán después
-    // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
-    configure_all_registers(m10q_data_payloads, 39);
+    //configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
+    configure_all_registers(m10q_data_payloads, startIndex, numPayloads);
 }
 
 /* ============================================================ */
@@ -1024,6 +1024,7 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
     }
 
     this->flags = pvtData->flags; // Guardar flags para diagnóstico o uso futuro
+    this->iTow = pvtData->iTOW;   // Guardar iTOW para diagnóstico o uso futuro
 
     // 3. Verificar que tenemos un fix válido
     // fixType: 0=no fix, 2=2D fix, 3=3D fix
