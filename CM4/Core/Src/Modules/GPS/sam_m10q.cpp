@@ -158,11 +158,11 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
 
         // Escribir en RAM
         ramSuccess = write_register(payload, payload_len, RAM);
-        valgetRamSuccess = verify_config_with_valget_i2c(payload, payload_len, RAM);
+        valgetRamSuccess = verify_config_with_valget_i2c(payload, payload_len, 0);
         
         // Escribir en BBR (persistente)
         bbrSuccess = write_register(payload, payload_len, BBR);
-        valgetBbrSuccess = verify_config_with_valget_i2c(payload, payload_len, BBR);
+        valgetBbrSuccess = verify_config_with_valget_i2c(payload, payload_len, 1);
         
         // Si falla alguna de las dos escrituras, reintentar
         if (!ramSuccess || !bbrSuccess || !valgetRamSuccess || !valgetBbrSuccess) {
