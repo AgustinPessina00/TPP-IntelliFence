@@ -105,7 +105,7 @@ void sensorAcqTask(void *argument) {
             RTOS_LOG_DEBUG("[SENSOR_ACQ] Received message ID:%d from module:%d\r\n", msgReceived->id, msgReceived->sender);
             
             switch (msgReceived->id) {
-                case MSG_ID_REQUEST_GPS:
+                case MSG_ID_REQUEST_GPS: {
                     // Leer GPS solo cuando se solicita
                     gps.read_gps_position();
                     gpsData.latitude = gps.latitude;
@@ -128,8 +128,9 @@ void sensorAcqTask(void *argument) {
                     }
                     
                     break;
+                }
 
-                case MSG_ID_REQUEST_GPS_CONFIGURATION_PSM:
+                case MSG_ID_REQUEST_GPS_CONFIGURATION_PSM: {
                     msgToSend = MessagePool_Allocate();
                     if (msgToSend != NULL) {
                         gps.configure_gps(40, M10Q_NUM_DATA_ELEMENTS);
@@ -139,8 +140,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
 
-                case MSG_ID_REQUEST_IMU:
+                case MSG_ID_REQUEST_IMU: {
                     // Leer IMU solo cuando se solicita
                     imu.readAcceleration();
                     imuData[0] = imu.ax;
@@ -150,7 +152,6 @@ void sensorAcqTask(void *argument) {
                     
                     // Use static buffer (defined at function scope) - CRITICAL for async message processing
                     TickType_t xLastWakeTime = xTaskGetTickCount();
-                    TickType_t startTime = xLastWakeTime;
                     uint16_t successfulReads = 0;
                     uint16_t errorCount = 0;
                     
@@ -271,7 +272,7 @@ void sensorAcqTask(void *argument) {
                     break;
                 }
         
-                case MSG_ID_REQUEST_INA_MCU:
+                case MSG_ID_REQUEST_INA_MCU: {
                     // Leer INA MCU solo cuando se solicita
                     inaMcu.readCurrent_mA();
                     RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU read on request: %.3f mA\r\n", inaMcu.current);
@@ -284,8 +285,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
                 
-                case MSG_ID_REQUEST_INA_GPS:
+                case MSG_ID_REQUEST_INA_GPS: {
                     // Leer INA GPS solo cuando se solicita
                     inaGps.readCurrent_mA();
                     RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS read on request: %.3f mA\r\n", inaGps.current);
@@ -298,8 +300,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
 
-                case MSG_ID_REQUEST_INA_IMU:
+                case MSG_ID_REQUEST_INA_IMU: {
                     // Leer INA IMU solo cuando se solicita
                     inaImu.readCurrent_mA();
                     RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU read on request: %.3f mA\r\n", inaImu.current);
@@ -312,8 +315,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
 
-                case MSG_ID_GPS_REQUEST_CONFIG:
+                case MSG_ID_GPS_REQUEST_CONFIG: {
                     rateGPS = static_cast<gpsRateSpeed>(msgReceived->payload[0]);
                     if (gps.set_new_acq_time(rateGPS)) {
                         RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS acquisition time set to %d\r\n", static_cast<int>(rateGPS));
@@ -322,9 +326,10 @@ void sensorAcqTask(void *argument) {
                         RTOS_LOG_WARN("[SENSOR_ACQ] Failed to set GPS acquisition time\r\n");
                     }
                     break;
+                }
 
                 // Console UART requests - leer sensores on-demand
-                case MSG_ID_CONSOLE_READ_GPS:
+                case MSG_ID_CONSOLE_READ_GPS: {
                     gps.read_gps_position();
                     gpsData.latitude = gps.latitude;
                     gpsData.longitude = gps.longitude;
@@ -340,8 +345,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
 
-                case MSG_ID_CONSOLE_READ_IMU:
+                case MSG_ID_CONSOLE_READ_IMU: {
                     imu.readAcceleration();
                     imuData[0] = imu.ax;
                     imuData[1] = imu.ay;
@@ -357,8 +363,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
 
-                case MSG_ID_CONSOLE_READ_INA_GPS:
+                case MSG_ID_CONSOLE_READ_INA_GPS: {
                     inaGps.readCurrent_mA();
                     
                     msgToSend = MessagePool_Allocate();
@@ -371,8 +378,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
 
-                case MSG_ID_CONSOLE_READ_INA_IMU:
+                case MSG_ID_CONSOLE_READ_INA_IMU: {
                     inaImu.readCurrent_mA();
                     
                     msgToSend = MessagePool_Allocate();
@@ -385,8 +393,9 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
 
-                case MSG_ID_CONSOLE_READ_INA_MCU:
+                case MSG_ID_CONSOLE_READ_INA_MCU: {
                     inaMcu.readCurrent_mA();
                     
                     msgToSend = MessagePool_Allocate();
@@ -399,6 +408,7 @@ void sensorAcqTask(void *argument) {
                         msgToSend = NULL;
                     }
                     break;
+                }
         
                 default:
                     RTOS_LOG_WARN("[SENSOR_ACQ] Unknown message ID: %d\r\n", msgReceived->id);
@@ -407,8 +417,8 @@ void sensorAcqTask(void *argument) {
       
             MessagePool_Free(msgReceived);
             msgReceived = NULL;
-        }
+        } // Fin del if (osMessageQueueGet)
 
         osDelay(500);
-    }
-}
+    } // Fin del while(1)
+} // Fin de sensorAcqTask
