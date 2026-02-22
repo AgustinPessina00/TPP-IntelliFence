@@ -1,6 +1,11 @@
 #include "UARTBus.h"
 #include <string.h>
 
+// Declaración externa de funciones de buffer circular GPS
+extern "C" {
+    uint16_t GPS_GetAvailableBytes(uint8_t* pData, uint16_t maxSize);
+}
+
 // Configuración por defecto
 static const UARTConfig defaultConfig = {
     .maxRetries = 3,
@@ -421,49 +426,69 @@ UARTResult UARTBus::receiveAvailable(uint8_t* pData,
     }
     
     UARTResult result = UART_OK;
-    uint32_t startTime = HAL_GetTick();
-    uint16_t index = 0;
     
-    // Esperar al menos un byte con timeout
-    while (index == 0 && (HAL_GetTick() - startTime) < timeout) {
-        // Intentar recibir 1 byte sin bloqueo (timeout muy corto)
-        HAL_StatusTypeDef halResult = HAL_UART_Receive(huart, &pData[index], 1, 1);
+    // Si es USART1 (GPS), usar buffer circular con interrupciones
+    if (huart->Instance == USART1) {
+        uint32_t startTime = HAL_GetTick();
         
-        if (halResult == HAL_OK) {
-            index++;
-            break;  // Recibimos al menos 1 byte
-        } else if (halResult == HAL_TIMEOUT) {
-            osDelay(1);  // Pequeño delay antes de reintentar
-        } else {
-            result = halToUARTResult(halResult);
+        // Esperar a que haya al menos 1 byte disponible o timeout
+        while (*bytesReceived == 0 && (HAL_GetTick() - startTime) < timeout) {
+            *bytesReceived = GPS_GetAvailableBytes(pData, maxSize);
+            if (*bytesReceived == 0) {
+                osDelay(1);  // Pequeño delay antes de reintentar
+            }
+        }
+        
+        if (*bytesReceived == 0) {
+            result = UART_TIMEOUT;
+        }
+    } 
+    // Para otros UARTs, usar modo polling tradicional
+    else {
+        uint32_t startTime = HAL_GetTick();
+        uint16_t index = 0;
+        
+        // Esperar al menos un byte con timeout
+        while (index == 0 && (HAL_GetTick() - startTime) < timeout) {
+            // Intentar recibir 1 byte sin bloqueo (timeout muy corto)
+            HAL_StatusTypeDef halResult = HAL_UART_Receive(huart, &pData[index], 1, 1);
+            
+            if (halResult == HAL_OK) {
+                index++;
+                break;  // Recibimos al menos 1 byte
+            } else if (halResult == HAL_TIMEOUT) {
+                osDelay(1);  // Pequeño delay antes de reintentar
+            } else {
+                result = halToUARTResult(halResult);
+                osMutexRelease(busMutex);
+                return result;
+            }
+        }
+        
+        if (index == 0) {
+            // No se recibió ningún byte en el timeout
             osMutexRelease(busMutex);
-            return result;
+            return UART_TIMEOUT;
         }
-    }
-    
-    if (index == 0) {
-        // No se recibió ningún byte en el timeout
-        osMutexRelease(busMutex);
-        return UART_TIMEOUT;
-    }
-    
-    // Recibir bytes adicionales mientras estén disponibles
-    while (index < maxSize) {
-        HAL_StatusTypeDef halResult = HAL_UART_Receive(huart, &pData[index], 1, 10);
         
-        if (halResult == HAL_OK) {
-            index++;
-        } else if (halResult == HAL_TIMEOUT) {
-            // No hay más datos disponibles
-            break;
-        } else {
-            // Error real
-            result = halToUARTResult(halResult);
-            break;
+        // Recibir bytes adicionales mientras estén disponibles
+        while (index < maxSize) {
+            HAL_StatusTypeDef halResult = HAL_UART_Receive(huart, &pData[index], 1, 10);
+            
+            if (halResult == HAL_OK) {
+                index++;
+            } else if (halResult == HAL_TIMEOUT) {
+                // No hay más datos disponibles
+                break;
+            } else {
+                // Error real
+                result = halToUARTResult(halResult);
+                break;
+            }
         }
+        
+        *bytesReceived = index;
     }
-    
-    *bytesReceived = index;
     
     // Liberar mutex
     osMutexRelease(busMutex);

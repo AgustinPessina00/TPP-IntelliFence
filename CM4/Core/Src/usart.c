@@ -63,7 +63,7 @@ void MX_USART1_UART_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK)
+  if (HAL_UARTEx_EnableFifoMode(&huart1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -107,7 +107,7 @@ void MX_USART2_UART_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK)
+  if (HAL_UARTEx_EnableFifoMode(&huart2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -151,6 +151,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /* USART1 interrupt Init */
+    HAL_NVIC_SetPriority(USART1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
 
   /* USER CODE BEGIN USART1_MspInit 1 */
 
@@ -232,6 +236,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_7|GPIO_PIN_6);
 
+    /* USART1 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(USART1_IRQn);
+
   /* USER CODE BEGIN USART1_MspDeInit 1 */
 
   /* USER CODE END USART1_MspDeInit 1 */
@@ -259,5 +266,58 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+// Buffer circular para GPS (USART1) con interrupciones
+#define GPS_RX_BUFFER_SIZE 256
+static uint8_t gps_rx_buffer[GPS_RX_BUFFER_SIZE];
+static volatile uint16_t gps_write_idx = 0;
+static volatile uint16_t gps_read_idx = 0;
+static uint8_t gps_rx_byte;
+
+/**
+ * @brief Iniciar recepción por interrupción para GPS
+ */
+void GPS_StartReception(void) {
+    HAL_UART_Receive_IT(&huart1, &gps_rx_byte, 1);
+}
+
+/**
+ * @brief Obtener bytes disponibles del buffer circular GPS
+ */
+uint16_t GPS_GetAvailableBytes(uint8_t* pData, uint16_t maxSize) {
+    uint16_t count = 0;
+    
+    // Leer bytes del buffer circular mientras haya disponibles
+    while (count < maxSize && gps_read_idx != gps_write_idx) {
+        pData[count++] = gps_rx_buffer[gps_read_idx++];
+        if (gps_read_idx >= GPS_RX_BUFFER_SIZE) {
+            gps_read_idx = 0;
+        }
+    }
+    
+    return count;
+}
+
+/**
+ * @brief Resetear buffer circular GPS
+ */
+void GPS_ResetBuffer(void) {
+    gps_read_idx = 0;
+    gps_write_idx = 0;
+}
+
+/**
+ * @brief Manejo interno de recepción GPS para callback de interrupción
+ */
+void GPS_RxCallback(void) {
+    // Almacenar byte en buffer circular
+    gps_rx_buffer[gps_write_idx++] = gps_rx_byte;
+    if (gps_write_idx >= GPS_RX_BUFFER_SIZE) {
+        gps_write_idx = 0;
+    }
+    
+    // Reiniciar recepción de siguiente byte
+    HAL_UART_Receive_IT(&huart1, &gps_rx_byte, 1);
+}
 
 /* USER CODE END 1 */

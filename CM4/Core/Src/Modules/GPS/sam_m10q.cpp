@@ -6,6 +6,14 @@
 #include "../../Modules/UART/UARTManager.h"
 #include <stdio.h>
 #include <cstring>
+#define RTOS_PRINTF_AUTO  // Enable smart printf routing
+#include "rtos_printf.h"
+
+// Declaración externa de función para iniciar recepción GPS por interrupción
+extern "C" {
+    void GPS_StartReception(void);
+}
+
 
 /* Private includes ----------------------------------------------------------*/
 void BusyDelayMs(uint32_t ms);
@@ -45,7 +53,10 @@ bool SamM10q::init(uint8_t i2cAddr) {
         return false;
     }
     
-    configure_gps();
+    // Iniciar recepción por interrupción para GPS (USART1)
+    GPS_StartReception();
+    
+    configure_gps(0, M10Q_NUM_INIT_PSM_DATA_ELEMENTS); // Configuración inicial del GPS (sin PSMOO)
     
     initialized = true;
     return true;
@@ -111,16 +122,16 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
     switch (gpsRate)
     {
     case gpsRateSpeed::STOP:
-        configure_all_registers(m10q_new_acq_time_stop, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_stop, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     case gpsRateSpeed::SLOW:
-        configure_all_registers(m10q_new_acq_time_slow, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_slow, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     case gpsRateSpeed::MEDIUM:
-        configure_all_registers(m10q_new_acq_time_medium, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_medium, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     case gpsRateSpeed::FAST:
-        configure_all_registers(m10q_new_acq_time_fast, M10Q_NUM_RATE_OPTIONS);
+        configure_all_registers(m10q_new_acq_time_fast, 0, M10Q_NUM_RATE_OPTIONS);
         break;
     default:
         break;
@@ -133,68 +144,99 @@ bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
 /* ========== CONFIGURACION INICIAL DEL GPS VIA I2C ========== */
 /* =========================================================== */
 
-void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads) {
+void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t startIndex, size_t numPayloads) {
     const uint8_t* payload;
     size_t payload_len;
-    for(size_t i = 0; i < numPayloads; i++) {
+    for(size_t i = startIndex; i < numPayloads; i++) {
         payload = configPayloads[i].data;
         payload_len = configPayloads[i].size;
         
         bool ramSuccess = false;
         bool bbrSuccess = false;
-    
+        bool valgetRamSuccess = false;
+        bool valgetBbrSuccess = false;
+
         // Escribir en RAM
         ramSuccess = write_register(payload, payload_len, RAM);
+        valgetRamSuccess = verify_config_with_valget_i2c(payload, payload_len, 0);
         
         // Escribir en BBR (persistente)
         bbrSuccess = write_register(payload, payload_len, BBR);
+        valgetBbrSuccess = verify_config_with_valget_i2c(payload, payload_len, 1);
         
         // Si falla alguna de las dos escrituras, reintentar
-        if (!ramSuccess || !bbrSuccess) {
+        if (!ramSuccess || !bbrSuccess || !valgetRamSuccess || !valgetBbrSuccess) {
             i--;
-            continue;
+        } else {
+            // Si ambas escrituras fueron exitosas, imprimir debug
+            RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en RAM. Verificación ValGet: %s\r\n", i, valgetRamSuccess ? "OK" : "FALLA");
+            RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en BBR. Verificación ValGet: %s\r\n", i, valgetBbrSuccess ? "OK" : "FALLA");
         }
     }
 }
 
-void SamM10q::configure_gps() {
+void SamM10q::configure_gps(size_t startIndex, size_t numPayloads) {
 
-    write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C via UART RAM
-    write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR); // Habilito I2C via UART BBR
-
-    write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_I2C via uart
-    write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
+    bool configOK = false;
+    // // PASO 1: Deshabilitar todos los mensajes automáticos por UART para poder verificar limpiamente
+    // write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Deshabilitar NMEA por UART
+    // //write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
     
-    write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita CFG-I2COUTPROT-UBX via uart
-    write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
+    // // Limpiar buffer UART de mensajes NMEA residuales antes de verificar
+    // flush_uart_buffer();
+    // configOK = verify_config_with_valget_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, 0);
 
-    write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Desabilita CFG-I2COUTPROT-NMEA via uart
-    write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
+    // if(configOK)
+    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 0 completado: NMEA deshabilitado por UART y verificado\r\n");
 
-    write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita CFG-MSGOUT-UBX_NAV_PVT_UART via uart
-    write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
+    // PASO 2: Configurar I2C y protocolos
+    write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C
+    //write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, 0);
 
-    // Reemplazo todo lo de abajo con esta función:
-    // configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 1 completado: NMEA deshabilitado por UART y verificado\r\n");
 
-    // for(size_t i = 0; i < M10Q_NUM_DATA_ELEMENTS; i++) {
-    //     const uint8_t* payload = m10q_data_payloads[i].data;
-    //     size_t payload_len = m10q_data_payloads[i].size;
-        
-    //     // Escribir en RAM
-    //     if (!write_register(payload, payload_len, RAM)) {
-    //         // Si falla la escritura en RAM, reintentar
-    //         i--;
-    //         continue;
-    //     }
-        
-    //     // Escribir en BBR (persistente)
-    //     if (!write_register(payload, payload_len, BBR)) {
-    //         // Si falla la escritura en BBR, reintentar
-    //         i--;
-    //         continue;
-    //     }
-    // }
+
+    // write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita UBX_NAV_PVT por I2C
+    // //write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
+    // configOK = verify_config_with_valget_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
+
+    // if(configOK)
+    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 2 completado: NMEA deshabilitado por UART y verificado\r\n");
+
+
+    write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita UBX por I2C
+    //write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, 0);
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 3 completado: NMEA deshabilitado por UART y verificado\r\n");
+
+
+    write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Desabilita NMEA por I2C
+    //write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
+    configOK = verify_config_with_valget_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, 0);
+
+    if(configOK)
+        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 4 completado: NMEA deshabilitado por UART y verificado\r\n");
+
+
+    // // NOTA: payload[4] habilita UBX_NAV_PVT por UART - NO lo configuramos aquí para evitar saturar UART
+    // // Si necesitas debug por UART, habilitalo manualmente al final de la configuración
+    
+    // write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita UBX_NAV_PVT por UART
+    // //write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
+    // configOK = verify_config_with_valget_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, 0);
+
+
+    // if(configOK)
+    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 5 completado: NMEA deshabilitado por UART y verificado\r\n");
+
+
+    // Resto de configuraciones (señales GNSS, power management, etc.) se harán después
+    //configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
+    configure_all_registers(m10q_data_payloads, startIndex, numPayloads);
 }
 
 /* ============================================================ */
@@ -334,40 +376,7 @@ bool SamM10q::write_register(const uint8_t* payload_data, size_t payload_len, ui
     return send_message(message, msg_len, 15) == HAL_OK;
 }
 
-/* Lectura de configuración de KeyID usando UBX-CFG-VALGET mediante I2C*/
-bool SamM10q::read_configuration(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer) {
-    if (!payload_data || payload_len == 0 || (*response_buffer == 0xFF) || buffer_size == 0) {
-        return false;
-    }
 
-    uint8_t buffer[UBX_MAX_MESSAGE_SIZE];
-
-    // Construir mensaje VALGET incluido checksum
-    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, payload_data, payload_len, buffer, UBX_MAX_MESSAGE_SIZE);
-    
-    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
-        return false;
-    }
-
-    // Enviar mensaje de petición
-    if (send_message(buffer, msg_len, 15) != HAL_OK) {
-        return false;
-    }
-
-    HAL_Delay(1000);
-
-    // Leer respuesta del módulo GPS
-    if (!i2cBus) {
-        return false;
-    }
-
-    // Usar bus I2C thread-safe para leer la respuesta
-    I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, 1, response_buffer, 1, 100);
-
-    //TODO PESSI: Acá faltaría leer el 0xFE y luego sabiendo la cantidad de bytes para leer, leer el resto de la respuesta desde 0xFF en adelante.
-
-    return (result == I2C_OK);
-}
 
 HAL_StatusTypeDef SamM10q::send_message(const uint8_t* message, uint16_t message_length, uint32_t delay_ms) {
     if (!i2cBus || !message || message_length == 0) {
@@ -455,6 +464,535 @@ HAL_StatusTypeDef SamM10q::send_message_uart(const uint8_t* message, uint16_t me
     return (result == UART_OK) ? HAL_OK : HAL_ERROR;
 }
 
+/* =========================================================================== */
+/* ========== FUNCIONES PARA VERIFICACION DE CONFIGURACION CON VALGET ========== */
+/* =========================================================================== */
+
+/**
+ * @brief Limpia el buffer UART descartando todos los datos residuales
+ * @param timeout_ms Tiempo máximo en milisegundos para drenar el buffer (default: 500ms)
+ * @details Lee y descarta todos los bytes disponibles en UART hasta que esté vacío o timeout
+ */
+void SamM10q::flush_uart_buffer(uint32_t timeout_ms) {
+    if (!uartBus) {
+        return;
+    }
+    
+    uint8_t flush_buffer[128];
+    uint16_t bytes_read = 0;
+    uint32_t start_time = HAL_GetTick();
+    uint8_t empty_reads = 0;
+    const uint8_t MAX_EMPTY_READS = 3;
+    
+    RTOS_LOG_DEBUG("[UART FLUSH] Limpiando buffer UART...\r\n");
+    
+    while ((HAL_GetTick() - start_time) < timeout_ms) {
+        UARTResult result = uartBus->receiveAvailable(flush_buffer, sizeof(flush_buffer), &bytes_read, 50);
+        
+        if (result == UART_OK && bytes_read > 0) {
+            RTOS_LOG_DEBUG("[UART FLUSH] Descartados %u bytes\r\n", bytes_read);
+            empty_reads = 0; // Reset contador
+        } else {
+            empty_reads++;
+            if (empty_reads >= MAX_EMPTY_READS) {
+                RTOS_LOG_DEBUG("[UART FLUSH] Buffer vacío\r\n");
+                break; // Buffer vacío
+            }
+        }
+        
+        BusyDelayMs(50); // Esperar entre lecturas
+    }
+}
+
+/**
+ * @brief Verifica que la configuración escrita coincida con lo que devuelve VALGET vía I2C
+ * @param payload_data Datos del payload (keyID + value configurado)
+ * @param payload_len Longitud del payload
+ * @param layer Capa a verificar (RAM o BBR)
+ * @return true si el valor coincide, false si no
+ */
+bool SamM10q::verify_config_with_valget_i2c(const uint8_t* payload_data, size_t payload_len, uint8_t layer) {
+    bool configOk = false;
+    
+    if (!payload_data || payload_len <= UBX_KEYID_SIZE || !i2cBus) {
+        return configOk;
+    }
+
+    // Extraer keyID (primeros 4 bytes)
+    const uint8_t* key_id = payload_data;
+    
+    // Extraer valor esperado (resto de bytes después del keyID)
+    const uint8_t* expected_value = payload_data + UBX_KEYID_SIZE;
+    uint8_t value_size = static_cast<uint8_t>(payload_len - UBX_KEYID_SIZE);
+
+    // Construir mensaje VALGET solo con el keyID
+    uint8_t message[UBX_MAX_MESSAGE_SIZE];
+    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, key_id, UBX_KEYID_SIZE, message, UBX_MAX_MESSAGE_SIZE);
+    
+    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
+        return configOk;
+    }
+
+    // Enviar mensaje VALGET vía I2C
+    if (send_message(message, msg_len, 200) != HAL_OK) {
+        return configOk;
+    }
+
+    // Dar tiempo al GPS para procesar antes de empezar a leer
+    BusyDelayMs(150);
+
+    // Esperar y leer respuesta del GPS vía I2C
+    uint8_t response_buffer[128];
+    uint16_t bytes_received = 0;
+    uint32_t timeout = 2000; // 2 segundos timeout
+    uint32_t start_time = HAL_GetTick();
+    uint8_t intentos_sin_datos = 0;
+    const uint8_t MAX_INTENTOS_SIN_DATOS = 5; // Salir si no hay datos después de 5 intentos
+    bool valget_found = false; // Flag para indicar que se encontró el VALGET
+    uint32_t time_after_found = 0; // Tiempo adicional para leer ACK después de encontrar VALGET
+    
+    while ((HAL_GetTick() - start_time) < timeout) {
+        // Verificar disponibilidad de datos en I2C
+        uint8_t bytesAvailable[2] = {0, 0};
+        I2CResult result = i2cBus->memRead(i2cAddr, 0xFD, I2C_MEMADD_SIZE_8BIT, bytesAvailable, 2, 100);
+        
+        if (result != I2C_OK) {
+            BusyDelayMs(50);
+            continue;
+        }
+        
+        uint16_t available = (bytesAvailable[1] << 8) | bytesAvailable[0];
+        available &= 0x7FFF; // Limpiar bit 15 (bug conocido del firmware GPS)
+        
+        if (available > 0) {
+            // Leer datos disponibles (limitado al espacio restante en buffer)
+            uint16_t space_left = static_cast<uint16_t>(sizeof(response_buffer) - bytes_received);
+            uint16_t to_read = (available > space_left) ? space_left : available;
+            
+            if (to_read > 0) {
+                uint8_t chunk_buffer[64]; // Buffer temporal para leer chunks
+                uint16_t chunk_size = (to_read > 64) ? 64 : to_read;
+                
+                result = i2cBus->memRead(i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, chunk_buffer, chunk_size, 100);
+                
+                if (result == I2C_OK) {
+                    // Copiar chunk al buffer principal
+                    memcpy(response_buffer + bytes_received, chunk_buffer, chunk_size);
+                    bytes_received = static_cast<uint16_t>(bytes_received + chunk_size);
+                    intentos_sin_datos = 0; // Reset contador
+                    
+                    // Intentar parsear la respuesta
+                    if (!valget_found && parse_valget_response(response_buffer, bytes_received, key_id, expected_value, value_size)) {
+                        RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Parseado exitoso! Continuando lectura para vaciar ACK...\r\n");
+                        valget_found = true;
+                        time_after_found = HAL_GetTick();
+                        // NO retornar aquí, continuar leyendo para vaciar el ACK
+                    }
+                    
+                    // Si ya encontramos el VALGET y han pasado 300ms leyendo el ACK, validar y salir
+                    if (valget_found && (HAL_GetTick() - time_after_found) > 300) {
+                        // Validar ACK antes de retornar
+                        int8_t ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
+                        if (ack_result == 1) {
+                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-ACK confirmado, configuración aceptada\r\n");
+                            configOk = true;
+                        } else if (ack_result == 0) {
+                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK recibido, configuración rechazada!\r\n");
+                            configOk = false;
+                        } else {
+                            // No se encontró ACK, pero VALGET fue exitoso
+                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Sin ACK, pero VALGET válido\r\n");
+                            configOk = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        } else {
+            intentos_sin_datos++;
+            
+            // Si ya encontramos el VALGET y no hay más datos, validar ACK y salir
+            if (valget_found && intentos_sin_datos >= 3) {
+                int8_t ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
+                if (ack_result == 1) {
+                    RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-ACK confirmado\r\n");
+                    configOk = true;
+                } else if (ack_result == 0) {
+                    RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK - configuración rechazada\r\n");
+                    configOk = false;
+                } else {
+                    RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Sin ACK pero VALGET válido\r\n");
+                    configOk = true;
+                }
+                break;
+            }
+            
+            if (intentos_sin_datos >= MAX_INTENTOS_SIN_DATOS && bytes_received > 0) {
+                // Ya tenemos datos y no llegan más, intentar parsear lo que tengamos
+                RTOS_LOG_DEBUG("[VALGET I2C DEBUG] No llegan más datos, parseando buffer final\r\n");
+                if (parse_valget_response(response_buffer, bytes_received, key_id, expected_value, value_size)) {
+                    // Encontrado al final, intentar leer ACK restante
+                    RTOS_LOG_DEBUG("[VALGET I2C DEBUG] VALGET encontrado al final, leyendo ACK residual...\r\n");
+                    BusyDelayMs(100);
+                    
+                    // Verificar si hay más datos disponibles
+                    uint8_t ack_avail[2] = {0, 0};
+                    i2cBus->memRead(i2cAddr, 0xFD, I2C_MEMADD_SIZE_8BIT, ack_avail, 2, 100);
+                    uint16_t ack_available = ((ack_avail[1] << 8) | ack_avail[0]) & 0x7FFF;
+                    
+                    if (ack_available > 0) {
+                        uint8_t ack_buffer[32];
+                        uint16_t ack_read = (ack_available > 32) ? 32 : ack_available;
+                        i2cBus->memRead(i2cAddr, 0xFF, I2C_MEMADD_SIZE_8BIT, ack_buffer, ack_read, 100);
+                        
+                        // Validar ACK en el buffer adicional
+                        int8_t ack_result = check_ack_response(ack_buffer, ack_read, VALGET_CLASS, VALGET_ID);
+                        if (ack_result == 1) {
+                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-ACK confirmado\r\n");
+                            configOk = true;
+                        } else if (ack_result == 0) {
+                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK - configuración rechazada\r\n");
+                            configOk = false;
+                        } else {
+                            // Intentar buscar en el buffer principal
+                            ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
+                            if (ack_result == 0) {
+                                RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK en buffer principal\r\n");
+                                configOk = false;
+                            } else {
+                                RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Sin ACK claro, asumiendo éxito por VALGET válido\r\n");
+                                configOk = true;
+                            }
+                        }
+                    } else {
+                        // No hay más datos, validar en buffer principal
+                        int8_t ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
+                        if (ack_result == 0) {
+                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK en buffer principal\r\n");
+                            configOk = false;
+                        } else {
+                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Sin ACK claro, asumiendo éxito por VALGET válido\r\n");
+                            configOk = true;
+                        }
+                    }
+                }
+                break; // Salir del bucle
+            }
+        }
+        
+        BusyDelayMs(50); // Delay entre intentos de lectura
+    }
+    
+    // Imprimir buffer completo al final
+    if (bytes_received > 0) {
+        RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Buffer completo recibido (%u bytes): ", bytes_received);
+        // for (uint16_t i = 0; i < bytes_received; i++) {
+        //     RTOS_LOG_DEBUG("%02X ", response_buffer[i]);
+        // }
+        RTOS_LOG_DEBUG("\r\n");
+    }
+    
+    if (!configOk) {
+        printf("[VALGET I2C DEBUG] Timeout - Total recibido: %u bytes\r\n", bytes_received);
+    }
+    
+    return configOk;
+}
+
+/**
+ * @brief Verifica que la configuración escrita coincida con lo que devuelve VALGET vía UART
+ * @param payload_data Datos del payload (keyID + value configurado)
+ * @param payload_len Longitud del payload
+ * @param layer Capa a verificar (RAM o BBR)
+ * @return true si el valor coincide, false si no
+ */
+bool SamM10q::verify_config_with_valget_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer) {
+    bool configOk = false;
+    
+    if (!payload_data || payload_len <= UBX_KEYID_SIZE || !uartBus) {
+        return configOk;
+    }
+
+    // Extraer keyID (primeros 4 bytes)
+    const uint8_t* key_id = payload_data;
+    
+    // Extraer valor esperado (resto de bytes después del keyID)
+    const uint8_t* expected_value = payload_data + UBX_KEYID_SIZE;
+    uint8_t value_size = static_cast<uint8_t>(payload_len - UBX_KEYID_SIZE);
+
+    // Construir mensaje VALGET solo con el keyID
+    uint8_t message[UBX_MAX_MESSAGE_SIZE];
+    uint16_t msg_len = build_ubx_message(VALGET_CLASS, VALGET_ID, layer, key_id, UBX_KEYID_SIZE, message, UBX_MAX_MESSAGE_SIZE);
+    
+    if (msg_len == 0 || msg_len > UBX_MAX_MESSAGE_SIZE) {
+        return configOk;
+    }
+
+    // Enviar mensaje VALGET vía UART
+    if (send_message_uart(message, msg_len, 200) != HAL_OK) {
+        return configOk;
+    }
+
+    // Dar tiempo al GPS para procesar antes de empezar a leer
+    BusyDelayMs(150);
+
+    // Esperar y leer respuesta del GPS
+    uint8_t response_buffer[128];
+    uint16_t bytes_received = 0;
+    uint32_t timeout = 2000; // 2 segundos timeout
+    uint32_t start_time = HAL_GetTick();
+    uint8_t intentos_sin_datos = 0;
+    const uint8_t MAX_INTENTOS_SIN_DATOS = 5; // Salir si no hay datos después de 5 intentos
+    bool valget_found = false; // Flag para indicar que se encontró el VALGET
+    uint32_t time_after_found = 0; // Tiempo adicional para leer ACK después de encontrar VALGET
+    
+    while ((HAL_GetTick() - start_time) < timeout) {
+        uint16_t chunk_received = 0;
+        UARTResult result = uartBus->receiveAvailable(
+            response_buffer + bytes_received,
+            static_cast<uint16_t>(sizeof(response_buffer) - bytes_received),
+            &chunk_received,
+            100
+        );
+        
+        if (result == UART_OK && chunk_received > 0) {
+            intentos_sin_datos = 0; // Reset contador
+            
+            bytes_received = static_cast<uint16_t>(bytes_received + chunk_received);
+            
+            // Intentar parsear la respuesta
+            if (!valget_found && parse_valget_response(response_buffer, bytes_received, key_id, expected_value, value_size)) {
+                RTOS_LOG_DEBUG("[VALGET DEBUG] Parseado exitoso! Continuando lectura para vaciar ACK...\r\n");
+                valget_found = true;
+                time_after_found = HAL_GetTick();
+                // NO retornar aquí, continuar leyendo para vaciar el ACK
+            }
+            
+            // Si ya encontramos el VALGET y han pasado 300ms leyendo el ACK, validar y salir
+            if (valget_found && (HAL_GetTick() - time_after_found) > 300) {
+                // Validar ACK antes de retornar
+                int8_t ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
+                if (ack_result == 1) {
+                    RTOS_LOG_DEBUG("[VALGET DEBUG] ACK-ACK confirmado, configuración aceptada\r\n");
+                    configOk = true;
+                } else if (ack_result == 0) {
+                    RTOS_LOG_DEBUG("[VALGET DEBUG] ACK-NAK recibido, configuración rechazada!\r\n");
+                    configOk = false;
+                } else {
+                    // No se encontró ACK, pero VALGET fue exitoso
+                    RTOS_LOG_DEBUG("[VALGET DEBUG] Sin ACK, pero VALGET válido\r\n");
+                    configOk = true;
+                }
+                break;
+            }
+        } else {
+            intentos_sin_datos++;
+            
+            // Si ya encontramos el VALGET y no hay más datos, validar ACK y salir
+            if (valget_found && intentos_sin_datos >= 3) {
+                int8_t ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
+                if (ack_result == 1) {
+                    RTOS_LOG_DEBUG("[VALGET DEBUG] ACK-ACK confirmado\r\n");
+                    configOk = true;
+                } else if (ack_result == 0) {
+                    RTOS_LOG_DEBUG("[VALGET DEBUG] ACK-NAK - configuración rechazada\r\n");
+                    configOk = false;
+                } else {
+                    RTOS_LOG_DEBUG("[VALGET DEBUG] Sin ACK pero VALGET válido\r\n");
+                    configOk = true;
+                }
+                break;
+            }
+            
+            if (intentos_sin_datos >= MAX_INTENTOS_SIN_DATOS && bytes_received > 0) {
+                // Ya tenemos datos y no llegan más, intentar parsear lo que tengamos
+                RTOS_LOG_DEBUG("[VALGET DEBUG] No llegan más datos, parseando buffer final\r\n");
+                if (parse_valget_response(response_buffer, bytes_received, key_id, expected_value, value_size)) {
+                    // Encontrado al final, intentar leer ACK restante
+                    RTOS_LOG_DEBUG("[VALGET DEBUG] VALGET encontrado al final, leyendo ACK residual...\r\n");
+                    BusyDelayMs(100);
+                    uint8_t ack_buffer[32];
+                    uint16_t ack_bytes = 0;
+                    uartBus->receiveAvailable(ack_buffer, sizeof(ack_buffer), &ack_bytes, 50);
+                    
+                    // Validar ACK en el buffer adicional
+                    int8_t ack_result = check_ack_response(ack_buffer, ack_bytes, VALGET_CLASS, VALGET_ID);
+                    if (ack_result == 1) {
+                        RTOS_LOG_DEBUG("[VALGET DEBUG] ACK-ACK confirmado\r\n");
+                        configOk = true;
+                    } else if (ack_result == 0) {
+                        RTOS_LOG_DEBUG("[VALGET DEBUG] ACK-NAK - configuración rechazada\r\n");
+                        configOk = false;
+                    } else {
+                        // Intentar buscar en el buffer principal
+                        ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
+                        if (ack_result == 0) {
+                            RTOS_LOG_DEBUG("[VALGET DEBUG] ACK-NAK en buffer principal\r\n");
+                            configOk = false;
+                        } else {
+                            RTOS_LOG_DEBUG("[VALGET DEBUG] Sin ACK claro, asumiendo éxito por VALGET válido\r\n");
+                            configOk = true;
+                        }
+                    }
+                }
+                break; // Salir del bucle
+            }
+        }
+        
+        BusyDelayMs(50); // Delay más largo entre intentos de lectura
+    }
+    
+    // Imprimir buffer completo al final
+    if (bytes_received > 0) {
+        RTOS_LOG_DEBUG("[VALGET DEBUG] Buffer completo recibido (%u bytes): ", bytes_received);
+        for (uint16_t i = 0; i < bytes_received; i++) {
+            RTOS_LOG_DEBUG("%02X ", response_buffer[i]);
+        }
+        RTOS_LOG_DEBUG("\r\n");
+    }
+    
+    if (!configOk) {
+        printf("[VALGET DEBUG] Timeout - Total recibido: %u bytes\r\n", bytes_received);
+    }
+    
+    return configOk;
+}
+
+/**
+ * @brief Parsea la respuesta VALGET y compara con el valor esperado
+ * @param response_buffer Buffer con la respuesta UART
+ * @param buffer_len Longitud del buffer
+ * @param key_id KeyID a buscar (4 bytes)
+ * @param expected_value Valor esperado
+ * @param value_size Tamaño del valor
+ * @return true si encuentra el mensaje y el valor coincide, false si no
+ */
+bool SamM10q::parse_valget_response(const uint8_t* response_buffer, uint16_t buffer_len, 
+                                     const uint8_t* key_id, const uint8_t* expected_value, 
+                                     uint8_t value_size) {
+    if (!response_buffer || buffer_len < 8 || !key_id || !expected_value || value_size == 0) {
+        return false;
+    }
+
+    // Buscar el inicio del mensaje UBX-VALGET en el buffer
+    for (uint16_t i = 0; i + 8 < buffer_len; i++) {
+        // Buscar sincronización UBX
+        if (response_buffer[i] != UBX_HEADER1 || response_buffer[i + 1] != UBX_HEADER2) {
+            continue;
+        }
+        
+        // Verificar que es un mensaje VALGET
+        if (response_buffer[i + 2] != VALGET_CLASS || response_buffer[i + 3] != VALGET_ID) {
+            continue;
+        }
+        
+        // Leer longitud del payload
+        uint16_t payload_len = response_buffer[i + 4] | (response_buffer[i + 5] << 8);
+        uint16_t total_msg_len = static_cast<uint16_t>(6 + payload_len + 2); // header(2) + class(1) + id(1) + len(2) + payload + checksum(2)
+        
+        // Verificar que tenemos el mensaje completo
+        if (i + total_msg_len > buffer_len) {
+            continue;
+        }
+        
+        // Verificar checksum del mensaje
+        if (!verifyUBXChecksum(&response_buffer[i], total_msg_len)) {
+            continue;
+        }
+        
+        // Payload comienza en i+6
+        // Estructura del payload VALGET: version(1) + layer(1) + reserved(2) + keyID(4) + value(N)
+        const uint8_t* payload = &response_buffer[i + 6];
+        
+        // Verificar que el payload tiene suficiente tamaño
+        if (payload_len < (4 + UBX_KEYID_SIZE + value_size)) {
+            continue;
+        }
+        
+        // Saltar header del payload (version + layer + reserved = 4 bytes)
+        const uint8_t* payload_keyid = payload + 4;
+        const uint8_t* payload_value = payload + 4 + UBX_KEYID_SIZE;
+        
+        // Verificar que el keyID coincide
+        if (memcmp(payload_keyid, key_id, UBX_KEYID_SIZE) != 0) {
+            continue;
+        }
+        
+        // Comparar el valor recibido con el esperado
+        if (memcmp(payload_value, expected_value, value_size) == 0) {
+            return true; // Coincide!
+        } else {
+            return false; // KeyID correcto pero valor diferente
+        }
+    }
+    
+    return false; // No se encontró el mensaje VALGET con este keyID
+}
+
+/**
+ * @brief Busca y valida mensaje ACK-ACK o ACK-NAK en el buffer
+ * @param response_buffer Buffer con respuestas UBX
+ * @param buffer_len Longitud del buffer
+ * @param expected_class Class del mensaje que esperamos confirmar (ej: 0x06 para VALGET)
+ * @param expected_id ID del mensaje que esperamos confirmar (ej: 0x8B para VALGET)
+ * @return 1 = ACK-ACK encontrado, 0 = ACK-NAK encontrado, -1 = No encontrado
+ */
+int8_t SamM10q::check_ack_response(const uint8_t* response_buffer, uint16_t buffer_len, 
+                                    uint8_t expected_class, uint8_t expected_id) {
+    if (!response_buffer || buffer_len < 10) {
+        return -1; // Buffer muy pequeño para contener un ACK
+    }
+
+    // Buscar ACK en el buffer
+    for (uint16_t i = 0; i + 10 <= buffer_len; i++) {
+        // Buscar sincronización UBX
+        if (response_buffer[i] != UBX_HEADER1 || response_buffer[i + 1] != UBX_HEADER2) {
+            continue;
+        }
+        
+        // Verificar que es un mensaje ACK (Class = 0x05)
+        if (response_buffer[i + 2] != ACK_CLASS) {
+            continue;
+        }
+        
+        // Verificar ID: ACK-ACK (0x01) o ACK-NAK (0x00)
+        uint8_t ack_id = response_buffer[i + 3];
+        if (ack_id != ACK_ACK_ID && ack_id != ACK_NAK_ID) {
+            continue;
+        }
+        
+        // Verificar longitud (debe ser 2 bytes)
+        uint16_t payload_len = response_buffer[i + 4] | (response_buffer[i + 5] << 8);
+        if (payload_len != 2) {
+            continue;
+        }
+        
+        // Verificar checksum
+        if (!verifyUBXChecksum(&response_buffer[i], 10)) {
+            continue;
+        }
+        
+        // Verificar que el ACK es para nuestro mensaje (Class + ID en payload)
+        uint8_t ack_class = response_buffer[i + 6];
+        uint8_t ack_msg_id = response_buffer[i + 7];
+        
+        if (ack_class == expected_class && ack_msg_id == expected_id) {
+            // Encontrado! Retornar tipo de ACK
+            if (ack_id == ACK_ACK_ID) {
+                RTOS_LOG_DEBUG("[VALGET ACK] ACK-ACK recibido para Class=0x%02X ID=0x%02X\r\n", 
+                               expected_class, expected_id);
+                return 1; // ACK-ACK
+            } else {
+                RTOS_LOG_DEBUG("[VALGET ACK] ACK-NAK recibido para Class=0x%02X ID=0x%02X\r\n", 
+                               expected_class, expected_id);
+                return 0; // ACK-NAK
+            }
+        }
+    }
+    
+    return -1; // No encontrado
+}
+
 /* =========================================================== */
 /* ============== FUNCIONES PARA OBTENER PVT ================= */
 /* =========================================================== */
@@ -486,6 +1024,7 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
     }
 
     this->flags = pvtData->flags; // Guardar flags para diagnóstico o uso futuro
+    this->iTow = pvtData->iTOW;   // Guardar iTOW para diagnóstico o uso futuro
 
     // 3. Verificar que tenemos un fix válido
     // fixType: 0=no fix, 2=2D fix, 3=3D fix

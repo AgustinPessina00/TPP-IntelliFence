@@ -19,7 +19,8 @@ extern "C" {
 // ============================================================================
 // TIMEOUT CONFIGURATION (en milisegundos)
 // ============================================================================
-#define GPS_TIMEOUT_MS       10000  // 120 segundos - GPS puede tardar en obtener fix
+#define GPS_TIMEOUT_MS       10000  // 10 segundos - GPS puede tardar en obtener fix
+#define GPS_PSM_TIMEOUT_MS   20000  // 20 segundos - GPS puede tardar en aplicar configuración PSM
 #define LORA_TX_TIMEOUT_MS   10000  // 10 segundos - Transmisión LoRa
 #define LORA_RX_TIMEOUT_MS   10000  // 60 segundos - Espera de mensajes LoRa entrantes
 #define IMU_TIMEOUT_MS       10000  // 10 segundos - Burst collection (52 samples @ 26Hz = 2000ms) + processing
@@ -79,6 +80,8 @@ typedef enum {
   STARTUP_ROUTINE_WAIT_JOIN,
   STARTUP_ROUTINE_REQUEST_POSITION,
   STARTUP_ROUTINE_WAIT_POSITION,
+  STARTUP_ROUTINE_REQUEST_GPS_CONFIGURATION_PSM,
+  STARTUP_ROUTINE_WAIT_GPS_CONFIGURATION_PSM,
   STARTUP_ROUTINE_SEND_POSITION_LORA,
   STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE,
   STARTUP_ROUTINE_WAIT_FENCE,

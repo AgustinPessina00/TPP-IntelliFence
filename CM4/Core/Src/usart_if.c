@@ -234,7 +234,12 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   /* USER CODE BEGIN HAL_UART_RxCpltCallback_1 */
-
+  // Manejo de USART1 (GPS)
+  extern void GPS_RxCallback(void);
+  if (huart->Instance == USART1) {
+      GPS_RxCallback();
+      return;
+  }
   /* USER CODE END HAL_UART_RxCpltCallback_1 */
   if (huart->Instance == USART2)
   {

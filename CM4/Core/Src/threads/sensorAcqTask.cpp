@@ -70,6 +70,7 @@ void sensorAcqTask(void *argument) {
     gpsData_t gpsData = {0.0, 0.0, 0};
     float imuData[3] = {0.0, 0.0, 0.0};
     static uint32_t stackMonitorCounter = 0;
+    static uint32_t iTow = 0; // Variable para monitorear iTOW y detectar reinicios del GPS
     while(1) {
         // Monitorear stack cada ~10 segundos
         if (++stackMonitorCounter >= 10) {
@@ -79,28 +80,26 @@ void sensorAcqTask(void *argument) {
             stackMonitorCounter = 0;
         }
         
-        // // Leer todos los sensores periódicamente
-        // gps.read_gps_position();
-        // gpsData.latitude = gps.latitude;
-        // gpsData.longitude = gps.longitude;
-        // gpsData.fix = gps.flags & 0x01; // Bit 0 indica si hay fix
-        // RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f, fix %d\r\n", gpsData.latitude, gpsData.longitude, gpsData.fix);
+        //// Leer todos los sensores periódicamente
+            // gps.read_gps_position();
+            // uint8_t fix = gps.flags & 0x01; // Bit 0 indica si hay fix
+            // gpsData.latitude = gps.latitude;
+            // gpsData.longitude = gps.longitude;
+            // gpsData.fix = fix;
+            // RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f, fix %d\r\n", gpsData.latitude, gpsData.longitude, gpsData.fix);
 
-        // imu.readAcceleration();
-        // imuData[0] = imu.ax;
-        // imuData[1] = imu.ay;
-        // imuData[2] = imu.az;
-        // RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU read: (%.6f g, %.6f g, %.6f g)\r\n", imu.ax/1000, imu.ay/1000, imu.az/1000);
+            // imu.readAcceleration();
+            // imuData[0] = imu.ax;
+            // imuData[1] = imu.ay;
+            // imuData[2] = imu.az;
+            // RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU read: (%.6f g, %.6f g, %.6f g)\r\n", imu.ax/1000, imu.ay/1000, imu.az/1000);
 
-        // RTOS_LOG_DEBUG("------------------------------------------------------------\r\n");
-        // inaGps.readCurrent_mA();
-        // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS current read: %.3f mA\r\n", inaGps.current);
-        // inaImu.readCurrent_mA();
-        // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU current read: %.3f mA\r\n", inaImu.current);
-        // inaMcu.readCurrent_mA();
-        // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU current read: %.3f mA\r\n", inaMcu.current);
-        // RTOS_LOG_DEBUG("------------------------------------------------------------\r\n");
-
+            // inaGps.readCurrent_mA();
+            // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS current read: %.3f mA\r\n", inaGps.current);
+            // inaImu.readCurrent_mA();
+            // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU current read: %.3f mA\r\n", inaImu.current);
+            // inaMcu.readCurrent_mA();
+            // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU current read: %.3f mA\r\n", inaMcu.current);
         // Verificar si hay mensajes de solicitud
         if (osMessageQueueGet(sensorAcqQueueHandle, &msgReceived, NULL, 0) == osOK) {
             RTOS_LOG_DEBUG("[SENSOR_ACQ] Received message ID:%d from module:%d\r\n", msgReceived->id, msgReceived->sender);
@@ -112,8 +111,8 @@ void sensorAcqTask(void *argument) {
                     gpsData.latitude = gps.latitude;
                     gpsData.longitude = gps.longitude;
                     gpsData.fix = gps.flags & 0x01; // Bit 0 indica si hay fix
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f, fix %d\r\n", gps.latitude, gps.longitude, gpsData.fix);
-                    if(gpsData.fix) {
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f, fix %d\r\n", gpsData.latitude, gpsData.longitude, gpsData.fix);
+                    if(gpsData.fix && gps.iTow != iTow) { // Solo enviar si hay fix y iTOW ha cambiado (nuevo dato) 
                         msgToSend = MessagePool_Allocate();
                         if (msgToSend != NULL) {
                             RTOS_LOG_DEBUG("[SENSOR_ACQ] alocado\r\n");
@@ -125,13 +124,29 @@ void sensorAcqTask(void *argument) {
                         else {
                             RTOS_LOG_DEBUG("[SENSOR_ACQ] se lleno la pile\r\n");
                         }
+                        iTow = gps.iTow; // Actualizar iTOW
                     }
                     
                     break;
 
-                case MSG_ID_REQUEST_IMU: {
-                    RTOS_LOG_INFO("[SENSOR_ACQ] 📡 MSG_ID_REQUEST_IMU received from module %d\r\n", msgReceived->sender);
-                    RTOS_LOG_DEBUG("[SENSOR_ACQ] 🚀 Starting IMU burst collection (%d samples @ 26Hz)\r\n", BURST_SIZE);
+                case MSG_ID_REQUEST_GPS_CONFIGURATION_PSM:
+                    msgToSend = MessagePool_Allocate();
+                    if (msgToSend != NULL) {
+                        gps.configure_gps(40, M10Q_NUM_DATA_ELEMENTS);
+                        EmbeddedMessage_Create(msgToSend, MSG_ID_SEND_GPS_CONFIGURATION_PSM, MODULE_SENSOR_ACQ, MODULE_FSM);
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent GPS Confirmation PSMOO to FSM\r\n");
+                        msgToSend = NULL;
+                    }
+                    break;
+
+                case MSG_ID_REQUEST_IMU:
+                    // Leer IMU solo cuando se solicita
+                    imu.readAcceleration();
+                    imuData[0] = imu.ax;
+                    imuData[1] = imu.ay;
+                    imuData[2] = imu.az;
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] IMU read on request: (%.3f, %.3f, %.3f) mg\r\n", imu.ax, imu.ay, imu.az);
                     
                     // Use static buffer (defined at function scope) - CRITICAL for async message processing
                     TickType_t xLastWakeTime = xTaskGetTickCount();

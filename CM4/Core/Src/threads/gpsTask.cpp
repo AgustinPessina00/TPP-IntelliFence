@@ -86,6 +86,17 @@ void gpsTask(void *argument) {
                     }
                     break;
 
+                case MSG_ID_REQUEST_GPS_CONFIGURATION_PSM:
+                    msgToSend = MessagePool_Allocate();
+                    if (msgToSend != NULL) {
+                        gps.configure_gps(40, M10Q_NUM_DATA_ELEMENTS);
+                        EmbeddedMessage_Create(msgToSend, MSG_ID_SEND_GPS_CONFIGURATION_PSM, MODULE_SENSOR_ACQ, MODULE_FSM);
+                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent GPS Confirmation PSMOO to FSM\r\n");
+                        msgToSend = NULL;
+                    }
+                    break;
+
                 case MSG_ID_CONSOLE_READ_GPS:
                     gps.read_gps_position();
                     gpsData.latitude = gps.latitude;

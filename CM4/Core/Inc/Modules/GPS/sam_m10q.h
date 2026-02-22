@@ -32,6 +32,11 @@ class UARTBus;
 #define NAV_CLASS 0x01
 #define PVT_ID 0x07
 
+// UBX-ACK
+#define ACK_CLASS 0x05
+#define ACK_ACK_ID 0x01
+#define ACK_NAK_ID 0x00
+
 // Estructura para almacenar datos PVT (Position, Velocity, Time)
 // Basada en la especificación UBX-NAV-PVT del protocolo u-blox
 typedef struct {
@@ -103,8 +108,6 @@ public:
 	// Escritura y lectura de registros UBX (usa I2C por defecto)
 	bool write_register(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
 
-	bool read_configuration(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer); //Leo la configuración de un KeyID con VALGET via I2C.
-
 	// Funciones específicas para UART (configuración inicial)
 	bool write_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
 
@@ -112,9 +115,14 @@ public:
 
 	void configure_gps_uart();  // Configuración inicial via UART
 
+    void configure_gps(size_t startIndex, size_t numPayloads);
+
 private:
-	void configure_gps();
-	void configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads);
+	// void configure_gps();
+	// void configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads);
+    void configure_all_registers(const M10QPayload configPayloads[], size_t startIndex, size_t numPayloads);
+
+    bool verify_config_with_valget_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
 
 	// Armado de mensajes UBX usando arrays estáticos (embedded friendly)
 	uint16_t build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* payload_data, size_t payload_len, uint8_t* buffer, uint16_t buffer_size);
@@ -130,12 +138,19 @@ private:
     bool parseUBXMessage(const uint8_t* buffer, uint16_t bufferLen, UBX_NAV_PVT_data_t* pvtData);
     bool verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen);
 
+	// ====== FUNCIONES PRIVADAS PARA VERIFICACION VALGET ======
+	void flush_uart_buffer(uint32_t timeout_ms = 500);
+	bool verify_config_with_valget_i2c(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
+	bool parse_valget_response(const uint8_t* response_buffer, uint16_t buffer_len, const uint8_t* key_id, const uint8_t* expected_value, uint8_t value_size);
+	int8_t check_ack_response(const uint8_t* response_buffer, uint16_t buffer_len, uint8_t expected_class, uint8_t expected_id);
+
 public:
 	float latitude = 0;
 	float longitude = 0;
 	uint32_t fechaUTC = 0; //yymmdd	//TODO: Chequear uint32_t
 	uint32_t horaUTC = 0; //hhmmss	//TODO: Chequear uint32_t
     uint8_t flags;
+    uint32_t iTow; // GPS time of week (ms)
 
 private:
     uint8_t i2cAddr;

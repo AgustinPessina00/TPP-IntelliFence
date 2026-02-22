@@ -110,24 +110,24 @@ const M10QPayload m10q_new_acq_time_fast[M10Q_NUM_RATE_OPTIONS] = {
 // ======================================================
 // --- Payloads ---
 static const uint8_t m10q_data_00[] = {0x03, 0x00, 0x51, 0x10, 0x01}; // CFG-I2C-ENABLED
-static const uint8_t m10q_data_01[] = {0x06, 0x00, 0x91, 0x20, 0x01}; // CFG-MSGOUT-UBX_NAV_PVT_I2C ENABLED
+static const uint8_t m10q_data_01[] = {0x06, 0x00, 0x91, 0x20, 0x00}; // CFG-MSGOUT-UBX_NAV_PVT_I2C DISABLED -> SE HABILITA PARA PVT SIN REQUEST.
 static const uint8_t m10q_data_02[] = {0x01, 0x00, 0x72, 0x10, 0x01}; // CFG-I2COUTPROT-UBX ENABLED
 static const uint8_t m10q_data_03[] = {0x02, 0x00, 0x72, 0x10, 0x00}; // CFG-I2COUTPROT-NMEA DISABLED
-static const uint8_t m10q_data_04[] = {0x07, 0x00, 0x91, 0x20, 0x01}; // CFG-MSGOUT-UBX_NAV_PVT_UART ENABLED -> LO HABILITAMOS PARA DEBUG, LUEGO LO PONEMOS EN 0.
+static const uint8_t m10q_data_04[] = {0x07, 0x00, 0x91, 0x20, 0x00}; // CFG-MSGOUT-UBX_NAV_PVT_UART DISABLED -> SE HABILITA PARA DEBUG.
 static const uint8_t m10q_data_05[] = {0x1F, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-GPS_ENA
 static const uint8_t m10q_data_06[] = {0x01, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-GPS_L1CA_ENA
-static const uint8_t m10q_data_07[] = {0x20, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-SBAS_ENA -> LO DESHABILITO, NO APORTA MUCHO EN ARGENTINA.
-static const uint8_t m10q_data_08[] = {0x05, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-SBAS_L1CA_ENA -> LO DESHABILITO, NO APORTA MUCHO EN ARGENTINA.
+static const uint8_t m10q_data_07[] = {0x20, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-SBAS_ENA -> LO DESHABILITO, NO APORTA MUCHO EN ARGENTINA.
+static const uint8_t m10q_data_08[] = {0x05, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-SBAS_L1CA_ENA -> LO DESHABILITO, NO APORTA MUCHO EN ARGENTINA.
 static const uint8_t m10q_data_09[] = {0x21, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-GAL_ENA -> LO HABILITO, GALILEO+GPS EN CAMPO ABIERTO MEJORA LA DISPONIBILIDAD/PRECISION.
 static const uint8_t m10q_data_10[] = {0x07, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-GAL_E1_ENA -> LO HABILITO, GALILEO+GPS EN CAMPO ABIERTO MEJORA LA DISPONIBILIDAD/PRECISION.
 static const uint8_t m10q_data_11[] = {0x22, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-BDS_ENA
-static const uint8_t m10q_data_12[] = {0x0D, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-BDS_B1_ENA
-static const uint8_t m10q_data_13[] = {0x0F, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-BDS_B1C_ENA
-static const uint8_t m10q_data_14[] = {0x24, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-QZSS_ENA -> LO DESHABILITO. ES REGIONAL ASIA/JAPÓN, NO APORTA NADA EN ARGENTINA.
-static const uint8_t m10q_data_15[] = {0x12, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-QZSS_L1CA_ENA -> LO DESHABILITO. ES REGIONAL ASIA/JAPÓN, NO APORTA NADA EN ARGENTINA.
-static const uint8_t m10q_data_16[] = {0x14, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-QZSS_L1S_ENA -> LO DESHABILITO. ES REGIONAL ASIA/JAPÓN, NO APORTA NADA EN ARGENTINA.
+static const uint8_t m10q_data_12[] = {0x0D, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-BDS_B1_ENA -> DESHABILITADO PORQUE NO PUEDE ESTAR AL MISMO TIEMPO QUE B1C (B1C default: 1).
+static const uint8_t m10q_data_13[] = {0x0F, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-BDS_B1C_ENA
+static const uint8_t m10q_data_14[] = {0x24, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-QZSS_ENA -> LO DESHABILITO. ES REGIONAL ASIA/JAPÓN, NO APORTA NADA EN ARGENTINA.
+static const uint8_t m10q_data_15[] = {0x12, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-QZSS_L1CA_ENA -> LO DESHABILITO. ES REGIONAL ASIA/JAPÓN, NO APORTA NADA EN ARGENTINA.
+static const uint8_t m10q_data_16[] = {0x14, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-QZSS_L1S_ENA -> LO DESHABILITO. ES REGIONAL ASIA/JAPÓN, NO APORTA NADA EN ARGENTINA.
 static const uint8_t m10q_data_17[] = {0x25, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-GLO_ENA -> PODEMOS HABILITARLO EN UN FUTURO PARA VER SI HAY MEJORAS. ES RUSO, NO APORTA MUCHO EN ARGENTINA.
-static const uint8_t m10q_data_18[] = {0x18, 0x00, 0x31, 0x10, 0x00}; // SIGNAL-GLO_L1_ENA -> PODEMOS HABILITARLO EN UN FUTURO PARA VER SI HAY MEJORAS. ES RUSO, NO APORTA MUCHO EN ARGENTINA.
+static const uint8_t m10q_data_18[] = {0x18, 0x00, 0x31, 0x10, 0x01}; // SIGNAL-GLO_L1_ENA -> PODEMOS HABILITARLO EN UN FUTURO PARA VER SI HAY MEJORAS. ES RUSO, NO APORTA MUCHO EN ARGENTINA.
 static const uint8_t m10q_data_19[] = {0x21, 0x00, 0x11, 0x20, 0x03}; // NAVSPG-DYNMODEL
 static const uint8_t m10q_data_20[] = {0x05, 0x00, 0x22, 0x20, 0x00}; // ODO-PROFILE
 static const uint8_t m10q_data_21[] = {0xB3, 0x00, 0x11, 0x30, 0x14, 0x00}; // NAVSPG-OUTFIL_PACC -> SI VEMOS QUE FILTRA DEMASIADO Y NO ACTUALIZA LOS VALORES PVT PODEMOS SUBIRLE EL VALOR. AHORA ES 20M.
@@ -149,17 +149,18 @@ static const uint8_t m10q_data_36[] = {0xC5, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-
 static const uint8_t m10q_data_37[] = {0xB0, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-NMEA_ID_VTG_I2C
 static const uint8_t m10q_data_38[] = {0xB4, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-NMEA_ID_VTG_SPI
 static const uint8_t m10q_data_39[] = {0xB1, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-NMEA_ID_VTG_UART1
-static const uint8_t m10q_data_40[] = {0x02, 0x00, 0xD0, 0x40, 0x3C, 0x00, 0x00, 0x00}; // PM-POSUPDATEPERIOD -> POSICION CADA 60 SEGUNDOS
-static const uint8_t m10q_data_41[] = {0x03, 0x00, 0xD0, 0x40, 0x0A, 0x00, 0x00, 0x00}; // PM-ACQPERIOD -> PODRIAMOS LLEVARLO AL MISMO VALOR QUE EL POSUPDATEPERIOD. LO DEJO DE 10S PORQUE ASI EN CAMPO ABIERTO TENGO MAS ACTUALIZACIONES Y NO PERDEMOS EL FIX.
-static const uint8_t m10q_data_42[] = {0x05, 0x00, 0xD0, 0x30, 0x05, 0x00}; // PM-ONTIME -> 5 SEGUNDOS ACTUALMENTE, PODEMOS AUMENTARLO UN POCO AL TIEMPO QUE EL RECEPTOR PERMANECE ENCENDIDO CADA VEZ QUE ENTRA EN UN CICLO DE ADQUISICIÓN PARA NO PERDER MUESTRAS.
-static const uint8_t m10q_data_43[] = {0x06, 0x00, 0xD0, 0x20, 0x02}; // PM-MINACQTIME
-static const uint8_t m10q_data_44[] = {0x07, 0x00, 0xD0, 0x20, 0x0A}; // PM-MAXACQTIME -> SI AUMENTAMOS EL PM-ONTIME DEBERIAMOS AUMENTAR EL MAXACQTIME PARA QUE NO CORTARA LA ADQUISICIÓN ANTES DE TIEMPO.
+static const uint8_t m10q_data_40[] = {0x02, 0x00, 0xD0, 0x40, 0x78, 0x00, 0x00, 0x00}; // PM-POSUPDATEPERIOD -> POSICION CADA 60 SEGUNDOS
+static const uint8_t m10q_data_41[] = {0x03, 0x00, 0xD0, 0x40, 0x78, 0x00, 0x00, 0x00}; // PM-ACQPERIOD -> PODRIAMOS LLEVARLO AL MISMO VALOR QUE EL POSUPDATEPERIOD. LO DEJO DE 10S PORQUE ASI EN CAMPO ABIERTO TENGO MAS ACTUALIZACIONES Y NO PERDEMOS EL FIX.
+static const uint8_t m10q_data_42[] = {0x05, 0x00, 0xD0, 0x30, 0x1E, 0x00}; // PM-ONTIME -> 5 SEGUNDOS ACTUALMENTE, PODEMOS AUMENTARLO UN POCO AL TIEMPO QUE EL RECEPTOR PERMANECE ENCENDIDO CADA VEZ QUE ENTRA EN UN CICLO DE ADQUISICIÓN PARA NO PERDER MUESTRAS.
+static const uint8_t m10q_data_43[] = {0x06, 0x00, 0xD0, 0x20, 0x05}; // PM-MINACQTIME
+static const uint8_t m10q_data_44[] = {0x07, 0x00, 0xD0, 0x20, 0x3C}; // PM-MAXACQTIME -> SI AUMENTAMOS EL PM-ONTIME DEBERIAMOS AUMENTAR EL MAXACQTIME PARA QUE NO CORTARA LA ADQUISICIÓN ANTES DE TIEMPO.
 static const uint8_t m10q_data_45[] = {0x09, 0x00, 0xD0, 0x10, 0x01}; // PM-WAITTIMEFIX
-static const uint8_t m10q_data_46[] = {0x0C, 0x00, 0xD0, 0x10, 0x01}; // PM-EXTINTWAKE
+static const uint8_t m10q_data_46[] = {0x0C, 0x00, 0xD0, 0x10, 0x00}; // PM-EXTINTWAKE
 static const uint8_t m10q_data_47[] = {0x01, 0x00, 0xD0, 0x20, 0x01}; // PM-OPERATEMODE
 
-// static const uint8_t m10q_data_49[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
-// static const uint8_t m10q_data_50[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-UART1OUTPROT-NMEA ENABLED
+// static const uint8_t m10q_data_48[] = {0x02, 0x00, 0x74, 0x10, 0x00}; // CFG-UART1OUTPROT-NMEA DISABLED
+
+// static const uint8_t m10q_data_49[] = {0x02, 0x00, 0x74, 0x10, 0x01}; // CFG-UART1OUTPROT-NMEA ENABLED
 
 // Tabla de payloads con tamaño incluido (ahorro de memoria vs arrays paralelos)
 const M10QPayload m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS] = {
