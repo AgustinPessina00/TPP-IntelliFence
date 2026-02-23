@@ -36,6 +36,8 @@ static FenceTransitionState_t s_fenceTransitionState = FENCE_TRANSITION_BEGIN;
 static Cow cow;
 static Fence fence;
 
+uint32_t fsmTicks = FSM_TICKS_GREEN_ZONE; // Ticks entre iteraciones, ajustable según zona
+
 // ============================================================================
 // MAIN FSM TASK
 // ============================================================================
@@ -126,7 +128,7 @@ void fsmTask(void *argument) {
             msg = nullptr;
         }
         
-        osDelay(1000);
+        osDelay(fsmTicks);
     }
 }
 

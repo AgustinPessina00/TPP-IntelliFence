@@ -109,6 +109,8 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
 void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneState,
                     TimeoutContext_t& timeout, Cow& cow, Fence& fence, EmbeddedMessage_t** msg) {
     static bool newMessage = false;
+
+    
     
     if (msg != nullptr && *msg != nullptr) {
         newMessage = true;
@@ -180,15 +182,13 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_GRAZING:
-            //updateGpsAdqTime(GpsRate::SLOW);
-            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
-            greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
+            greenZoneState = GREEN_ZONE_MOVEMENT;
             break;
             
         case GREEN_ZONE_SLEEP:
-            //updateGpsAdqTime(GpsRate::STOP);
-            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
-            //enterLowPowerSleep();
+            updateGpsAdqTime(GpsRate:: GREEN_ZONE_RATE);      // A CHEQUEAR PARA AGREGARLE UN MAYOR TIEMPO AL GPS
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            enterLowPowerSleep();
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
@@ -201,26 +201,28 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_NEAR_LIMIT:
-            //updateGpsAdqTime(GpsRate::FAST);
-            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            fsmTicks = FSM_TICKS_NEAR_LIMIT;
+            updateGpsAdqTime(GpsRate::NEAR_LIMIT_RATE);
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_FAR_LIMIT:
-            //updateGpsAdqTime(GpsRate::MEDIUM);
-            //Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+            fsmTicks = FSM_TICKS_GREEN_ZONE; // Asegurar ticks para zona verde
+            updateGpsAdqTime(GpsRate::GREEN_ZONE_RATE);
+            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_WAIT_GPS_ADQ_TIME:
-            //if (waitForMessage(MSG_ID_GPS_CONFIG_RESPONSE, timeout, msg, newMessage) == HAL_OK) {
-            //     if (processGpsConfigResponse(*msg) == HAL_OK) {
+            if (waitForMessage(MSG_ID_GPS_CONFIG_RESPONSE, timeout, msg, newMessage) == HAL_OK) {
+                if (processGpsConfigResponse(*msg) == HAL_OK) {
                      greenZoneState = GREEN_ZONE_END;
-            //     }
-            // } else if (Timeout_IsExpired(&timeout)) {
-            //     RTOS_LOG_WARN("[FSM] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                //greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
-            //}
+                }
+            } else if (Timeout_IsExpired(&timeout)) {
+                RTOS_LOG_WARN("[FSM] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+            }
             break;
             
         case GREEN_ZONE_END:
@@ -243,7 +245,9 @@ void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZone
     } else {
         newMessage = false;
     }
-    
+
+    fsmTicks = FSM_TICKS_STIMULOUS_ZONE; // Reducir ticks para zona de estímulo (más reactivo)
+
     switch (stimulusZoneState) {
         case STIMULUS_ZONE_BEGIN:
             stimulusZoneState = STIMULUS_ZONE_SEND_ZONE;

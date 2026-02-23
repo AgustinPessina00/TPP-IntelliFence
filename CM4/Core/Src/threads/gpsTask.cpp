@@ -31,6 +31,7 @@ void gpsTask(void *argument) {
     RTOS_LOG_INFO("[GPS_TASK] Task initialized successfully\r\n");
       
     static uint32_t stackMonitorCounter = 0;
+    static uint32_t iTow = 0; // Variable para monitorear iTOW y detectar reinicios del GPS
     
     while(1) {
         // Monitorear stack cada ~10 segundos
@@ -53,28 +54,30 @@ void gpsTask(void *argument) {
             RTOS_LOG_DEBUG("[GPS_TASK] Received message ID:%d from module:%d\r\n", msgReceived->id, msgReceived->sender);
             
             switch (msgReceived->id) {
-                case MSG_ID_REQUEST_GPS:
+                case MSG_ID_REQUEST_GPS: {
                     // Leer GPS solo cuando se solicita
                     gps.read_gps_position();
                     gpsData.latitude = gps.latitude;
                     gpsData.longitude = gps.longitude;
                     gpsData.fix = gps.flags & 0x01; // Bit 0 indica si hay fix
-                    RTOS_LOG_DEBUG("[GPS_TASK] GPS read: lat %.6f, lon %.6f, fix %d\r\n", gps.latitude, gps.longitude, gpsData.fix);
-                    
-                    if(gpsData.fix) {
+                    RTOS_LOG_DEBUG("[SENSOR_ACQ] GPS read: lat %.6f, lon %.6f, fix %d\r\n", gpsData.latitude, gpsData.longitude, gpsData.fix);
+                    if(gpsData.fix && gps.iTow != iTow) { // Solo enviar si hay fix y iTOW ha cambiado (nuevo dato) 
                         msgToSend = MessagePool_Allocate();
                         if (msgToSend != NULL) {
-                            RTOS_LOG_DEBUG("[GPS_TASK] alocado\r\n");
-                            EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_GPS, MODULE_FSM, (uint8_t*)&gpsData, sizeof(gpsData_t));
+                            RTOS_LOG_DEBUG("[SENSOR_ACQ] alocado\r\n");
+                            EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_SENSOR_ACQ, MODULE_FSM, (uint8_t*)&gpsData, sizeof(gpsData_t));
                             osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                            RTOS_LOG_DEBUG("[GPS_TASK] Sent GPS data to FSM\r\n");
+                            RTOS_LOG_DEBUG("[SENSOR_ACQ] Sent GPS data to FSM\r\n");
                             msgToSend = NULL;
                         }
                         else {
-                            RTOS_LOG_DEBUG("[GPS_TASK] se lleno la pile\r\n");
+                            RTOS_LOG_DEBUG("[SENSOR_ACQ] se lleno la pile\r\n");
                         }
+                        iTow = gps.iTow; // Actualizar iTOW
                     }
+                    
                     break;
+                }
 
                 case MSG_ID_GPS_REQUEST_CONFIG:
                     rateGPS = static_cast<gpsRateSpeed>(msgReceived->payload[0]);

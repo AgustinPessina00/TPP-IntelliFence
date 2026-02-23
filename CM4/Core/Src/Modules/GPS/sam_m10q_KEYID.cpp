@@ -35,73 +35,54 @@
 // ======================================================
 // RATES: m10q_new_acq_time (payloads)  [4 elementos]
 // ======================================================
+static const uint8_t m10q_set_continuous_mode[] = {0x01, 0x00, 0xD0, 0x20, 0x00}; // PM-OPERATEMODE -- Continuous
+static const uint8_t m10q_set_psmoo_mode[] = {0x01, 0x00, 0xD0, 0x20, 0x01}; // PM-OPERATEMODE -- PSMOO
 
-// ---  Payloads for different acquisition time settings (GREEN ZONE SLEEP) ---
-static const uint8_t m10q_stop_0_posupdate[]    = {0x02, 0x00, 0xD0, 0x40, 0x10, 0x0E, 0x00, 0x00}; // POSUPDATEPERIOD = 3600 s
-static const uint8_t m10q_stop_1_acqperiod[]    = {0x03, 0x00, 0xD0, 0x40, 0x10, 0x0E, 0x00, 0x00}; // ACQPERIOD = 3600 s  (alineado)
-static const uint8_t m10q_stop_2_ontime[]       = {0x05, 0x00, 0xD0, 0x30, 0x0C, 0x00};             // ONTIME = 12 s
-static const uint8_t m10q_stop_3_minacq[]       = {0x06, 0x00, 0xD0, 0x20, 0x02};                   // MINACQTIME = 2 s
-static const uint8_t m10q_stop_4_maxacq[]       = {0x07, 0x00, 0xD0, 0x20, 0x2D};                   // MAXACQTIME = 45 s
-static const uint8_t m10q_stop_5_waitfix[]      = {0x09, 0x00, 0xD0, 0x10, 0x00};                   // WAITTIMEFIX = 0  (ahorro)
 
-const M10QPayload m10q_new_acq_time_stop[M10Q_NUM_RATE_OPTIONS] = {
-    {m10q_stop_0_posupdate, sizeof(m10q_stop_0_posupdate)},
-    {m10q_stop_1_acqperiod, sizeof(m10q_stop_1_acqperiod)},
-    {m10q_stop_2_ontime, sizeof(m10q_stop_2_ontime)},
-    {m10q_stop_3_minacq, sizeof(m10q_stop_3_minacq)},
-    {m10q_stop_4_maxacq, sizeof(m10q_stop_4_maxacq)},
-    {m10q_stop_5_waitfix, sizeof(m10q_stop_5_waitfix)}
+// ---  Payloads for different acquisition time settings (GREEN ZONE) ---
+static const uint8_t m10q_green_zone_0_posupdate[]    = {0x02, 0x00, 0xD0, 0x40, 0x2C, 0x01, 0x00, 0x00}; // POSUPDATEPERIOD = 300 s
+static const uint8_t m10q_green_zone_1_acqperiod[]    = {0x03, 0x00, 0xD0, 0x40, 0x64, 0x00, 0x00, 0x00}; // ACQPERIOD       = 100 s (alineado)
+static const uint8_t m10q_green_zone_2_ontime[]       = {0x05, 0x00, 0xD0, 0x30, 0x0A, 0x00};             // ONTIME          = 10 s
+static const uint8_t m10q_green_zone_3_minacq[]       = {0x06, 0x00, 0xD0, 0x20, 0x02};                   // MINACQTIME      = 2 s
+static const uint8_t m10q_green_zone_4_maxacq[]       = {0x07, 0x00, 0xD0, 0x20, 0x2D};                   // MAXACQTIME      = 45 s (más robusto que 25)
+static const uint8_t m10q_green_zone_5_waitfix[]      = {0x09, 0x00, 0xD0, 0x10, 0x01};                   // WAITTIMEFIX     = 1 (primer punto más estable)
+
+const M10QPayload m10q_new_acq_time_green_zone[M10Q_NUM_RATE_OPTIONS] = {
+    {m10q_set_continuous_mode, sizeof(m10q_set_continuous_mode)},
+    {m10q_green_zone_0_posupdate, sizeof(m10q_green_zone_0_posupdate)},
+    {m10q_green_zone_1_acqperiod, sizeof(m10q_green_zone_1_acqperiod)},
+    {m10q_green_zone_2_ontime, sizeof(m10q_green_zone_2_ontime)},
+    {m10q_green_zone_3_minacq, sizeof(m10q_green_zone_3_minacq)},
+    {m10q_green_zone_4_maxacq, sizeof(m10q_green_zone_4_maxacq)},
+    {m10q_green_zone_5_waitfix, sizeof(m10q_green_zone_5_waitfix)},
+    {m10q_set_psmoo_mode, sizeof(m10q_set_psmoo_mode)}
+    
 };
 
-// ---  Payloads for different acquisition time settings (GREEN ZONE GRAZING) ---
-static const uint8_t m10q_slow_0_posupdate[]    = {0x02, 0x00, 0xD0, 0x40, 0x58, 0x02, 0x00, 0x00}; // POSUPDATEPERIOD = 600 s
-static const uint8_t m10q_slow_1_acqperiod[]    = {0x03, 0x00, 0xD0, 0x40, 0x58, 0x02, 0x00, 0x00}; // ACQPERIOD       = 600 s (alineado)
-static const uint8_t m10q_slow_2_ontime[]       = {0x05, 0x00, 0xD0, 0x30, 0x0A, 0x00};             // ONTIME          = 10 s
-static const uint8_t m10q_slow_3_minacq[]       = {0x06, 0x00, 0xD0, 0x20, 0x02};                   // MINACQTIME      = 2 s
-static const uint8_t m10q_slow_4_maxacq[]       = {0x07, 0x00, 0xD0, 0x20, 0x2D};                   // MAXACQTIME      = 45 s (más robusto que 25)
-static const uint8_t m10q_slow_5_waitfix[]      = {0x09, 0x00, 0xD0, 0x10, 0x01};                   // WAITTIMEFIX     = 1 (primer punto más estable)
+// ---  Payloads for different acquisition time settings (NEAR LIMIT) ---
+static const uint8_t m10q_near_limit_0_posupdate[]     = {0x02, 0x00, 0xD0, 0x40, 0x3C, 0x00, 0x00, 0x00}; // POSUPDATEPERIOD = 60 s
+static const uint8_t m10q_near_limit_1_acqperiod[]     = {0x03, 0x00, 0xD0, 0x40, 0x3C, 0x00, 0x00, 0x00}; // ACQPERIOD       = 60 s (alineado)
+static const uint8_t m10q_near_limit_2_ontime[]        = {0x05, 0x00, 0xD0, 0x30, 0x08, 0x00};             // ONTIME          = 8 s
+static const uint8_t m10q_near_limit_3_minacq[]        = {0x06, 0x00, 0xD0, 0x20, 0x02};                   // MINACQTIME      = 2 s
+static const uint8_t m10q_near_limit_4_maxacq[]        = {0x07, 0x00, 0xD0, 0x20, 0x1E};                   // MAXACQTIME      = 30 s (más margen que 15)
+static const uint8_t m10q_near_limit_5_waitfix[]       = {0x09, 0x00, 0xD0, 0x10, 0x01};                   // WAITTIMEFIX     = 1
 
-const M10QPayload m10q_new_acq_time_slow[M10Q_NUM_RATE_OPTIONS] = {
-    {m10q_slow_0_posupdate, sizeof(m10q_slow_0_posupdate)},
-    {m10q_slow_1_acqperiod, sizeof(m10q_slow_1_acqperiod)},
-    {m10q_slow_2_ontime, sizeof(m10q_slow_2_ontime)},
-    {m10q_slow_3_minacq, sizeof(m10q_slow_3_minacq)},
-    {m10q_slow_4_maxacq, sizeof(m10q_slow_4_maxacq)},
-    {m10q_slow_5_waitfix, sizeof(m10q_slow_5_waitfix)}
+const M10QPayload m10q_new_acq_time_near_limit[M10Q_NUM_RATE_OPTIONS] = {
+    {m10q_set_continuous_mode, sizeof(m10q_set_continuous_mode)},
+    {m10q_near_limit_0_posupdate, sizeof(m10q_near_limit_0_posupdate)},
+    {m10q_near_limit_1_acqperiod, sizeof(m10q_near_limit_1_acqperiod)},
+    {m10q_near_limit_2_ontime, sizeof(m10q_near_limit_2_ontime)},
+    {m10q_near_limit_3_minacq, sizeof(m10q_near_limit_3_minacq)},
+    {m10q_near_limit_4_maxacq, sizeof(m10q_near_limit_4_maxacq)},
+    {m10q_near_limit_5_waitfix, sizeof(m10q_near_limit_5_waitfix)},
+    {m10q_set_psmoo_mode, sizeof(m10q_set_psmoo_mode)}
 };
 
-// ---  Payloads for different acquisition time settings (GREEN ZONE MOVEMENT) ---
-static const uint8_t m10q_med_0_posupdate[]     = {0x02, 0x00, 0xD0, 0x40, 0x3C, 0x00, 0x00, 0x00}; // POSUPDATEPERIOD = 60 s
-static const uint8_t m10q_med_1_acqperiod[]     = {0x03, 0x00, 0xD0, 0x40, 0x3C, 0x00, 0x00, 0x00}; // ACQPERIOD       = 60 s (alineado)
-static const uint8_t m10q_med_2_ontime[]        = {0x05, 0x00, 0xD0, 0x30, 0x08, 0x00};             // ONTIME          = 8 s
-static const uint8_t m10q_med_3_minacq[]        = {0x06, 0x00, 0xD0, 0x20, 0x02};                   // MINACQTIME      = 2 s
-static const uint8_t m10q_med_4_maxacq[]        = {0x07, 0x00, 0xD0, 0x20, 0x1E};                   // MAXACQTIME      = 30 s (más margen que 15)
-static const uint8_t m10q_med_5_waitfix[]       = {0x09, 0x00, 0xD0, 0x10, 0x01};                   // WAITTIMEFIX     = 1
 
-const M10QPayload m10q_new_acq_time_medium[M10Q_NUM_RATE_OPTIONS] = {
-    {m10q_med_0_posupdate, sizeof(m10q_med_0_posupdate)},
-    {m10q_med_1_acqperiod, sizeof(m10q_med_1_acqperiod)},
-    {m10q_med_2_ontime, sizeof(m10q_med_2_ontime)},
-    {m10q_med_3_minacq, sizeof(m10q_med_3_minacq)},
-    {m10q_med_4_maxacq, sizeof(m10q_med_4_maxacq)},
-    {m10q_med_5_waitfix, sizeof(m10q_med_5_waitfix)}
-};
+// ---  Payloads for different acquisition time settings (CONTINUOUS) ---
 
-// ---  Payloads for different acquisition time settings (STIMULUS ZONE) ---
-static const uint8_t m10q_fast_0_posupdate[]    = {0x02, 0x00, 0xD0, 0x40, 0x0A, 0x00, 0x00, 0x00}; // POSUPDATEPERIOD = 10 s
-static const uint8_t m10q_fast_1_acqperiod[]    = {0x03, 0x00, 0xD0, 0x40, 0x0A, 0x00, 0x00, 0x00}; // ACQPERIOD       = 10 s (alineado)
-static const uint8_t m10q_fast_2_ontime[]       = {0x05, 0x00, 0xD0, 0x30, 0x0A, 0x00};             // ONTIME          = 10 s
-static const uint8_t m10q_fast_3_minacq[]       = {0x06, 0x00, 0xD0, 0x20, 0x02};                   // MINACQTIME      = 2 s
-static const uint8_t m10q_fast_4_maxacq[]       = {0x07, 0x00, 0xD0, 0x20, 0x1E};                   // MAXACQTIME      = 30 s (recomendado)
-static const uint8_t m10q_fast_5_waitfix[]      = {0x09, 0x00, 0xD0, 0x10, 0x00};                   // WAITTIMEFIX     = 0 (latencia mínima)
-
-const M10QPayload m10q_new_acq_time_fast[M10Q_NUM_RATE_OPTIONS] = {
-    {m10q_fast_0_posupdate, sizeof(m10q_fast_0_posupdate)},
-    {m10q_fast_1_acqperiod, sizeof(m10q_fast_1_acqperiod)},
-    {m10q_fast_2_ontime, sizeof(m10q_fast_2_ontime)},
-    {m10q_fast_3_minacq, sizeof(m10q_fast_3_minacq)},
-    {m10q_fast_4_maxacq, sizeof(m10q_fast_4_maxacq)},
-    {m10q_fast_5_waitfix, sizeof(m10q_fast_5_waitfix)}
+const M10QPayload m10q_new_acq_time_continuous[1] = {
+    {m10q_set_continuous_mode, sizeof(m10q_set_continuous_mode)}
 };
 
 // ======================================================

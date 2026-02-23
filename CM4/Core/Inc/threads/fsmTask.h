@@ -27,9 +27,13 @@ extern "C" {
 #define DISTANCE_TIMEOUT_MS   3000  // 3 segundos  - Cálculo de zona y distancia
 #define STIMULUS_TIMEOUT_MS   5000  // 5 segundos  - Respuesta del módulo de estímulo
 #define GPS_CONFIG_TIMEOUT_MS 5000  // 5 segundos  - Configuración de tasa GPS
-
+#define FSM_TICKS_GREEN_ZONE 1000  // 1 segundo - Ticks entre iteraciones en zona verde (ajustable según necesidades)
+#define FSM_TICKS_NEAR_LIMIT FSM_TICKS_GREEN_ZONE/2
+#define FSM_TICKS_STIMULOUS_ZONE FSM_TICKS_GREEN_ZONE/5
 #define NEAR_LIMIT  10.0f   // en metros
 
+
+extern uint32_t fsmTicks;
 // ============================================================================
 // TIMEOUT CONTEXT STRUCTURE
 // ============================================================================
@@ -56,10 +60,9 @@ inline uint32_t Timeout_GetElapsed(const TimeoutContext_t* ctx) {
 }
 
 enum class GpsRate {
-  STOP,
-  SLOW,
-  MEDIUM,
-  FAST
+  GREEN_ZONE_RATE,
+  NEAR_LIMIT_RATE,
+  CONTINUOUS_RATE,
 };
 
 enum class MainFSM_t {

@@ -115,23 +115,20 @@ bool SamM10q::update_location_and_time() {
 }
 
 bool SamM10q::set_new_acq_time(gpsRateSpeed gpsRate) {
-    if (gpsRate > gpsRateSpeed::FAST) {
+    if (gpsRate > gpsRateSpeed::CONTINUOUS && gpsRate < gpsRateSpeed::GREEN_ZONE) {
         return false;
     }
 
     switch (gpsRate)
     {
-    case gpsRateSpeed::STOP:
-        configure_all_registers(m10q_new_acq_time_stop, 0, M10Q_NUM_RATE_OPTIONS);
+    case gpsRateSpeed::GREEN_ZONE:
+        configure_all_registers(m10q_new_acq_time_green_zone, 0, M10Q_NUM_RATE_OPTIONS);
         break;
-    case gpsRateSpeed::SLOW:
-        configure_all_registers(m10q_new_acq_time_slow, 0, M10Q_NUM_RATE_OPTIONS);
+    case gpsRateSpeed::NEAR_LIMIT:
+        configure_all_registers(m10q_new_acq_time_near_limit, 0, M10Q_NUM_RATE_OPTIONS);
         break;
-    case gpsRateSpeed::MEDIUM:
-        configure_all_registers(m10q_new_acq_time_medium, 0, M10Q_NUM_RATE_OPTIONS);
-        break;
-    case gpsRateSpeed::FAST:
-        configure_all_registers(m10q_new_acq_time_fast, 0, M10Q_NUM_RATE_OPTIONS);
+    case gpsRateSpeed::CONTINUOUS:
+        configure_all_registers(m10q_new_acq_time_continuous, 0, 1);
         break;
     default:
         break;

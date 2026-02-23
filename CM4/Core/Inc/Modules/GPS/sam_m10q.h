@@ -84,10 +84,9 @@ typedef struct {
 #define NMEA_BUFFER_SIZE	16
 
 enum class gpsRateSpeed {
-  STOP,
-  SLOW,
-  MEDIUM,
-  FAST
+  GREEN_ZONE,
+  NEAR_LIMIT,
+  CONTINUOUS
 };
 
 class SamM10q {

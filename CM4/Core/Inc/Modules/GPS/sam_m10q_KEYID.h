@@ -7,7 +7,7 @@
 // ========================
 // Constantes y contadores
 // ========================
-constexpr size_t M10Q_NUM_RATE_OPTIONS   = 6; 
+constexpr size_t M10Q_NUM_RATE_OPTIONS   = 8; 
 constexpr size_t M10Q_NUM_INIT_PSM_DATA_ELEMENTS  = 40; //Cantidad de elementos en m10q_data para configuración inicial (Sin PSMOO)
 constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 48;  // Cantidad de elementos en m10q_data
 
@@ -25,10 +25,9 @@ struct M10QPayload {
 // ======================================================
 
 // RATES: m10q_new_acq_time (payloads)
-extern const M10QPayload m10q_new_acq_time_stop[M10Q_NUM_RATE_OPTIONS];
-extern const M10QPayload m10q_new_acq_time_slow[M10Q_NUM_RATE_OPTIONS];
-extern const M10QPayload m10q_new_acq_time_medium[M10Q_NUM_RATE_OPTIONS];
-extern const M10QPayload m10q_new_acq_time_fast[M10Q_NUM_RATE_OPTIONS];
+extern const M10QPayload m10q_new_acq_time_green_zone[M10Q_NUM_RATE_OPTIONS];
+extern const M10QPayload m10q_new_acq_time_near_limit[M10Q_NUM_RATE_OPTIONS];
+extern const M10QPayload m10q_new_acq_time_continuous[1];
 
 // DATA: m10q_data_payloads (configuration payloads con tamaño incluido)
 extern const M10QPayload m10q_data_payloads[M10Q_NUM_DATA_ELEMENTS];
