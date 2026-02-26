@@ -161,6 +161,7 @@ HAL_StatusTypeDef processImuMessage(EmbeddedMessage_t *msg, Cow& cow) {
 }
 
 HAL_StatusTypeDef processGpsConfigResponse(EmbeddedMessage_t *msg) {
+    //HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
     RTOS_LOG_DEBUG("[FSM] GPS config confirmed\r\n");
     return HAL_OK;
 }
@@ -202,6 +203,9 @@ void sendZoneToStimulus(zone_t zone, ModuleId_t dest) {
 void updateGpsAdqTime(GpsRate gpsRate) {
     EmbeddedMessage_t *msg = MessagePool_Allocate();
     if (msg != nullptr) {
+        HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_SET);
+        HAL_Delay(50);
+        HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
         EmbeddedMessage_CreateWithPayload(msg, MSG_ID_GPS_REQUEST_CONFIG, MODULE_FSM, 
                                          MODULE_GPS, (uint8_t*)&gpsRate, sizeof(GpsRate));
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
