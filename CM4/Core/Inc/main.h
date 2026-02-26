@@ -78,6 +78,8 @@ void Error_Handler(void);
 #define VIB_MOTOR_L_GPIO_Port GPIOB
 #define VIB_MOTOR_R_Pin GPIO_PIN_8
 #define VIB_MOTOR_R_GPIO_Port GPIOB
+#define GPS_EXTINT_Pin GPIO_PIN_6
+#define GPS_EXTINT_GPIO_Port GPIOA
 
 #define LED3_GPIO_PORT GPIOB
 #define LED1_GPIO_PORT GPIOB

@@ -51,6 +51,9 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, ENABLE_LDO1_Pin|GPS_RESET_N_Pin, GPIO_PIN_SET);
 
+  /*Configure GPIO pin Output Level - PA6 for GPS control (initially LOW) */
+  HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pins : LED_BLUE_Pin LED_RED_Pin (NOTE: LED_GREEN excluded - PB9 used for VIB_MOTOR_L) */
   GPIO_InitStruct.Pin = LED_BLUE_Pin|LED_RED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -73,6 +76,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPS_RESET_N_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA6 for GPS control */
+  GPIO_InitStruct.Pin = GPS_EXTINT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPS_EXTINT_GPIO_Port, &GPIO_InitStruct);
 
 }
 
