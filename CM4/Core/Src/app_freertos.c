@@ -34,7 +34,7 @@
 // Forward declarations para threads del sistema FreeRTOS
 extern void dispatcherTask(void *argument);
 extern void fsmTask(void *argument);
-extern void sensorAcqTask(void *argument);
+//extern void sensorAcqTask(void *argument);
 extern void imuTask(void *argument);
 extern void gpsTask(void *argument);
 extern void inaTask(void *argument);
@@ -73,11 +73,11 @@ const osMessageQueueAttr_t dispatcherQueue_attributes = {
   .name = "dispatcherQueue"
 };
 
-// Cola para adquisición de sensores (LEGACY - usar colas individuales)
-osMessageQueueId_t sensorAcqQueueHandle;
-const osMessageQueueAttr_t sensorAcqQueue_attributes = {
-  .name = "sensorAcqQueue"
-};
+// // Cola para adquisición de sensores (LEGACY - usar colas individuales)
+// osMessageQueueId_t sensorAcqQueueHandle;
+// const osMessageQueueAttr_t sensorAcqQueue_attributes = {
+//   .name = "sensorAcqQueue"
+// };
 
 // Colas para sensores individuales
 osMessageQueueId_t imuQueueHandle;
@@ -107,10 +107,6 @@ const osMessageQueueAttr_t stimulusQueue_attributes = {
   .name = "stimulusQueue"
 };
 
-// osMessageQueueId_t gpsQueueHandle;
-// const osMessageQueueAttr_t gpsQueue_attributes = {
-//   .name = "gpsQueue"
-// };
 
 osMessageQueueId_t loraTxQueueHandle;
 const osMessageQueueAttr_t loraTxQueue_attributes = {
@@ -179,21 +175,21 @@ const osThreadAttr_t stimulus_Task_attributes = {
   // .stack_mem = stimulus_TaskStack,
 };
 
-// Thread sensor acquisition - adquisición de datos de sensores (LEGACY)
-osThreadId_t sensorAcq_TaskHandle;
+// // Thread sensor acquisition - adquisición de datos de sensores (LEGACY)
+// osThreadId_t sensorAcq_TaskHandle;
 
 // Buffers estáticos en RAM1 para sensorAcq (COMENTADO - ahora usa heap dinámico)
 // __attribute__((section(".RAM1_region"))) static StaticTask_t sensorAcq_TaskBuffer;
 // __attribute__((section(".RAM1_region"))) static StackType_t sensorAcq_TaskStack[256];  // 1024 bytes / 4 bytes per word
 
-const osThreadAttr_t sensorAcq_Task_attributes = {
-  .name = "sensorAcq_Task",
-  .stack_size = 512 * 4,  // 2048 bytes - objetos C++ grandes (GPS, IMU, INA)
-  .priority = (osPriority_t) osPriorityNormal,
-  // .cb_mem = &sensorAcq_TaskBuffer,
-  // .cb_size = sizeof(sensorAcq_TaskBuffer),
-  // .stack_mem = sensorAcq_TaskStack,
-};
+// const osThreadAttr_t sensorAcq_Task_attributes = {
+//   .name = "sensorAcq_Task",
+//   .stack_size = 512 * 4,  // 2048 bytes - objetos C++ grandes (GPS, IMU, INA)
+//   .priority = (osPriority_t) osPriorityNormal,
+//   // .cb_mem = &sensorAcq_TaskBuffer,
+//   // .cb_size = sizeof(sensorAcq_TaskBuffer),
+//   // .stack_mem = sensorAcq_TaskStack,
+// };
 
 // Thread IMU - adquisición de acelerómetro
 osThreadId_t imu_TaskHandle;
@@ -208,7 +204,7 @@ osThreadId_t gps_TaskHandle;
 const osThreadAttr_t gps_Task_attributes = {
   .name = "gps_Task",
   .stack_size = 292 * 4,  // 1536 bytes - objeto C++ SAM-M10Q
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 
 // Thread INA - adquisición de corrientes
@@ -266,12 +262,12 @@ void initialize_message_queues(void) {
         Error_Handler();
     }
     
-    //Cola para adquisición de sensores (LEGACY - no se usa más)
-    sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
-    if (sensorAcqQueueHandle == NULL) {
-        printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\r\n");
-        Error_Handler();
-    }
+    // //Cola para adquisición de sensores (LEGACY - no se usa más)
+    // sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
+    // if (sensorAcqQueueHandle == NULL) {
+    //     printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\r\n");
+    //     Error_Handler();
+    // }
     
     // Colas para sensores individuales
     imuQueueHandle = osMessageQueueNew(12, sizeof(void*), &imuQueue_attributes);
@@ -280,7 +276,7 @@ void initialize_message_queues(void) {
         Error_Handler();
     }
     
-    gpsQueueHandle = osMessageQueueNew(12, sizeof(void*), &gpsQueue_attributes);
+    gpsQueueHandle = osMessageQueueNew(16, sizeof(void*), &gpsQueue_attributes);
     if (gpsQueueHandle == NULL) {
         printf("[QUEUES] ERROR - Fallo creación gpsQueue\r\n");
         Error_Handler();
@@ -329,9 +325,9 @@ void initialize_message_queues(void) {
     printf("[QUEUES] - DispatcherQueue: 32 slots\r\n");
     printf("[QUEUES] - FSMQueue: 16 slots\r\n");
     printf("[QUEUES] - IMUQueue: 12 slots\r\n");
-    printf("[QUEUES] - GPSQueue: 12 slots\r\n");
+    printf("[QUEUES] - GPSQueue: 16 slots\r\n");
     printf("[QUEUES] - INAQueue: 12 slots\r\n");
-    printf("[QUEUES] - SensorAcqQueue (legacy): 16 slots\r\n");
+    // printf("[QUEUES] - SensorAcqQueue (legacy): 16 slots\r\n");
     printf("[QUEUES] - Colas adicionales: 4-12 slots c/u\r\n");
     printf("[QUEUES] - Tamaño por slot: %u bytes (puntero EmbeddedMessage_t*)\r\n", 
            (unsigned int)sizeof(void*));
