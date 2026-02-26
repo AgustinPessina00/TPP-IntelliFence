@@ -132,6 +132,7 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
         case GREEN_ZONE_WAIT_ACCELERATION:
             // Prioridad: MSG_ID_SEND_IMU_BURST (preferido)
             if (waitForMessage(MSG_ID_SEND_IMU_BURST, timeout, msg, newMessage) == HAL_OK) {
+                CowState oldCowState = cow.getState();
                 // Procesar BurstFeatures (variance + range + z_ratio) - 12 bytes
                 if ((*msg)->length == sizeof(BurstFeatures)) {
                     BurstFeatures* features = (BurstFeatures*)(*msg)->payload;
@@ -140,8 +141,14 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                     
                     // Clasificar con multi-feature (variance + range + z_ratio)
                     updateStateFromFeatures(cow, features->var_total, features->range_z, features->range_total, features->z_ratio);
-                    RTOS_LOG_DEBUG("[FSM] GREEN: Processed features, state=%d\r\n", (int)cow.getState());
-                    greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+
+                    if (cow.getState() == oldCowState) {
+                        RTOS_LOG_DEBUG("[FSM] GREEN: Cow state unchanged (%d)\r\n", (int)cow.getState());
+                        greenZoneState = GREEN_ZONE_END;
+                    } else {
+                        RTOS_LOG_DEBUG("[FSM] GREEN: Processed features, state=%d\r\n", (int)cow.getState());
+                        greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+                    }
                 } else {
                     RTOS_LOG_ERROR("[FSM] GREEN: Invalid burst features size (expected %d, got %d)\r\n", sizeof(BurstFeatures), (*msg)->length);
                     greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
