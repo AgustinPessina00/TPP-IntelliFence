@@ -75,7 +75,8 @@ void SamM10q::testGPS() {
 
 HAL_StatusTypeDef SamM10q::read_gps_position() {
     // Intentar obtener datos PVT del GPS
-    if (update_location_and_time()) {
+    bool status = update_location_and_time();
+    if (status) {
         return HAL_OK;
     } else {
         return HAL_ERROR;
@@ -91,7 +92,8 @@ bool SamM10q::update_location_and_time() {
     UBX_NAV_PVT_data_t pvtData;
     
     // Obtener datos PVT del GPS con timeout de 2 segundos
-    if (getPVT(&pvtData, 2000)) {
+    bool status = getPVT(&pvtData, 2000); 
+    if (status == true) {
         // Actualizar latitud y longitud (convertir de deg*1e-7 a grados decimales)
         latitude = pvtData.lat * 1e-7;
         longitude = pvtData.lon * 1e-7;
@@ -105,7 +107,7 @@ bool SamM10q::update_location_and_time() {
         horaUTC = pvtData.hour * 10000 + 
                   pvtData.min * 100 + 
                   pvtData.sec;
-        
+
         return true;
     }
     
@@ -174,65 +176,40 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
 
 void SamM10q::configure_gps(size_t startIndex, size_t numPayloads) {
 
-    bool configOK = false;
-    // // PASO 1: Deshabilitar todos los mensajes automáticos por UART para poder verificar limpiamente
-    // write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, RAM); // Deshabilitar NMEA por UART
-    // //write_register_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, BBR);
-    
-    // // Limpiar buffer UART de mensajes NMEA residuales antes de verificar
-    // flush_uart_buffer();
-    // configOK = verify_config_with_valget_uart(m10q_data_payloads[48].data, m10q_data_payloads[48].size, 0);
+    bool configSuccessRam = false;
+    bool configSuccessBbr = false;
 
-    // if(configOK)
-    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 0 completado: NMEA deshabilitado por UART y verificado\r\n");
+    if (startIndex == 0) {
+        write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C
+        write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR);
+        startIndex++;
 
-    // PASO 2: Configurar I2C y protocolos
-    write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, RAM); // Habilito I2C
-    //write_register_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, BBR);
-    configOK = verify_config_with_valget_uart(m10q_data_payloads[0].data, m10q_data_payloads[0].size, 0);
+        write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita UBX por I2C
+        write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
+        startIndex++;
+        
+        write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Desabilita NMEA por I2C
+        write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
+        startIndex++;
 
-    if(configOK)
-        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 1 completado: NMEA deshabilitado por UART y verificado\r\n");
+        configSuccessRam = verify_config_with_valget_i2c(m10q_data_payloads[0].data, m10q_data_payloads[0].size, 0);
+        configSuccessBbr = verify_config_with_valget_i2c(m10q_data_payloads[0].data, m10q_data_payloads[0].size, 1);
+        if(configSuccessRam && configSuccessBbr)
+            RTOS_LOG_DEBUG("[GPS CONFIG] Paso 0 completado: Habilito I2C por UART y verificado\r\n");
 
+        configSuccessRam = verify_config_with_valget_i2c(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
+        configSuccessBbr = verify_config_with_valget_i2c(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 1);
+        if(configSuccessRam && configSuccessBbr)
+            RTOS_LOG_DEBUG("[GPS CONFIG] Paso 1 completado: UBX habilitado por UART y verificado\r\n");
 
-    // write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, RAM); // Habilita UBX_NAV_PVT por I2C
-    // //write_register_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, BBR);
-    // configOK = verify_config_with_valget_uart(m10q_data_payloads[1].data, m10q_data_payloads[1].size, 0);
+        configSuccessRam = verify_config_with_valget_i2c(m10q_data_payloads[2].data, m10q_data_payloads[2].size, 0);
+        configSuccessBbr = verify_config_with_valget_i2c(m10q_data_payloads[2].data, m10q_data_payloads[2].size, 1);
+        if(configSuccessRam && configSuccessBbr)
+            RTOS_LOG_DEBUG("[GPS CONFIG] Paso 2 completado: NMEA deshabilitado por UART y verificado\r\n");
 
-    // if(configOK)
-    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 2 completado: NMEA deshabilitado por UART y verificado\r\n");
-
-
-    write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, RAM); // Habilita UBX por I2C
-    //write_register_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, BBR);
-    configOK = verify_config_with_valget_uart(m10q_data_payloads[2].data, m10q_data_payloads[2].size, 0);
-
-    if(configOK)
-        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 3 completado: NMEA deshabilitado por UART y verificado\r\n");
-
-
-    write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, RAM); // Desabilita NMEA por I2C
-    //write_register_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, BBR);
-    configOK = verify_config_with_valget_uart(m10q_data_payloads[3].data, m10q_data_payloads[3].size, 0);
-
-    if(configOK)
-        RTOS_LOG_DEBUG("[GPS CONFIG] Paso 4 completado: NMEA deshabilitado por UART y verificado\r\n");
-
-
-    // // NOTA: payload[4] habilita UBX_NAV_PVT por UART - NO lo configuramos aquí para evitar saturar UART
-    // // Si necesitas debug por UART, habilitalo manualmente al final de la configuración
-    
-    // write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, RAM); // Habilita UBX_NAV_PVT por UART
-    // //write_register_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, BBR);
-    // configOK = verify_config_with_valget_uart(m10q_data_payloads[4].data, m10q_data_payloads[4].size, 0);
-
-
-    // if(configOK)
-    //     RTOS_LOG_DEBUG("[GPS CONFIG] Paso 5 completado: NMEA deshabilitado por UART y verificado\r\n");
-
+    }
 
     // Resto de configuraciones (señales GNSS, power management, etc.) se harán después
-    //configure_all_registers(m10q_data_payloads, M10Q_NUM_DATA_ELEMENTS);
     configure_all_registers(m10q_data_payloads, startIndex, numPayloads);
 }
 
@@ -1009,14 +986,17 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
     memset(pvtData, 0, sizeof(UBX_NAV_PVT_data_t));
 
     // 1. Solicitar mensaje PVT al GPS
-    if (!requestPVT()) {
+    bool status = requestPVT();
+    if (!status) {
+        this->psmStateActive = false; // Si no pudimos obtener datos, asumimos que el GPS está en PSM INACTIVE (no responde)
         return false;
     }
 
     //HAL_Delay(1500);
 
+    status = receivePVT(pvtData, maxWaitMs);
     // 2. Esperar y recibir la respuesta
-    if (!receivePVT(pvtData, maxWaitMs)) {
+    if (!status) {
         return false;
     }
 
@@ -1026,8 +1006,11 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
     // 3. Verificar que tenemos un fix válido
     // fixType: 0=no fix, 2=2D fix, 3=3D fix
     if (pvtData->fixType < 2) {
+        this->psmStateActive = true; // Si pudimos obtener datos, el GPS no está en PSM INACTIVE
         return false; // No hay fix válido
     }
+
+    this->psmStateActive = true; // Si pudimos obtener datos, el GPS no está en PSM INACTIVE
 
     return true;
 }
