@@ -8,7 +8,7 @@
 
 // Declaraciones externas de las colas que deberían estar definidas en main.c
 extern osMessageQueueId_t dispatcherQueueHandle;
-extern osMessageQueueId_t sensorAcqQueueHandle;  // LEGACY
+// extern osMessageQueueId_t sensorAcqQueueHandle;  // LEGACY
 extern osMessageQueueId_t imuQueueHandle;
 extern osMessageQueueId_t gpsQueueHandle;
 extern osMessageQueueId_t inaQueueHandle;
@@ -62,12 +62,12 @@ void dispatcherTask(void *argument) {
             
             // Ruteo basado en MODULE_RECEIVER
             switch (msg->receiver) {
-                case MODULE_SENSOR_ACQ:  // LEGACY - deprecado
-                    if (osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0) != osOK) {
-                        RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to SENSOR_ACQ (legacy)\r\n");
-                        MessagePool_Free(msg);
-                    }
-                    break;
+                // case MODULE_SENSOR_ACQ:  // LEGACY - deprecado
+                //     if (osMessageQueuePut(sensorAcqQueueHandle, &msg, 0, 0) != osOK) {
+                //         RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to SENSOR_ACQ (legacy)\r\n");
+                //         MessagePool_Free(msg);
+                //     }
+                //     break;
                     
                 case MODULE_IMU:
                     if (osMessageQueuePut(imuQueueHandle, &msg, 0, 0) != osOK) {

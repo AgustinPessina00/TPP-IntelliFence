@@ -64,7 +64,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             break;
 
         case STARTUP_ROUTINE_REQUEST_GPS_CONFIGURATION_PSM:
-            sendMessage(MSG_ID_REQUEST_GPS_CONFIGURATION_PSM, MODULE_SENSOR_ACQ);
+            sendMessage(MSG_ID_REQUEST_GPS_CONFIGURATION_PSM, MODULE_GPS);
             Timeout_Start(&timeout, GPS_PSM_TIMEOUT_MS);
             RTOS_LOG_DEBUG("[FSM] Requesting GPS configuration PSM (timeout: %lums)\r\n", timeout.timeoutMs);
             *state = STARTUP_ROUTINE_WAIT_GPS_CONFIGURATION_PSM;
