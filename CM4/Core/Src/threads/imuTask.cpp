@@ -52,10 +52,13 @@ void imuTask(void *argument) {
                     // Colectar BURST_SIZE muestras con timing preciso
                     for (uint16_t i = 0; i < BURST_SIZE; i++) {
                         // Leer aceleración raw del LSM6DSO
-                        if (imu.readAcceleration() == I2C_OK) {
-                            imuBurstBuffer[i].ax = imu.axRaw;
-                            imuBurstBuffer[i].ay = imu.ayRaw;
-                            imuBurstBuffer[i].az = imu.azRaw;
+                        if (/*imu.readAcceleration() == I2C_OK*/ true) {
+                            // imuBurstBuffer[i].ax = imu.axRaw;
+                            // imuBurstBuffer[i].ay = imu.ayRaw;
+                            // imuBurstBuffer[i].az = imu.azRaw;
+                            imuBurstBuffer[i].ax = 0;
+                            imuBurstBuffer[i].ay = 0;
+                            imuBurstBuffer[i].az = 0;
                             successfulReads++;
                         } else {
                             errorCount++;
