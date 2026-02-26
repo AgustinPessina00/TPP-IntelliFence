@@ -150,6 +150,7 @@ public:
 	uint32_t horaUTC = 0; //hhmmss	//TODO: Chequear uint32_t
     uint8_t flags;
     uint32_t iTow; // GPS time of week (ms)
+    bool psmStateActive = false; // Indicar si el GPS está en PSM INACTIVE o no
 
 private:
     uint8_t i2cAddr;

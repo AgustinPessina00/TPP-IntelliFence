@@ -8,6 +8,7 @@ typedef struct {
     float latitude;
     float longitude;
     uint8_t fix;
+    bool psmStateActive;
 } gpsData_t;
 
 #endif // GPS_DATA_H
