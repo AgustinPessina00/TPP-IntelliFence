@@ -26,7 +26,7 @@ extern "C" {
 #define IMU_TIMEOUT_MS       10000  // 10 segundos - Burst collection (52 samples @ 26Hz = 2000ms) + processing
 #define DISTANCE_TIMEOUT_MS   3000  // 3 segundos  - Cálculo de zona y distancia
 #define STIMULUS_TIMEOUT_MS   5000  // 5 segundos  - Respuesta del módulo de estímulo
-#define GPS_CONFIG_TIMEOUT_MS 5000  // 5 segundos  - Configuración de tasa GPS
+#define GPS_CONFIG_TIMEOUT_MS 30000  // 30 segundos  - Configuración de tasa GPS
 #define FSM_TICKS_GREEN_ZONE 1000  // 1 segundo - Ticks entre iteraciones en zona verde (ajustable según necesidades)
 #define FSM_TICKS_NEAR_LIMIT FSM_TICKS_GREEN_ZONE/2
 #define FSM_TICKS_STIMULOUS_ZONE FSM_TICKS_GREEN_ZONE/5
