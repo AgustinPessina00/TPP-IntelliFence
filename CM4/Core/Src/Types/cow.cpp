@@ -4,7 +4,7 @@ Cow::Cow() {
     this->id = {0, 0, 0};
     this->position = {0, 0};
     this->acceleration = {0, 0, 0};
-    this->state = CowState::SLEEP;
+    this->state = CowState::QUIET;
     this->currentZone = zone_t::BLACK_ZONE;
     this->distanceToLimit = -1;
     this->isInitialized = false;
@@ -14,7 +14,7 @@ Cow::Cow(DeviceUID id) {
     this->id = id;
     this->position = {0, 0};
     this->acceleration = {0, 0, 0};
-    this->state = CowState::SLEEP;
+    this->state = CowState::QUIET;
     this->currentZone = zone_t::BLACK_ZONE;
     this->distanceToLimit = -1;
     this->isInitialized = true;
@@ -24,7 +24,7 @@ void Cow::init(DeviceUID id) {
     this->id = id;
     this->position = {0, 0};
     this->acceleration = {0, 0, 0};
-    this->state = CowState::SLEEP;
+    this->state = CowState::QUIET;
     this->currentZone = zone_t::BLACK_ZONE;
     this->distanceToLimit = -1;
     this->isInitialized = true;

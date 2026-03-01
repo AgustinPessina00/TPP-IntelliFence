@@ -67,11 +67,10 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
                         sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
                         initializeState = INITIALIZE_REQUEST_ZONE;
                     }
-                    
                 }
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] Normal OP INITIALIZE: GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                initializeState = INITIALIZE_REQUEST_POSITION;
+                RTOS_LOG_WARN("[NORMAL_OPERATION] Normal OP INITIALIZE: GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                initializeState = INITIALIZE_REQUEST_ZONE; // Sigue avanzando para calcular zona aunque no tenga posición válida, se actualizará en la próxima adquisición GPS
             }
             break;
             
@@ -84,7 +83,7 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
                 cow.updateCurrentZone(calculatedZone);
                 cow.updateDistanceToLimit(minDistance);
                 
-                RTOS_LOG_DEBUG("[FSM] INIT: Zone calculated: %d, Distance: %.2fm\r\n", calculatedZone, minDistance);
+                RTOS_LOG_DEBUG("[NORMAL_OPERATION] INIT: Zone calculated: %d, Distance: %.2fm\r\n", calculatedZone, minDistance);
                 initializeState = INITIALIZE_END;
             }
             break;
@@ -136,21 +135,21 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                 // Procesar BurstFeatures (variance + range + z_ratio) - 12 bytes
                 if ((*msg)->length == sizeof(BurstFeatures)) {
                     BurstFeatures* features = (BurstFeatures*)(*msg)->payload;
-                    RTOS_LOG_DEBUG("[FSM] GREEN: Received features (var=%lu, range=%u, z=%u, ratio=%u%%)\r\n", 
+                    RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN: Received features (var=%lu, range=%u, z=%u, ratio=%u%%)\r\n", 
                                   features->var_total, features->range_total, features->range_z, features->z_ratio);
                     
                     // Clasificar con multi-feature (variance + range + z_ratio)
                     updateStateFromFeatures(cow, features->var_total, features->range_z, features->range_total, features->z_ratio);
 
                     if (cow.getState() == oldCowState) {
-                        RTOS_LOG_DEBUG("[FSM] GREEN: Cow state unchanged (%d)\r\n", (int)cow.getState());
+                        RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN: Cow state unchanged (%d)\r\n", (int)cow.getState());
                         greenZoneState = GREEN_ZONE_END;
                     } else {
-                        RTOS_LOG_DEBUG("[FSM] GREEN: Processed features, state=%d\r\n", (int)cow.getState());
+                        RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN: Processed features, state=%d\r\n", (int)cow.getState());
                         greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
                     }
                 } else {
-                    RTOS_LOG_ERROR("[FSM] GREEN: Invalid burst features size (expected %d, got %d)\r\n", sizeof(BurstFeatures), (*msg)->length);
+                    RTOS_LOG_ERROR("[NORMAL_OPERATION] GREEN: Invalid burst features size (expected %d, got %d)\r\n", sizeof(BurstFeatures), (*msg)->length);
                     greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
                 }
             }
@@ -162,7 +161,7 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             //     }
             // }
             else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                RTOS_LOG_WARN("[NORMAL_OPERATION] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
             }
             break;
@@ -171,19 +170,19 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             switch (cow.getState()) {
                 case CowState::GRAZING:
                     greenZoneState = GREEN_ZONE_GRAZING;
-                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE GRAZING: \r\n");
+                    RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE GRAZING: \r\n");
                     break;
                 case CowState::SLEEP:
                     greenZoneState = GREEN_ZONE_SLEEP;
-                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE SLEEP: \r\n");
+                    RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE SLEEP: \r\n");
                     break;
                 case CowState::QUIET:
                     greenZoneState = GREEN_ZONE_SLEEP; // QUIET usa mismo path que SLEEP
-                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE QUIET: \r\n");
+                    RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE QUIET: \r\n");
                     break;
                 case CowState::MOVEMENT:
                     greenZoneState = GREEN_ZONE_MOVEMENT;
-                    RTOS_LOG_DEBUG("[FSM] GREEN ZONE MOVEMENT: \r\n");
+                    RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE MOVEMENT: \r\n");
                     break;
             }
             break;
@@ -227,7 +226,7 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                      greenZoneState = GREEN_ZONE_END;
                 }
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                RTOS_LOG_WARN("[NORMAL_OPERATION] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
             }
             break;
@@ -272,7 +271,7 @@ void runStimulusZoneFSM(NormalOpFSM_t& normalOpFSM, StimulusZone_t& stimulusZone
                     stimulusZoneState = STIMULUS_ZONE_END;
                 }
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] STIMULUS: Response timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                RTOS_LOG_WARN("[NORMAL_OPERATION] STIMULUS: Response timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 stimulusZoneState = STIMULUS_ZONE_SEND_ZONE;
             }
             break;

@@ -28,8 +28,8 @@ extern "C" {
 #define STIMULUS_TIMEOUT_MS   5000  // 5 segundos  - Respuesta del módulo de estímulo
 #define GPS_CONFIG_TIMEOUT_MS 30000  // 30 segundos  - Configuración de tasa GPS
 #define FSM_TICKS_GREEN_ZONE 1000  // 1 segundo - Ticks entre iteraciones en zona verde (ajustable según necesidades)
-#define FSM_TICKS_NEAR_LIMIT FSM_TICKS_GREEN_ZONE/2
-#define FSM_TICKS_STIMULOUS_ZONE FSM_TICKS_GREEN_ZONE/5
+#define FSM_TICKS_NEAR_LIMIT 50
+#define FSM_TICKS_STIMULOUS_ZONE 50
 #define NEAR_LIMIT  10.0f   // en metros
 
 
@@ -184,7 +184,6 @@ HAL_StatusTypeDef processStimulusResponse(EmbeddedMessage_t *msg);
 void sendPosition(uint8_t msgId, ModuleId_t dest, Cow& cow);
 void sendZoneToStimulus(zone_t zone, ModuleId_t dest);
 void updateGpsAdqTime(GpsRate gpsRate);
-void enterLowPowerSleep();
 
 // Cow operations
 HAL_StatusTypeDef isInGreenZone(Cow& cow);

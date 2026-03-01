@@ -168,8 +168,7 @@ void SamM10q::configure_all_registers(const M10QPayload configPayloads[], size_t
             i--;
         } else {
             // Si ambas escrituras fueron exitosas, imprimir debug
-            RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en RAM. Verificación ValGet: %s\r\n", i, valgetRamSuccess ? "OK" : "FALLA");
-            RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente en BBR. Verificación ValGet: %s\r\n", i, valgetBbrSuccess ? "OK" : "FALLA");
+            RTOS_LOG_DEBUG("[GPS CONFIG] Payload %u configurado correctamente. Verificación ValGet: %s\r\n", i, valgetRamSuccess ? "OK" : "FALLA");
         }
     }
 }
@@ -557,7 +556,6 @@ bool SamM10q::verify_config_with_valget_i2c(const uint8_t* payload_data, size_t 
                     
                     // Intentar parsear la respuesta
                     if (!valget_found && parse_valget_response(response_buffer, bytes_received, key_id, expected_value, value_size)) {
-                        RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Parseado exitoso! Continuando lectura para vaciar ACK...\r\n");
                         valget_found = true;
                         time_after_found = HAL_GetTick();
                         // NO retornar aquí, continuar leyendo para vaciar el ACK
@@ -568,7 +566,6 @@ bool SamM10q::verify_config_with_valget_i2c(const uint8_t* payload_data, size_t 
                         // Validar ACK antes de retornar
                         int8_t ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
                         if (ack_result == 1) {
-                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-ACK confirmado, configuración aceptada\r\n");
                             configOk = true;
                         } else if (ack_result == 0) {
                             RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK recibido, configuración rechazada!\r\n");
@@ -589,7 +586,6 @@ bool SamM10q::verify_config_with_valget_i2c(const uint8_t* payload_data, size_t 
             if (valget_found && intentos_sin_datos >= 3) {
                 int8_t ack_result = check_ack_response(response_buffer, bytes_received, VALGET_CLASS, VALGET_ID);
                 if (ack_result == 1) {
-                    RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-ACK confirmado\r\n");
                     configOk = true;
                 } else if (ack_result == 0) {
                     RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK - configuración rechazada\r\n");
@@ -622,7 +618,6 @@ bool SamM10q::verify_config_with_valget_i2c(const uint8_t* payload_data, size_t 
                         // Validar ACK en el buffer adicional
                         int8_t ack_result = check_ack_response(ack_buffer, ack_read, VALGET_CLASS, VALGET_ID);
                         if (ack_result == 1) {
-                            RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-ACK confirmado\r\n");
                             configOk = true;
                         } else if (ack_result == 0) {
                             RTOS_LOG_DEBUG("[VALGET I2C DEBUG] ACK-NAK - configuración rechazada\r\n");
@@ -655,15 +650,6 @@ bool SamM10q::verify_config_with_valget_i2c(const uint8_t* payload_data, size_t 
         }
         
         BusyDelayMs(50); // Delay entre intentos de lectura
-    }
-    
-    // Imprimir buffer completo al final
-    if (bytes_received > 0) {
-        RTOS_LOG_DEBUG("[VALGET I2C DEBUG] Buffer completo recibido (%u bytes): ", bytes_received);
-        // for (uint16_t i = 0; i < bytes_received; i++) {
-        //     RTOS_LOG_DEBUG("%02X ", response_buffer[i]);
-        // }
-        RTOS_LOG_DEBUG("\r\n");
     }
     
     if (!configOk) {
@@ -953,8 +939,6 @@ int8_t SamM10q::check_ack_response(const uint8_t* response_buffer, uint16_t buff
         if (ack_class == expected_class && ack_msg_id == expected_id) {
             // Encontrado! Retornar tipo de ACK
             if (ack_id == ACK_ACK_ID) {
-                RTOS_LOG_DEBUG("[VALGET ACK] ACK-ACK recibido para Class=0x%02X ID=0x%02X\r\n", 
-                               expected_class, expected_id);
                 return 1; // ACK-ACK
             } else {
                 RTOS_LOG_DEBUG("[VALGET ACK] ACK-NAK recibido para Class=0x%02X ID=0x%02X\r\n", 

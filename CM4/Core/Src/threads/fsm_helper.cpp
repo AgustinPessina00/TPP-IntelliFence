@@ -10,6 +10,9 @@
 #include <cstring>
 #include <cmath>
 
+// Variable global para almacenar timestamp de adquisición GPS
+static uint32_t lastGpsAcquisitionTimestamp = 0;
+
 // ============================================================================
 // MESSAGE QUEUE OPERATIONS
 // ============================================================================
@@ -20,7 +23,7 @@ void sendMessage(uint8_t msgId, ModuleId_t dest) {
         EmbeddedMessage_Create(msg, msgId, MODULE_FSM, dest);
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
     } else {
-        RTOS_LOG_ERROR("[FSM] Failed to allocate message for ID:%d\r\n", msgId);
+        RTOS_LOG_ERROR("[FSM_HELPER] Failed to allocate message for ID:%d\r\n", msgId);
     }
 }
 
@@ -44,7 +47,7 @@ HAL_StatusTypeDef waitForMessage(uint8_t expectedMsgId, TimeoutContext_t& timeou
     }
     
     // Mensaje inesperado - log
-    RTOS_LOG_WARN("[FSM] Unexpected message ID:%d (expected:%d)\r\n", (*msg)->id, expectedMsgId);
+    RTOS_LOG_WARN("[FSM_HELPER] Unexpected message ID:%d (expected:%d)\r\n", (*msg)->id, expectedMsgId);
     return HAL_BUSY;
 }
 
@@ -53,34 +56,59 @@ HAL_StatusTypeDef waitForMessage(uint8_t expectedMsgId, TimeoutContext_t& timeou
 // ============================================================================
 
 HAL_StatusTypeDef processGpsMessage(EmbeddedMessage_t *msg, Cow& cow, bool& validPosition) {
-    if (msg->length == sizeof(gpsData_t)) {
+    // El payload ahora contiene: [timestamp (4 bytes)] + [gpsData_t]
+    if (msg->length == sizeof(uint32_t) + sizeof(gpsData_t)) {
+        // Extraer timestamp
+        memcpy(&lastGpsAcquisitionTimestamp, msg->payload, sizeof(uint32_t));
+        
+        // Extraer datos GPS
+        gpsData_t gpsData;
+        memcpy(&gpsData, msg->payload + sizeof(uint32_t), sizeof(gpsData_t));
+        
+        RTOS_LOG_DEBUG("[FSM_HELPER] GPS position: lat=%.6f, lon=%.6f, fix=%d (timestamp=%lu)\r\n", 
+                      gpsData.latitude, gpsData.longitude, gpsData.fix, lastGpsAcquisitionTimestamp);
+        
+        // Validar fix GPS
+        if (gpsData.fix) {
+            cow.updatePosition({gpsData.latitude, gpsData.longitude});
+            validPosition = true;
+            RTOS_LOG_DEBUG("[FSM_HELPER] Valid GPS fix - position updated\r\n");
+        } else {
+            validPosition = false;
+            RTOS_LOG_WARN("[FSM_HELPER] No GPS fix - position not updated\r\n");
+        }
+        
+        return HAL_OK;
+    }
+    // Compatibilidad con formato antiguo (sin timestamp)
+    else if (msg->length == sizeof(gpsData_t)) {
         gpsData_t gpsData;
         memcpy(&gpsData, msg->payload, sizeof(gpsData_t));
         
-        RTOS_LOG_DEBUG("[FSM] GPS position: lat=%.6f, lon=%.6f, fix=%d\r\n", 
+        RTOS_LOG_DEBUG("[FSM_HELPER] GPS position: lat=%.6f, lon=%.6f, fix=%d\r\n", 
                       gpsData.latitude, gpsData.longitude, gpsData.fix);
         
         // Validar fix GPS
         if (gpsData.fix) {
             cow.updatePosition({gpsData.latitude, gpsData.longitude});
             validPosition = true;
-            RTOS_LOG_DEBUG("[FSM] Valid GPS fix - position updated\r\n");
+            RTOS_LOG_DEBUG("[FSM_HELPER] Valid GPS fix - position updated\r\n");
         } else {
             validPosition = false;
-            RTOS_LOG_WARN("[FSM] No GPS fix - position not updated\r\n");
+            RTOS_LOG_WARN("[FSM_HELPER] No GPS fix - position not updated\r\n");
         }
         
         return HAL_OK;
     }
     
-    RTOS_LOG_WARN("[FSM] Invalid GPS payload size (expected %d, got %d)\r\n", 
-                 sizeof(gpsData_t), msg->length);
+    RTOS_LOG_WARN("[FSM_HELPER] Invalid GPS payload size (expected %d or %d, got %d)\r\n", 
+                 sizeof(gpsData_t), sizeof(uint32_t) + sizeof(gpsData_t), msg->length);
     validPosition = false;
     return HAL_ERROR;
 }
 
 HAL_StatusTypeDef processLoRaTxResponse(EmbeddedMessage_t *msg) {
-    RTOS_LOG_DEBUG("[FSM] LoRa TX confirmed position send\r\n");
+    RTOS_LOG_DEBUG("[FSM_HELPER] LoRa TX confirmed position send\r\n");
     return HAL_OK;
 }
 
@@ -96,7 +124,7 @@ HAL_StatusTypeDef processFenceMessage(EmbeddedMessage_t *msg, Fence& fence) {
     uint8_t totalFragments = msg->payload[1];
     uint8_t verticesInFragment = msg->payload[2];
     
-    RTOS_LOG_DEBUG("[FSM] Received fence fragment %d/%d (%d vertices)\r\n",
+    RTOS_LOG_DEBUG("[FSM_HELPER] Received fence fragment %d/%d (%d vertices)\r\n",
                   fragmentNum + 1, totalFragments, verticesInFragment);
     
     // Primer fragmento: inicializar
@@ -124,7 +152,7 @@ HAL_StatusTypeDef processFenceMessage(EmbeddedMessage_t *msg, Fence& fence) {
     
     // ¿Recibimos todos los fragmentos?
     if (receivedFragments == totalExpectedFragments) {
-        RTOS_LOG_INFO("[FSM] All fence fragments received (%d vertices total)\r\n",
+        RTOS_LOG_INFO("[FSM_HELPER] All fence fragments received (%d vertices total)\r\n",
                      totalVerticesReceived);
         
         // Crear límites directamente desde buffer sin guardar vértices
@@ -136,7 +164,7 @@ HAL_StatusTypeDef processFenceMessage(EmbeddedMessage_t *msg, Fence& fence) {
         
         return HAL_OK;
     } else {
-        RTOS_LOG_DEBUG("[FSM] Waiting for more fragments (%d/%d)\r\n",
+        RTOS_LOG_DEBUG("[FSM_HELPER] Waiting for more fragments (%d/%d)\r\n",
                       receivedFragments, totalExpectedFragments);
         return HAL_BUSY;  // Aún esperando más fragmentos
     }
@@ -149,7 +177,7 @@ HAL_StatusTypeDef processImuMessage(EmbeddedMessage_t *msg, Cow& cow) {
         memcpy(&ay, msg->payload + sizeof(double), sizeof(double));
         memcpy(&az, msg->payload + 2 * sizeof(double), sizeof(double));
         
-        RTOS_LOG_DEBUG("[FSM] IMU: ax=%.2f, ay=%.2f, az=%.2f g\r\n", ax, ay, az);
+        RTOS_LOG_DEBUG("[FSM_HELPER] IMU: ax=%.2f, ay=%.2f, az=%.2f g\r\n", ax, ay, az);
         
         cow.updateAcceleration({ax, ay, az});
         updateState(cow);
@@ -161,13 +189,13 @@ HAL_StatusTypeDef processImuMessage(EmbeddedMessage_t *msg, Cow& cow) {
 }
 
 HAL_StatusTypeDef processGpsConfigResponse(EmbeddedMessage_t *msg) {
-    //HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
-    RTOS_LOG_DEBUG("[FSM] GPS config confirmed\r\n");
+    // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
+    RTOS_LOG_DEBUG("[FSM_HELPER] GPS config confirmed\r\n");
     return HAL_OK;
 }
 
 HAL_StatusTypeDef processStimulusResponse(EmbeddedMessage_t *msg) {
-    RTOS_LOG_DEBUG("[FSM] Stimulus feedback received\r\n");
+    RTOS_LOG_DEBUG("[FSM_HELPER] Stimulus feedback received\r\n");
     return HAL_OK;
 }
 
@@ -193,10 +221,15 @@ void sendPosition(uint8_t msgId, ModuleId_t dest, Cow& cow) {
 void sendZoneToStimulus(zone_t zone, ModuleId_t dest) {
     EmbeddedMessage_t *msg = MessagePool_Allocate();
     if (msg != nullptr) {
+        // Payload: [timestamp (4 bytes)] + [zone (1 byte)]
+        uint8_t payload[sizeof(uint32_t) + sizeof(zone_t)];
+        memcpy(payload, &lastGpsAcquisitionTimestamp, sizeof(uint32_t));
+        memcpy(payload + sizeof(uint32_t), &zone, sizeof(zone_t));
+        
         EmbeddedMessage_CreateWithPayload(msg, MSG_ID_ZONE_CHANGE, MODULE_FSM, dest,
-                                         (uint8_t*)&zone, sizeof(zone_t));
+                                         payload, sizeof(payload));
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
-        RTOS_LOG_DEBUG("[FSM] Sent zone %d to STIMULUS\r\n", zone);
+        RTOS_LOG_DEBUG("[FSM_HELPER] Sent zone %d to STIMULUS (timestamp=%lu)\r\n", zone, lastGpsAcquisitionTimestamp);
     }
 }
 
@@ -206,10 +239,13 @@ void updateGpsAdqTime(GpsRate gpsRate) {
         HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_SET);
         HAL_Delay(50);
         HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
+        // HAL_Delay(50);
+        // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_SET);
+
         EmbeddedMessage_CreateWithPayload(msg, MSG_ID_GPS_REQUEST_CONFIG, MODULE_FSM, 
                                          MODULE_GPS, (uint8_t*)&gpsRate, sizeof(GpsRate));
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
-        RTOS_LOG_DEBUG("[FSM] GPS rate updated: %d\r\n", (int)gpsRate);
+        RTOS_LOG_DEBUG("[FSM_HELPER] GPS rate updated: %d\r\n", (int)gpsRate);
     }
 }
 
@@ -218,7 +254,7 @@ void enterLowPowerSleep() {
     // HAL_SuspendTick();
     // HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
     // HAL_ResumeTick();
-    RTOS_LOG_DEBUG("[FSM] Woke from sleep\r\n");
+    RTOS_LOG_DEBUG("[FSM_HELPER] Woke from sleep\r\n");
 }
 
 // ============================================================================
@@ -295,7 +331,7 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
     
     const uint8_t QUIET_TO_SLEEP_COUNT = 10; // Repeticiones de QUIET para confirmar SLEEP
     
-    RTOS_LOG_INFO("[FSM] 📊 Features: var=%lu, range=%u (z=%u), z_ratio=%u%% | TH: var_quiet_s<%lu, var_quiet_l<%lu, range_quiet_s<%u, range_quiet_l<%u, var_move_enter<%lu\r\n", 
+    RTOS_LOG_INFO("[FSM_HELPER] 📊 Features: var=%lu, range=%u (z=%u), z_ratio=%u%% | TH: var_quiet_s<%lu, var_quiet_l<%lu, range_quiet_s<%u, range_quiet_l<%u, var_move_enter<%lu\r\n", 
                   var_total, range_total, range_z, z_ratio, 
                   TH_VAR_QUIET_STRICT, TH_VAR_QUIET_LOOSE, 
                   TH_RANGE_QUIET_STRICT, TH_RANGE_QUIET_LOOSE, 
@@ -303,6 +339,21 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
     
     // Get current state for hysteresis logic
     CowState currentState = cow.getState();
+    
+    // === SLEEP PROTECTION: Una vez en SLEEP, solo salir con movimiento significativo ===
+    // Si ya está en SLEEP, mantenerlo a menos que haya movimiento real
+    if (currentState == CowState::SLEEP) {
+        // Solo salir de SLEEP si hay movimiento significativo o grazing
+        if ((range_z > TH_RANGE_Z && z_ratio > TH_Z_RATIO && var_total < TH_VAR_MOVE) ||
+            (var_total > TH_VAR_MOVE_ENTER || range_total > TH_RANGE_MOVE_ENTER)) {
+            // Hay movimiento real, continuar con clasificación normal
+            RTOS_LOG_INFO("[FSM_HELPER] 🔥 Waking from SLEEP (movement detected)\r\n");
+        } else {
+            // No hay movimiento suficiente → mantener SLEEP
+            RTOS_LOG_DEBUG("[FSM_HELPER] 😴 Staying in SLEEP (no significant movement)\r\n");
+            return; // Salir sin modificar el estado
+        }
+    }
     
     // === CLASIFICACIÓN MULTI-FEATURE CON ANTI-VIBRACIÓN E HISTÉRESIS ===
     CowState candidate;
@@ -324,8 +375,8 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
     }
     // MOVEMENT con HISTÉRESIS: más difícil entrar desde QUIET que desde otros estados
     else {
-        // Si estaba en QUIET o SLEEP, requiere umbrales más altos para entrar a MOVEMENT
-        if (currentState == CowState::QUIET || currentState == CowState::SLEEP) {
+        // Si estaba en QUIET, requiere umbrales más altos para entrar a MOVEMENT
+        if (currentState == CowState::QUIET) {
             if (var_total > TH_VAR_MOVE_ENTER || range_total > TH_RANGE_MOVE_ENTER) {
                 candidate = CowState::MOVEMENT;
             } else {
@@ -341,7 +392,7 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
     // Log classification result (orden DEBE coincidir con enum CowState: SLEEP=0, QUIET=1, GRAZING=2, MOVEMENT=3)
     const char* stateNames[] = {"SLEEP", "QUIET", "GRAZING", "MOVEMENT"};
     const char* stateEmojis[] = {"😴", "🤫", "🐄", "🚶"};
-    RTOS_LOG_INFO("[FSM] %s Classified as: %s (state %d)\r\n", 
+    RTOS_LOG_INFO("[FSM_HELPER] %s Classified as: %s (state %d)\r\n", 
                   stateEmojis[(int)candidate], stateNames[(int)candidate], (int)candidate);
     
     // Add to history
@@ -371,43 +422,45 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
         // Contador de QUIET consecutivos
         if (newState == CowState::QUIET) {
             quietConsecutiveCount++;
-            RTOS_LOG_DEBUG("[FSM] QUIET count: %d/%d\r\n", quietConsecutiveCount, QUIET_TO_SLEEP_COUNT);
+            RTOS_LOG_DEBUG("[FSM_HELPER] QUIET count: %d/%d\r\n", quietConsecutiveCount, QUIET_TO_SLEEP_COUNT);
             
             // Después de N repeticiones de QUIET → cambiar a SLEEP
             if (quietConsecutiveCount >= QUIET_TO_SLEEP_COUNT) {
-                RTOS_LOG_INFO("[FSM] 😴 QUIET repeated %d times → transitioning to SLEEP\r\n", quietConsecutiveCount);
+                RTOS_LOG_INFO("[FSM_HELPER] 😴 QUIET repeated %d times → transitioning to SLEEP\r\n", quietConsecutiveCount);
                 newState = CowState::SLEEP;
                 quietConsecutiveCount = 0; // Reset counter
             }
         } else {
             // Cualquier otro estado resetea el contador
             if (quietConsecutiveCount > 0) {
-                RTOS_LOG_DEBUG("[FSM] QUIET interrupted at count %d\r\n", quietConsecutiveCount);
+                RTOS_LOG_DEBUG("[FSM_HELPER] QUIET interrupted at count %d\r\n", quietConsecutiveCount);
             }
             quietConsecutiveCount = 0;
         }
         
-        RTOS_LOG_DEBUG("[FSM] 🔄 Persistence check OK - Candidate committed\r\n");
+        RTOS_LOG_DEBUG("[FSM_HELPER] 🔄 Persistence check OK - Candidate committed\r\n");
         
         // Update cow state
         if (newState != oldState) {
             const char* stateNames[] = {"SLEEP", "QUIET", "GRAZING", "MOVEMENT"};
             const char* stateEmojis[] = {"😴", "🤫", "🐄", "🚶"};
-            cow.updateState(newState);
-            RTOS_LOG_INFO("[FSM] ════════════════════════════════════════\r\n");
-            RTOS_LOG_INFO("[FSM] ✨ STATE CHANGE: %s %s → %s %s\r\n", 
+                            
+            cow.updateState(newState);            
+
+            RTOS_LOG_INFO("[FSM_HELPER] ════════════════════════════════════════\r\n");
+            RTOS_LOG_INFO("[FSM_HELPER] ✨ STATE CHANGE: %s %s → %s %s\r\n", 
                          stateEmojis[(int)oldState], stateNames[(int)oldState],
                          stateEmojis[(int)newState], stateNames[(int)newState]);
-            RTOS_LOG_INFO("[FSM] ════════════════════════════════════════\r\n");
+            RTOS_LOG_INFO("[FSM_HELPER] ════════════════════════════════════════\r\n");
         }
     } else {
-        RTOS_LOG_DEBUG("[FSM] ⏸️  Waiting for persistence (need 2 consecutive matches)\r\n");
+        RTOS_LOG_DEBUG("[FSM_HELPER] ⏸️  Waiting for persistence (need 2 consecutive matches)\r\n");
     }
 }
 
 // Legacy single-sample version (DEPRECATED - use updateStateFromBurst instead)
 void updateState(Cow& cow) {
-    RTOS_LOG_WARN("[FSM] updateState(single sample) is deprecated - use updateStateFromBurst\r\n");
+    RTOS_LOG_WARN("[FSM_HELPER] updateState(single sample) is deprecated - use updateStateFromBurst\r\n");
     // Fallback: assume some default state
     cow.updateState(CowState::MOVEMENT);
 }

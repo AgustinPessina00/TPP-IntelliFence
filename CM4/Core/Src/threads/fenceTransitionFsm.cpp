@@ -23,7 +23,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
     
     switch (fenceTransitionState) {
         case FENCE_TRANSITION_BEGIN:
-            RTOS_LOG_INFO("[FSM] Starting FENCE_TRANSITION\r\n");
+            RTOS_LOG_INFO("[FENCE_TRANS] Starting FENCE_TRANSITION\r\n");
             fenceTransitionState = FENCE_TRANSITION_DISABLE_STIMULUS;
             break;
             
@@ -39,16 +39,16 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
                     // Fence ya fue procesado antes de entrar a FENCE_TRANSITION
                     // Simplemente verificamos que esté válido
                     if (fence.getHasValidFence()) {
-                        RTOS_LOG_INFO("[FSM] FENCE_TRANS: Fence already saved (%d limits)\r\n", fence.getLimitCount());
+                        RTOS_LOG_INFO("[FENCE_TRANS] Fence already saved (%d limits)\r\n", fence.getLimitCount());
                         fenceTransitionState = FENCE_TRANSITION_GPSRATE_FAST;
                     } else {
-                        RTOS_LOG_ERROR("[FSM] FENCE_TRANS: No valid fence found!\r\n");
+                        RTOS_LOG_ERROR("[FENCE_TRANS] No valid fence found!\r\n");
                         // Volver a NORMAL_OPERATION si no hay fence válido
                         fenceTransitionState = FENCE_TRANSITION_END;
                     }
                 }
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] FENCE_TRANS: Stimulus timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                RTOS_LOG_WARN("[FENCE_TRANS] Stimulus timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 fenceTransitionState = FENCE_TRANSITION_DISABLE_STIMULUS;
             }
             break;
@@ -83,7 +83,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_ZONE;
                 }
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[FSM] FENCE_TRANS: GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                RTOS_LOG_WARN("[FENCE_TRANS] GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
             }
             break;
@@ -97,10 +97,10 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
                 cow.updateCurrentZone(calculatedZone);
                 cow.updateDistanceToLimit(minDistance);
                 
-                RTOS_LOG_DEBUG("[FSM] FENCE_TRANS: Zone calculated: %d, Distance: %.2fm\r\n", calculatedZone, minDistance);
+                RTOS_LOG_DEBUG("[FENCE_TRANS] Zone calculated: %d, Distance: %.2fm\r\n", calculatedZone, minDistance);
 
                 if (calculatedZone != GREEN_ZONE) {
-                    RTOS_LOG_INFO("[FSM] FENCE_TRANS: Zone is not green, please move the cow to a safe area\r\n");
+                    RTOS_LOG_INFO("[FENCE_TRANS] Zone is not green, please move the cow to a safe area\r\n");
                     fenceTransitionState = FENCE_TRANSITION_REQUEST_POSITION;
                 }
                 else {
@@ -113,7 +113,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
         case FENCE_TRANSITION_END:
             fenceTransitionState = FENCE_TRANSITION_BEGIN;
             mainFSM = MainFSM_t::NORMAL_OPERATION;
-            RTOS_LOG_INFO("[FSM] Fence transition complete\r\n");
+            RTOS_LOG_INFO("[FENCE_TRANS] Fence transition complete\r\n");
             break;
 
     }

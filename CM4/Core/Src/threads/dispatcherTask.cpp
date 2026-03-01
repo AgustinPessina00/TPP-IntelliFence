@@ -26,12 +26,12 @@ void dispatcherTask(void *argument) {
     static uint32_t stackMonitorCounter = 0;
     while(1) {
         // Monitorear stack cada ~10 segundos (cada 10 iteraciones × 1000ms delay)
-        if (++stackMonitorCounter >= 10) {
-            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-            RTOS_LOG_INFO("[DISPATCHER] Stack libre: %u words (%u bytes)\r\n", 
-                         stackLeft, stackLeft * 4);
-            stackMonitorCounter = 0;
-        }
+        // if (++stackMonitorCounter >= 10) {
+        //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+        //     RTOS_LOG_INFO("[DISPATCHER] Stack libre: %u words (%u bytes)\r\n", 
+        //                  stackLeft, stackLeft * 4);
+        //     stackMonitorCounter = 0;
+        // }
         
         // Monitorear colas cada 5 segundos (cada 10 iteraciones × 500ms delay)
         // if (++queueMonitorCounter >= 10) {
@@ -57,8 +57,7 @@ void dispatcherTask(void *argument) {
         
         if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, 0) == osOK) {
             // Ahora podemos hacer logging thread-safe
-            RTOS_LOG_DEBUG("[DISPATCHER] Routing msg ID:%d from:%d to:%d\r\n", 
-                          msg->id, msg->sender, msg->receiver);
+            //RTOS_LOG_DEBUG("[DISPATCHER] Routing msg ID:%d from:%d to:%d\r\n", msg->id, msg->sender, msg->receiver);
             
             // Ruteo basado en MODULE_RECEIVER
             switch (msg->receiver) {

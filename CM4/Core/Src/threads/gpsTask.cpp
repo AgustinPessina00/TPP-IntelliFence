@@ -13,6 +13,9 @@
 extern osMessageQueueId_t gpsQueueHandle;
 extern osMessageQueueId_t dispatcherQueueHandle;
 
+// Variable global para medir tiempo desde adquisición GPS hasta aplicación de estímulo
+static uint32_t gpsAcquisitionTimestamp = 0;
+
 void gpsTask(void *argument) {
     // CRITICAL: Use static objects to avoid stack overflow
     static SamM10q gps;
@@ -34,7 +37,7 @@ void gpsTask(void *argument) {
     static uint32_t iTow = 0; // Variable para monitorear iTOW y detectar reinicios del GPS
     
     while(1) {
-        RTOS_LOG_DEBUG("[GPS_TASK] ENTER GPS_TASK\r\n");
+        //RTOS_LOG_DEBUG("[GPS_TASK] ENTER GPS_TASK\r\n");
         // Monitorear stack cada ~10 segundos
         // if (++stackMonitorCounter >= 10) {
         //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
@@ -58,24 +61,32 @@ void gpsTask(void *argument) {
                 case MSG_ID_REQUEST_GPS: {
                     // Leer GPS solo cuando se solicita
                     gps.read_gps_position();
-                    // gpsData.latitude = gps.latitude;
-                    // gpsData.longitude = gps.longitude;
-                    // gpsData.fix = gps.flags & 0x01; // Bit 0 indica si hay fix
-                    //gpsData.psmStateActive = gps.psmStateActive; // PSM State (0 = INACTIVE, 1 = ACTIVE)
-
-                    // Valores Hardcodeados para pruebas de integración - reemplazar con gps.latitude, gps.longitude, gps.flags
-                    gpsData.latitude = -34.57050809152076;
-                    gpsData.longitude = -58.44418995925609;
-                    gpsData.fix = 1; // Bit 0 indica si hay fix
+                    // Guardar timestamp de adquisición para medir latencia
+                    gpsAcquisitionTimestamp = osKernelGetTickCount();
+                    gpsData.latitude = gps.latitude;
+                    gpsData.longitude = gps.longitude;
+                    gpsData.fix = gps.flags & 0x01; // Bit 0 indica si hay fix
                     gpsData.psmStateActive = gps.psmStateActive; // PSM State (0 = INACTIVE, 1 = ACTIVE)
-                
-                    RTOS_LOG_DEBUG("[GPS_TASK] GPS read: lat %.6f, lon %.6f, fix %d, psmState %d\r\n", gpsData.latitude, gpsData.longitude, gpsData.fix, gpsData.psmStateActive);
-                    //if(gpsData.fix && gps.iTow != iTow) { // Solo enviar si hay fix y iTOW ha cambiado (nuevo dato) 
-                    if(gpsData.fix) { // Elimino el iTow para test. 
+
+                    // // Valores Hardcodeados para pruebas de integración - reemplazar con gps.latitude, gps.longitude, gps.flags
+                    // gpsData.latitude = -34.57050809152076;
+                    // gpsData.longitude = -58.44418995925609;
+                    // gpsData.fix = 1; // Bit 0 indica si hay fix
+                    // gpsData.psmStateActive = gps.psmStateActive; // PSM State (0 = INACTIVE, 1 = ACTIVE)
+                    if (gpsData.psmStateActive)
+                        RTOS_LOG_DEBUG("[GPS_TASK] GPS read: lat %.6f, lon %.6f, GPS ON,  fix %d\r\n", gpsData.latitude, gpsData.longitude, gpsData.fix);
+                    else
+                        RTOS_LOG_DEBUG("[GPS_TASK] GPS read: lat %.6f, lon %.6f, GPS OFF, fix %d\r\n", gpsData.latitude, gpsData.longitude, gpsData.fix);
+                    if(gpsData.fix && gps.iTow != iTow) { // Solo enviar si hay fix y iTOW ha cambiado (nuevo dato) 
+                    //if(gpsData.fix) { // Elimino el iTow para test. 
                         msgToSend = MessagePool_Allocate();
                         if (msgToSend != NULL) {
                             RTOS_LOG_DEBUG("[GPS_TASK] alocado\r\n");
-                            EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_GPS, MODULE_FSM, (uint8_t*)&gpsData, sizeof(gpsData_t));
+                            // Almacenar timestamp en los primeros 4 bytes del payload
+                            uint8_t payloadWithTimestamp[sizeof(gpsData_t) + sizeof(uint32_t)];
+                            memcpy(payloadWithTimestamp, &gpsAcquisitionTimestamp, sizeof(uint32_t));
+                            memcpy(payloadWithTimestamp + sizeof(uint32_t), &gpsData, sizeof(gpsData_t));
+                            EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SEND_GPS, MODULE_GPS, MODULE_FSM, payloadWithTimestamp, sizeof(payloadWithTimestamp));
                             osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
                             RTOS_LOG_DEBUG("[GPS_TASK] Sent GPS data to FSM\r\n");
                             msgToSend = NULL;
@@ -91,10 +102,15 @@ void gpsTask(void *argument) {
 
                 case MSG_ID_GPS_REQUEST_CONFIG:
                     gps.read_gps_position();
-                    gpsData.latitude = -34.57050809152076;
-                    gpsData.longitude = -58.44418995925609;
-                    gpsData.fix = 1; // Bit 0 indica si hay fix
+                    gpsData.latitude = gps.latitude;
+                    gpsData.longitude = gps.longitude;
+                    gpsData.fix = gps.flags & 0x01; // Bit 0 indica si hay fix
                     gpsData.psmStateActive = gps.psmStateActive; // PSM State (0 = INACTIVE, 1 = ACTIVE)
+
+                    // gpsData.latitude = -34.57050809152076;
+                    // gpsData.longitude = -58.44418995925609;
+                    // gpsData.fix = 1; // Bit 0 indica si hay fix
+                    // gpsData.psmStateActive = gps.psmStateActive; // PSM State (0 = INACTIVE, 1 = ACTIVE)
 
                     if(gpsData.psmStateActive) {
                         RTOS_LOG_WARN("[GPS_TASK] GPS is in INACTIVE PSM state\r\n");

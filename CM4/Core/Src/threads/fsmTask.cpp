@@ -60,12 +60,12 @@ void fsmTask(void *argument) {
 
         
         // Monitorear stack cada ~10 segundos (cada 20 iteraciones × 500ms delay)
-        if (++stackMonitorCounter >= 10) {
-            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(nullptr);
-            RTOS_LOG_INFO("[FSM] Stack libre: %u words (%u bytes)\r\n", 
-                         stackLeft, stackLeft * 4);
-            stackMonitorCounter = 0;
-        }
+        // if (++stackMonitorCounter >= 10) {
+        //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(nullptr);
+        //     RTOS_LOG_INFO("[FSM] Stack libre: %u words (%u bytes)\r\n", 
+        //                  stackLeft, stackLeft * 4);
+        //     stackMonitorCounter = 0;
+        // }
 
         // //test para el stimulus
         // for(int i = GREEN_ZONE; i <= BLACK_ZONE; i++) {

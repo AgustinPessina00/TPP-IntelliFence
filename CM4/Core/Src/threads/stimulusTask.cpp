@@ -28,6 +28,9 @@ extern TIM_HandleTypeDef htim1;   // BUZZER
 extern TIM_HandleTypeDef htim16;  // VIB_MOTOR_R
 extern TIM_HandleTypeDef htim17;  // VIB_MOTOR_L
 
+// Variable global para medir tiempo desde adquisición GPS hasta aplicación de estímulo
+static uint32_t lastGpsAcquisitionTimestamp = 0;
+
 /* Private variables ---------------------------------------------------------*/
 static zone_t currentZone = GREEN_ZONE;
 static zone_t previousZone = GREEN_ZONE;
@@ -124,6 +127,14 @@ static void sendStimulusFeedback(void) {
  * @param newZone New fence zone
  */
 static void handleZoneChange(zone_t newZone) {
+    // Medir tiempo transcurrido desde adquisición GPS
+    if (lastGpsAcquisitionTimestamp > 0) {
+        uint32_t currentTime = osKernelGetTickCount();
+        uint32_t elapsedTicks = currentTime - lastGpsAcquisitionTimestamp;
+        float elapsedSeconds = (float)elapsedTicks / osKernelGetTickFreq();
+        RTOS_LOG_INFO("[STIMULUS_TASK] Fence crossing geometry: %.3f segundos\r\n", elapsedSeconds);
+    }
+    
     if (!alarmInitialized) {
         // Fallback to old method if alarm not initialized
         switch (newZone) {
@@ -287,18 +298,26 @@ void stimulusTask(void *argument) {
     static uint32_t stackMonitorCounter = 0;
     while (1) {
         // Monitorear stack cada ~10 segundos (cada 100 iteraciones × 100ms delay)
-        if (++stackMonitorCounter >= 100) {
-            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-            RTOS_LOG_INFO("[STIMULUS] Stack libre: %u words (%u bytes)\r\n", 
-                         stackLeft, stackLeft * 4);
-            stackMonitorCounter = 0;
-        }
+        // if (++stackMonitorCounter >= 100) {
+        //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+        //     RTOS_LOG_INFO("[STIMULUS] Stack libre: %u words (%u bytes)\r\n", 
+        //                  stackLeft, stackLeft * 4);
+        //     stackMonitorCounter = 0;
+        // }
         
         // Check for zone change messages
         if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
             if (msg != NULL && msg->id == MSG_ID_ZONE_CHANGE) {
-                // Extract zone from payload
-                if (msg->length >= sizeof(uint8_t)) {
+                // Extract timestamp and zone from payload
+                // Payload: [timestamp (4 bytes)] + [zone (1 byte)]
+                if (msg->length >= sizeof(uint32_t) + sizeof(uint8_t)) {
+                    memcpy(&lastGpsAcquisitionTimestamp, msg->payload, sizeof(uint32_t));
+                    zone_t newZone = (zone_t)msg->payload[sizeof(uint32_t)];
+                    currentZone = newZone;
+                    sendStimulusFeedback();
+                }
+                // Compatibilidad con formato antiguo (solo zone)
+                else if (msg->length >= sizeof(uint8_t)) {
                     zone_t newZone = (zone_t)msg->payload[0];
                     currentZone = newZone;
                     sendStimulusFeedback();

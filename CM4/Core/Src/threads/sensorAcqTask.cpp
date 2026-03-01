@@ -73,12 +73,12 @@ void sensorAcqTask(void *argument) {
     static uint32_t iTow = 0; // Variable para monitorear iTOW y detectar reinicios del GPS
     while(1) {
         // Monitorear stack cada ~10 segundos
-        if (++stackMonitorCounter >= 10) {
-            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-            RTOS_LOG_INFO("[SENSOR_ACQ] Stack libre: %u words (%u bytes)\r\n", 
-                         stackLeft, stackLeft * 4);
-            stackMonitorCounter = 0;
-        }
+        // if (++stackMonitorCounter >= 10) {
+        //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+        //     RTOS_LOG_INFO("[SENSOR_ACQ] Stack libre: %u words (%u bytes)\r\n", 
+        //                  stackLeft, stackLeft * 4);
+        //     stackMonitorCounter = 0;
+        // }
         
         //// Leer todos los sensores periódicamente
             // gps.read_gps_position();

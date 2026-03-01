@@ -26,12 +26,12 @@ void loraTask(void *argument) {
     static uint32_t stackMonitorCounter = 0;
     while(1) {
         // Monitorear stack cada 10 mensajes procesados
-        if (++stackMonitorCounter >= 10) {
-            UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-            RTOS_LOG_INFO("[LORA] Stack libre: %u words (%u bytes)\r\n", 
-                         stackLeft, stackLeft * 4);
-            stackMonitorCounter = 0;
-        }
+        // if (++stackMonitorCounter >= 10) {
+        //     UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+        //     RTOS_LOG_INFO("[LORA] Stack libre: %u words (%u bytes)\r\n", 
+        //                  stackLeft, stackLeft * 4);
+        //     stackMonitorCounter = 0;
+        // }
         
         // Esperar mensajes en la cola de LoRa TX
         if (osMessageQueueGet(loraTxQueueHandle, &msgReceived, NULL, osWaitForever) == osOK) {

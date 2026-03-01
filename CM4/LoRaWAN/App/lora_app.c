@@ -562,12 +562,12 @@ static void Thd_LoraSendProcess(void *argument)
   for (;;)
   {
     // Monitorear stack cada 10 ejecuciones
-    if (++stackMonitorCounter >= 1) {
-      UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-      APP_LOG(TS_ON, VLEVEL_M, "[LORA_SEND] Stack libre: %u words (%u bytes)\r\r\n", 
-             stackLeft, stackLeft * 4);
-      stackMonitorCounter = 0;
-    }
+    // if (++stackMonitorCounter >= 1) {
+    //   UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+    //   APP_LOG(TS_ON, VLEVEL_M, "[LORA_SEND] Stack libre: %u words (%u bytes)\r\r\n", 
+    //          stackLeft, stackLeft * 4);
+    //   stackMonitorCounter = 0;
+    // }
     osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
     SendTxData();  /*what you want to do*/
   }
@@ -610,12 +610,12 @@ static void Thd_LoraStopJoin(void *argument)
   for (;;)
   {
     // Monitorear stack cada 10 ejecuciones
-    if (++stackMonitorCounter >= 1) {
-      UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
-      APP_LOG(TS_ON, VLEVEL_M, "[LORA_STOP] Stack libre: %u words (%u bytes)\r\r\n", 
-             stackLeft, stackLeft * 4);
-      stackMonitorCounter = 0;
-    }
+    // if (++stackMonitorCounter >= 1) {
+    //   UBaseType_t stackLeft = uxTaskGetStackHighWaterMark(NULL);
+    //   APP_LOG(TS_ON, VLEVEL_M, "[LORA_STOP] Stack libre: %u words (%u bytes)\r\r\n", 
+    //          stackLeft, stackLeft * 4);
+    //   stackMonitorCounter = 0;
+    // }
     osThreadFlagsWait(1, osFlagsWaitAny, osWaitForever);
     StopJoin();  /*what you want to do*/
   }
@@ -640,12 +640,12 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
   }
   
   // ⚠️ DEBUG: Confirmar que la función se llama
-  rtos_printf("\r\n*** OnRxData CALLED ***\r\r\n");
+  //rtos_printf("\r\n*** OnRxData CALLED ***\r\r\n");
 
   if (params != NULL)
   {
-    rtos_printf("params != NULL: YES\r\r\n");
-    rtos_printf("IsMcpsIndication: %d\r\r\n", params->IsMcpsIndication);
+    //rtos_printf("params != NULL: YES\r\r\n");
+    //rtos_printf("IsMcpsIndication: %d\r\r\n", params->IsMcpsIndication);
     
     // HAL_GPIO_WritePin(LED1_GPIO_PORT, LED1_PIN, GPIO_PIN_SET); /* LED_BLUE */
 
@@ -655,16 +655,14 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
     {
       if (appData != NULL)
       {
-        rtos_printf("appData != NULL: YES\r\r\n");
+        //rtos_printf("appData != NULL: YES\r\r\n");
         RxPort = appData->Port;
-        
-        // ⚠️ DEBUG: Mostrar información del downlink recibido
-        rtos_printf("\r\n>>> DOWNLINK RECEIVED <<<\r\r\n");
-        rtos_printf("Port: %d | Size: %d bytes\r\r\n", RxPort, appData->BufferSize);
         
         // Mostrar payload en hex
         if (appData->Buffer != NULL && appData->BufferSize > 0)
         {
+          rtos_printf("\r\n>>> DOWNLINK RECEIVED <<<\r\r\n");
+          rtos_printf("Port: %d | Size: %d bytes\r\r\n", RxPort, appData->BufferSize);
           rtos_printf("Payload (hex): ");
           for (uint8_t i = 0; i < appData->BufferSize; i++)
           {
@@ -986,7 +984,7 @@ static void OnRxData(LmHandlerAppData_t *appData, LmHandlerRxParams_t *params)
 
 static void SendTxData(void)
 {
-  rtos_printf("SendTxData called\r\r\n");
+  //rtos_printf("SendTxData called\r\r\n");
   /* USER CODE BEGIN SendTxData_1 */
   LmHandlerErrorStatus_t status = LORAMAC_HANDLER_ERROR;
   UTIL_TIMER_Time_t nextTxIn = 0;

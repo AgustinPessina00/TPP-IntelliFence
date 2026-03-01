@@ -149,9 +149,9 @@ VibrMotorResult_t VibrMotor_Init(const VibrMotorConfig_t* config)
     HAL_TIM_PWM_Stop(motor_config.htim_left, motor_config.channel_left);
     HAL_TIM_PWM_Stop(motor_config.htim_right, motor_config.channel_right);
     
-    RTOS_LOG_INFO("[VIBR] Init OK - motors OFF (CCR_L=%lu CCR_R=%lu)\\r\\n", 
-                  motor_config.htim_left->Instance->CCR1,
-                  motor_config.htim_right->Instance->CCR1);
+    // RTOS_LOG_INFO("[VIBR] Init OK - motors OFF (CCR_L=%lu CCR_R=%lu)\\r\\n", 
+    //               motor_config.htim_left->Instance->CCR1,
+    //               motor_config.htim_right->Instance->CCR1);
     
     return VIBR_MOTOR_OK;
 }
@@ -196,16 +196,16 @@ VibrMotorResult_t VibrMotor_On(VibrMotor_t motor)
     
     HAL_StatusTypeDef status = HAL_OK;
     
-    RTOS_LOG_INFO("[VIBR] Turning ON motor=%d (L=%d R=%d duty_L=%d duty_R=%d)\r\n", 
-                  motor, motor_state.current_duty_left, motor_state.current_duty_right,
-                  motor_state.ccr_value_left, motor_state.ccr_value_right);
+    // RTOS_LOG_INFO("[VIBR] Turning ON motor=%d (L=%d R=%d duty_L=%d duty_R=%d)\r\n", 
+    //               motor, motor_state.current_duty_left, motor_state.current_duty_right,
+    //               motor_state.ccr_value_left, motor_state.ccr_value_right);
     
     // Update timer values before starting
     VibrMotor_UpdateTimer(motor);
     
     if (motor == MOTOR_LEFT || motor == MOTOR_BOTH) {
         status = HAL_TIM_PWM_Start(motor_config.htim_left, motor_config.channel_left);
-        RTOS_LOG_INFO("[VIBR] TIM17 (LEFT) start status=%d\r\n", status);
+        //RTOS_LOG_INFO("[VIBR] TIM17 (LEFT) start status=%d\r\n", status);
         if (status == HAL_OK) {
             motor_state.enabled_left = true;
         }
@@ -213,7 +213,7 @@ VibrMotorResult_t VibrMotor_On(VibrMotor_t motor)
     
     if (motor == MOTOR_RIGHT || motor == MOTOR_BOTH) {
         status = HAL_TIM_PWM_Start(motor_config.htim_right, motor_config.channel_right);
-        RTOS_LOG_INFO("[VIBR] TIM16 (RIGHT) start status=%d\r\n", status);
+        //RTOS_LOG_INFO("[VIBR] TIM16 (RIGHT) start status=%d\r\n", status);
         if (status == HAL_OK) {
             motor_state.enabled_right = true;
         }
