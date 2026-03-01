@@ -22,6 +22,7 @@
 #include "stm32wlxx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "powerManager.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -261,5 +262,21 @@ void USART1_IRQHandler(void)
 
 //   /* USER CODE END TIM2_IRQn 1 */
 // }
+
+/**
+  * @brief EXTI line 1 interrupt handler – IMU INT1 wake-up on PC1.
+  */
+void EXTI1_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(PM_IMU_WAKE_PIN);
+}
+
+/**
+  * @brief LPTIM1 global interrupt handler – backup periodic wake.
+  */
+void LPTIM1_IRQHandler(void)
+{
+    HAL_LPTIM_IRQHandler(&powerManagerLptim1Handle);
+}
 
 /* USER CODE END 1 */

@@ -91,6 +91,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Embedded Message System Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/EmbeddedMessage.c
     #${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/Modules/Messages/MessageTest.c
+    # Power Manager (STOP1/STOP2 with IMU EXTI + LPTIM1 backup wake)
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/powerManager.c
     # RTOS Printf (Thread-Safe Logging)
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/rtos_printf.c
     # GPS Module Sources (Original)

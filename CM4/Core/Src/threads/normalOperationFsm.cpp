@@ -3,6 +3,7 @@
 #include "threads/fsm_helper.h"
 #include "zone.h"
 #include "getZone.h"
+#include "powerManager.h"
 #define RTOS_PRINTF_AUTO
 #include "rtos_printf.h"
 #include <math.h>
@@ -192,10 +193,57 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_SLEEP:
-            updateGpsAdqTime(GpsRate:: GREEN_ZONE_RATE);      // A CHEQUEAR PARA AGREGARLE UN MAYOR TIEMPO AL GPS
-            Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
-            enterLowPowerSleep();
-            greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
+            /* ---- Enter deep-sleep (STOP mode) ---------------------------------
+             * Wake sources:
+             *   1. IMU INT1 on PC1 (EXTI line 1) – movement detected by LSM6DSO
+             *   2. LPTIM1 backup timer (~PM_BACKUP_WAKE_SECONDS seconds)
+             *
+             * powerManagerArmWakeSources() is idempotent: safe to call every
+             * iteration (the guards lptimArmed / extiArmed prevent double-init).
+             * Disarm only happens when truly exiting sleep (IMU or LPTIM wake).
+             *
+             * Spurious wakes (IPCC from CM0+/LoRaWAN, DMA completions, etc.)
+             * return wakeReasonUnknown → sources stay armed, we loop back here
+             * and immediately re-enter STOP without spamming the GPS/IMU logic.
+             * ----------------------------------------------------------------- */
+            RTOS_LOG_INFO("[NORMAL_OPERATION] SLEEP: entering STOP%d (IMU-EXTI PC1 + LPTIM1 %ds backup)\r\n",
+                          PM_STOP_MODE, PM_BACKUP_WAKE_SECONDS);
+
+            powerManagerArmWakeSources();   /* idempotent */
+            powerManagerClearWakeReason();
+            powerManagerEnterStop();        /* ← CPU halts here */
+            /* NOTE: do NOT call powerManagerDisarmWakeSources() here yet –
+             *       only disarm when we confirm a real wake reason below.   */
+
+            {
+                WakeReason wakeReason = powerManagerGetWakeReason();
+
+                if (wakeReason == wakeReasonImu)
+                {
+                    /* Real movement detected by LSM6DSO INT1 → exit sleep */
+                    RTOS_LOG_INFO("[NORMAL_OPERATION] SLEEP: ← IMU wake (PC1 EXTI) → re-evaluating cow state\r\n");
+                    powerManagerDisarmWakeSources();
+                    greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
+                }
+                else if (wakeReason == wakeReasonLptim)
+                {
+                    /* Periodic health check → re-evaluate GPS and cow state */
+                    RTOS_LOG_INFO("[NORMAL_OPERATION] SLEEP: ← LPTIM1 backup wake (%ds) → health check\r\n",
+                                  PM_BACKUP_WAKE_SECONDS);
+                    powerManagerDisarmWakeSources();
+                    updateGpsAdqTime(GpsRate::GREEN_ZONE_RATE);
+                    Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
+                    greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
+                }
+                else
+                {
+                    /* Spurious wake: most likely IPCC (CM0+ LoRaWAN), DMA, or
+                     * another enabled IRQ.  Sources stay armed; the next FSM
+                     * iteration re-enters STOP immediately.                  */
+                    RTOS_LOG_DEBUG("[NORMAL_OPERATION] SLEEP: ← spurious wake (unknown IRQ), re-entering STOP\r\n");
+                    greenZoneState = GREEN_ZONE_SLEEP;
+                }
+            }
             break;
             
         case GREEN_ZONE_MOVEMENT:
