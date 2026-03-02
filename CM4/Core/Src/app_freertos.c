@@ -131,65 +131,28 @@ const osMessageQueueAttr_t fenceUpdateQueue_attributes = {
 // Thread dispatcher - rutea mensajes entre módulos
 osThreadId_t dispatcher_TaskHandle;
 
-// Buffers estáticos en RAM1 para dispatcher (COMENTADO - ahora usa heap dinámico)
-// __attribute__((section(".RAM1_region"))) static StaticTask_t dispatcher_TaskBuffer;
-// __attribute__((section(".RAM1_region"))) static StackType_t dispatcher_TaskStack[192];  // 768 bytes / 4 bytes per word
-
 const osThreadAttr_t dispatcher_Task_attributes = {
   .name = "dispatcher_Task",
   .stack_size = 128 * 5,  // 512 bytes - ruteo simple
-  .priority = (osPriority_t) osPriorityNormal,
-  // .cb_mem = &dispatcher_TaskBuffer,
-  // .cb_size = sizeof(dispatcher_TaskBuffer),
-  // .stack_mem = dispatcher_TaskStack,
+  .priority = (osPriority_t) osPriorityNormal1,
 };
 
 // Thread FSM - máquina de estados principal
 osThreadId_t fsm_TaskHandle;
 
-// Buffers estáticos en RAM1 para FSM (COMENTADO - ahora usa heap dinámico)
-// __attribute__((section(".RAM1_region"))) static StaticTask_t fsm_TaskBuffer;
-// __attribute__((section(".RAM1_region"))) static StackType_t fsm_TaskStack[256];  // 1024 bytes / 4 bytes per word
-
 const osThreadAttr_t fsm_Task_attributes = {
   .name = "fsm_Task",
   .stack_size = 312 * 4,  // 2048 bytes - FSMs complejas anidadas
   .priority = (osPriority_t) osPriorityNormal,
-  // .cb_mem = &fsm_TaskBuffer,
-  // .cb_size = sizeof(fsm_TaskBuffer),
-  // .stack_mem = fsm_TaskStack,
 };
 
 osThreadId_t stimulus_TaskHandle;
 
-// Buffers estáticos en RAM1 para stimulus (COMENTADO - ahora usa heap dinámico)
-// __attribute__((section(".RAM1_region"))) static StaticTask_t stimulus_TaskBuffer;
-// __attribute__((section(".RAM1_region"))) static StackType_t stimulus_TaskStack[128];  // 512 bytes / 4 bytes per word
-
 const osThreadAttr_t stimulus_Task_attributes = {
   .name = "stimulus_Task",
   .stack_size = 256 * 4,  // 1024 bytes - buzzer + vibration motors + alarms
-  .priority = (osPriority_t) osPriorityNormal,
-  // .cb_mem = &stimulus_TaskBuffer,
-  // .cb_size = sizeof(stimulus_TaskBuffer),
-  // .stack_mem = stimulus_TaskStack,
+  .priority = (osPriority_t) osPriorityHigh,
 };
-
-// // Thread sensor acquisition - adquisición de datos de sensores (LEGACY)
-// osThreadId_t sensorAcq_TaskHandle;
-
-// Buffers estáticos en RAM1 para sensorAcq (COMENTADO - ahora usa heap dinámico)
-// __attribute__((section(".RAM1_region"))) static StaticTask_t sensorAcq_TaskBuffer;
-// __attribute__((section(".RAM1_region"))) static StackType_t sensorAcq_TaskStack[256];  // 1024 bytes / 4 bytes per word
-
-// const osThreadAttr_t sensorAcq_Task_attributes = {
-//   .name = "sensorAcq_Task",
-//   .stack_size = 512 * 4,  // 2048 bytes - objetos C++ grandes (GPS, IMU, INA)
-//   .priority = (osPriority_t) osPriorityNormal,
-//   // .cb_mem = &sensorAcq_TaskBuffer,
-//   // .cb_size = sizeof(sensorAcq_TaskBuffer),
-//   // .stack_mem = sensorAcq_TaskStack,
-// };
 
 // Thread IMU - adquisición de acelerómetro
 osThreadId_t imu_TaskHandle;
@@ -204,7 +167,7 @@ osThreadId_t gps_TaskHandle;
 const osThreadAttr_t gps_Task_attributes = {
   .name = "gps_Task",
   .stack_size = 292 * 4,  // 1536 bytes - objeto C++ SAM-M10Q
-  .priority = (osPriority_t) osPriorityHigh,
+  .priority = (osPriority_t) osPriorityNormal5,
 };
 
 // Thread INA - adquisición de corrientes
@@ -215,21 +178,6 @@ const osThreadAttr_t ina_Task_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
-// Thread LoRa TX - transmisión LoRa
-osThreadId_t lora_TaskHandle;
-
-// Buffers estáticos en RAM1 para lora (COMENTADO - ahora usa heap dinámico)
-// __attribute__((section(".RAM1_region"))) static StaticTask_t lora_TaskBuffer;
-// __attribute__((section(".RAM1_region"))) static StackType_t lora_TaskStack[192];  // 768 bytes / 4 bytes per word
-
-const osThreadAttr_t lora_Task_attributes = {
-  .name = "lora_Task",
-  .stack_size = 128 * 4,  // 512 bytes - Tx simple
-  .priority = (osPriority_t) osPriorityNormal,
-  // .cb_mem = &lora_TaskBuffer,
-  // .cb_size = sizeof(lora_TaskBuffer),
-  // .stack_mem = lora_TaskStack,
-};
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -261,13 +209,6 @@ void initialize_message_queues(void) {
         printf("[QUEUES] ERROR - Fallo creación fsmQueue\r\n");
         Error_Handler();
     }
-    
-    // //Cola para adquisición de sensores (LEGACY - no se usa más)
-    // sensorAcqQueueHandle = osMessageQueueNew(16, sizeof(void*), &sensorAcqQueue_attributes);
-    // if (sensorAcqQueueHandle == NULL) {
-    //     printf("[QUEUES] ERROR - Fallo creación sensorAcqQueue\r\n");
-    //     Error_Handler();
-    // }
     
     // Colas para sensores individuales
     imuQueueHandle = osMessageQueueNew(12, sizeof(void*), &imuQueue_attributes);

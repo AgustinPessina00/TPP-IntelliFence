@@ -190,6 +190,10 @@ HAL_StatusTypeDef processImuMessage(EmbeddedMessage_t *msg, Cow& cow) {
 
 HAL_StatusTypeDef processGpsConfigResponse(EmbeddedMessage_t *msg) {
     // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
+    // HAL_Delay(50);
+    // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_SET);
+    // HAL_Delay(50);
+    // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
     RTOS_LOG_DEBUG("[FSM_HELPER] GPS config confirmed\r\n");
     return HAL_OK;
 }
@@ -329,7 +333,7 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
     const uint16_t TH_RANGE_Z = 500;               // Was 1.5k (min grazing z=271-857, margin=2×)
     const uint16_t TH_Z_RATIO = 60;                // Was 50% (grazing observado: 60-80%)
     
-    const uint8_t QUIET_TO_SLEEP_COUNT = 10; // Repeticiones de QUIET para confirmar SLEEP
+    const uint8_t QUIET_TO_SLEEP_COUNT = 3; // Repeticiones de QUIET para confirmar SLEEP
     
     RTOS_LOG_INFO("[FSM_HELPER] 📊 Features: var=%lu, range=%u (z=%u), z_ratio=%u%% | TH: var_quiet_s<%lu, var_quiet_l<%lu, range_quiet_s<%u, range_quiet_l<%u, var_move_enter<%lu\r\n", 
                   var_total, range_total, range_z, z_ratio, 

@@ -306,7 +306,7 @@ void stimulusTask(void *argument) {
         // }
         
         // Check for zone change messages
-        if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, 0) == osOK) {
+        if (osMessageQueueGet(stimulusQueueHandle, &msg, NULL, osWaitForever) == osOK) {
             if (msg != NULL && msg->id == MSG_ID_ZONE_CHANGE) {
                 // Extract timestamp and zone from payload
                 // Payload: [timestamp (4 bytes)] + [zone (1 byte)]
@@ -371,6 +371,6 @@ void stimulusTask(void *argument) {
             }
         }
         
-        osDelay(1000);
+        //osDelay(1000);
     }
 }

@@ -42,13 +42,13 @@ static const uint8_t m10q_set_psmoo_mode[] = {0x01, 0x00, 0xD0, 0x20, 0x01}; // 
 // ---  Payloads for different acquisition time settings (GREEN ZONE) ---
 static const uint8_t m10q_green_zone_0_posupdate[]    = {0x02, 0x00, 0xD0, 0x40, 0x2C, 0x01, 0x00, 0x00}; // POSUPDATEPERIOD = 300 s
 static const uint8_t m10q_green_zone_1_acqperiod[]    = {0x03, 0x00, 0xD0, 0x40, 0x64, 0x00, 0x00, 0x00}; // ACQPERIOD       = 100 s (3 intentos de fix)
-static const uint8_t m10q_green_zone_2_ontime[]       = {0x05, 0x00, 0xD0, 0x30, 0x0A, 0x00};             // ONTIME          = 15 s
-static const uint8_t m10q_green_zone_3_minacq[]       = {0x06, 0x00, 0xD0, 0x20, 0x3C};                   // MINACQTIME      = 60 s
-static const uint8_t m10q_green_zone_4_maxacq[]       = {0x07, 0x00, 0xD0, 0x20, 0x3C};                   // MAXACQTIME      = 60 s 
+static const uint8_t m10q_green_zone_2_ontime[]       = {0x05, 0x00, 0xD0, 0x30, 0x0F, 0x00};             // ONTIME          = 15 s
+static const uint8_t m10q_green_zone_3_minacq[]       = {0x06, 0x00, 0xD0, 0x20, 0x1E};                   // MINACQTIME      = 30 s
+static const uint8_t m10q_green_zone_4_maxacq[]       = {0x07, 0x00, 0xD0, 0x20, 0x1E};                   // MAXACQTIME      = 30 s 
 static const uint8_t m10q_green_zone_5_waitfix[]      = {0x09, 0x00, 0xD0, 0x10, 0x01};                   // WAITTIMEFIX     = 1 (primer punto más estable)
 
 const M10QPayload m10q_new_acq_time_green_zone[M10Q_NUM_RATE_OPTIONS] = {
-    {m10q_set_continuous_mode, sizeof(m10q_set_continuous_mode)},
+    //{m10q_set_continuous_mode, sizeof(m10q_set_continuous_mode)},
     {m10q_green_zone_0_posupdate, sizeof(m10q_green_zone_0_posupdate)},
     {m10q_green_zone_1_acqperiod, sizeof(m10q_green_zone_1_acqperiod)},
     {m10q_green_zone_2_ontime, sizeof(m10q_green_zone_2_ontime)},
@@ -62,13 +62,13 @@ const M10QPayload m10q_new_acq_time_green_zone[M10Q_NUM_RATE_OPTIONS] = {
 // ---  Payloads for different acquisition time settings (NEAR LIMIT) ---
 static const uint8_t m10q_near_limit_0_posupdate[]     = {0x02, 0x00, 0xD0, 0x40, 0x78, 0x00, 0x00, 0x00}; // POSUPDATEPERIOD = 120 s
 static const uint8_t m10q_near_limit_1_acqperiod[]     = {0x03, 0x00, 0xD0, 0x40, 0x3C, 0x00, 0x00, 0x00}; // ACQPERIOD       = 60 s (2 intentos de fix)
-static const uint8_t m10q_near_limit_2_ontime[]        = {0x05, 0x00, 0xD0, 0x30, 0x0A, 0x00};             // ONTIME          = 15 s
-static const uint8_t m10q_near_limit_3_minacq[]        = {0x06, 0x00, 0xD0, 0x20, 0x3C};                   // MINACQTIME      = 60 s
-static const uint8_t m10q_near_limit_4_maxacq[]        = {0x07, 0x00, 0xD0, 0x20, 0x3C};                   // MAXACQTIME      = 60 s
+static const uint8_t m10q_near_limit_2_ontime[]        = {0x05, 0x00, 0xD0, 0x30, 0x0F, 0x00};             // ONTIME          = 15 s
+static const uint8_t m10q_near_limit_3_minacq[]        = {0x06, 0x00, 0xD0, 0x20, 0x1E};                   // MINACQTIME      = 30 s
+static const uint8_t m10q_near_limit_4_maxacq[]        = {0x07, 0x00, 0xD0, 0x20, 0x1E};                   // MAXACQTIME      = 30 s
 static const uint8_t m10q_near_limit_5_waitfix[]       = {0x09, 0x00, 0xD0, 0x10, 0x01};                   // WAITTIMEFIX     = 1
 
 const M10QPayload m10q_new_acq_time_near_limit[M10Q_NUM_RATE_OPTIONS] = {
-    {m10q_set_continuous_mode, sizeof(m10q_set_continuous_mode)},
+    //{m10q_set_continuous_mode, sizeof(m10q_set_continuous_mode)},
     {m10q_near_limit_0_posupdate, sizeof(m10q_near_limit_0_posupdate)},
     {m10q_near_limit_1_acqperiod, sizeof(m10q_near_limit_1_acqperiod)},
     {m10q_near_limit_2_ontime, sizeof(m10q_near_limit_2_ontime)},
@@ -132,7 +132,7 @@ static const uint8_t m10q_data_38[] = {0xB4, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-
 static const uint8_t m10q_data_39[] = {0xB1, 0x00, 0x91, 0x20, 0x00}; // MSGOUT-NMEA_ID_VTG_UART1
 static const uint8_t m10q_data_40[] = {0x02, 0x00, 0xD0, 0x40, 0x78, 0x00, 0x00, 0x00}; // PM-POSUPDATEPERIOD -> POSICION CADA 60 SEGUNDOS
 static const uint8_t m10q_data_41[] = {0x03, 0x00, 0xD0, 0x40, 0x78, 0x00, 0x00, 0x00}; // PM-ACQPERIOD -> PODRIAMOS LLEVARLO AL MISMO VALOR QUE EL POSUPDATEPERIOD. LO DEJO DE 10S PORQUE ASI EN CAMPO ABIERTO TENGO MAS ACTUALIZACIONES Y NO PERDEMOS EL FIX.
-static const uint8_t m10q_data_42[] = {0x05, 0x00, 0xD0, 0x30, 0x1E, 0x00}; // PM-ONTIME -> 5 SEGUNDOS ACTUALMENTE, PODEMOS AUMENTARLO UN POCO AL TIEMPO QUE EL RECEPTOR PERMANECE ENCENDIDO CADA VEZ QUE ENTRA EN UN CICLO DE ADQUISICIÓN PARA NO PERDER MUESTRAS.
+static const uint8_t m10q_data_42[] = {0x05, 0x00, 0xD0, 0x30, 0x1E, 0x00}; // PM-ONTIME -> 30 SEGUNDOS ACTUALMENTE, PODEMOS AUMENTARLO UN POCO AL TIEMPO QUE EL RECEPTOR PERMANECE ENCENDIDO CADA VEZ QUE ENTRA EN UN CICLO DE ADQUISICIÓN PARA NO PERDER MUESTRAS.
 static const uint8_t m10q_data_43[] = {0x06, 0x00, 0xD0, 0x20, 0x1E}; // PM-MINACQTIME
 static const uint8_t m10q_data_44[] = {0x07, 0x00, 0xD0, 0x20, 0x3C}; // PM-MAXACQTIME -> SI AUMENTAMOS EL PM-ONTIME DEBERIAMOS AUMENTAR EL MAXACQTIME PARA QUE NO CORTARA LA ADQUISICIÓN ANTES DE TIEMPO.
 static const uint8_t m10q_data_45[] = {0x09, 0x00, 0xD0, 0x10, 0x01}; // PM-WAITTIMEFIX

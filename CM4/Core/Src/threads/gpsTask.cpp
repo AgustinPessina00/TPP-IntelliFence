@@ -8,6 +8,7 @@
 #define RTOS_PRINTF_AUTO  // Enable smart printf routing
 #include "rtos_printf.h"
 #include <string.h>
+#include "gpio.h"
 
 // Declaraciones externas de las colas
 extern osMessageQueueId_t gpsQueueHandle;
@@ -114,6 +115,9 @@ void gpsTask(void *argument) {
 
                     if(gpsData.psmStateActive) {
                         RTOS_LOG_WARN("[GPS_TASK] GPS is in INACTIVE PSM state\r\n");
+                        // gps.set_new_acq_time(gpsRateSpeed::CONTINUOUS); // Intentar configurar tiempo de adquisición cercano al límite para activar PSMOO
+                        // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
+                        // HAL_Delay(50);
                         rateGPS = static_cast<gpsRateSpeed>(msgReceived->payload[0]);
                         if (gps.set_new_acq_time(rateGPS)) {
                             RTOS_LOG_DEBUG("[GPS_TASK] GPS acquisition time set to %d\r\n", static_cast<int>(rateGPS));

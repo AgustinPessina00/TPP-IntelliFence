@@ -55,7 +55,7 @@ void dispatcherTask(void *argument) {
         //     queueMonitorCounter = 0;
         // }
         
-        if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, 0) == osOK) {
+        if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, osWaitForever) == osOK) {
             // Ahora podemos hacer logging thread-safe
             //RTOS_LOG_DEBUG("[DISPATCHER] Routing msg ID:%d from:%d to:%d\r\n", msg->id, msg->sender, msg->receiver);
             
@@ -122,6 +122,6 @@ void dispatcherTask(void *argument) {
             }
         }
         
-        osDelay(500);
+        //osDelay(500);
     }
 }

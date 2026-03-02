@@ -989,7 +989,7 @@ bool SamM10q::getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs) {
 
     // 3. Verificar que tenemos un fix válido
     // fixType: 0=no fix, 2=2D fix, 3=3D fix
-    if (pvtData->fixType < 2) {
+    if (pvtData->fixType < 3) {
         this->psmStateActive = true; // Si pudimos obtener datos, el GPS no está en PSM INACTIVE
         return false; // No hay fix válido
     }

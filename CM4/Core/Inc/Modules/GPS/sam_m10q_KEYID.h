@@ -7,7 +7,7 @@
 // ========================
 // Constantes y contadores
 // ========================
-constexpr size_t M10Q_NUM_RATE_OPTIONS   = 8; 
+constexpr size_t M10Q_NUM_RATE_OPTIONS   = 7; 
 constexpr size_t M10Q_NUM_INIT_PSM_DATA_ELEMENTS  = 40; //Cantidad de elementos en m10q_data para configuración inicial (Sin PSMOO)
 constexpr size_t M10Q_NUM_DATA_ELEMENTS  = 48;  // Cantidad de elementos en m10q_data
 
