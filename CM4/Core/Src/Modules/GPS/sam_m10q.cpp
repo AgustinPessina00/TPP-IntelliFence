@@ -91,22 +91,22 @@ HAL_StatusTypeDef SamM10q::read_gps_position() {
 bool SamM10q::update_location_and_time() {
     UBX_NAV_PVT_data_t pvtData;
     
-    // Obtener datos PVT del GPS con timeout de 2 segundos
-    bool status = getPVT(&pvtData, 2000); 
+    // Obtener datos PVT del GPS con timeout de 1 segundo
+    bool status = getPVT(&pvtData, 1000); 
     if (status == true) {
         // Actualizar latitud y longitud (convertir de deg*1e-7 a grados decimales)
         latitude = pvtData.lat * 1e-7;
         longitude = pvtData.lon * 1e-7;
         
         // Actualizar fecha UTC en formato YYMMDD
-        fechaUTC = (pvtData.year % 100) * 10000 + 
-                   pvtData.month * 100 + 
-                   pvtData.day;
+        // fechaUTC = (pvtData.year % 100) * 10000 + 
+        //            pvtData.month * 100 + 
+        //            pvtData.day;
         
-        // Actualizar hora UTC en formato HHMMSS
-        horaUTC = pvtData.hour * 10000 + 
-                  pvtData.min * 100 + 
-                  pvtData.sec;
+        // // Actualizar hora UTC en formato HHMMSS
+        // horaUTC = pvtData.hour * 10000 + 
+        //           pvtData.min * 100 + 
+        //           pvtData.sec;
 
         return true;
     }

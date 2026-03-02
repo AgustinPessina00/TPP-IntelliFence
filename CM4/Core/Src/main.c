@@ -338,7 +338,8 @@ void SystemClock_Config(void)
 
 /**
  * @brief  Idle Hook - Se ejecuta cuando no hay tareas listas para correr
- * @note   El micro entra en modo SLEEP (WFI) para ahorrar energía
+ * @note   El micro entra en modo SLEEP para ahorrar energía manteniendo
+ *         las GPIO habilitadas (regulador principal encendido).
  *         Se despierta automáticamente con cualquier interrupción:
  *         - Tick de FreeRTOS (cada 1ms)
  *         - Interrupciones de periféricos (UART, Timers, GPS, etc.)
@@ -346,13 +347,14 @@ void SystemClock_Config(void)
  */
 void vApplicationIdleHook(void)
 {
-    /* Entrar en modo SLEEP (WFI - Wait For Interrupt)
-     * Consumo: ~1mA en SLEEP vs ~10mA en RUN
-     * Se despierta automáticamente con cualquier IRQ */
+    /* Entrar en modo SLEEP con regulador principal encendido
+     * PWR_MAINREGULATOR_ON: GPIO y periféricos permanecen activos
+     * PWR_SLEEPENTRY_WFI:   despierta con cualquier IRQ
+     * Consumo: ~1mA en SLEEP vs ~10mA en RUN */
     //RTOS_LOG_DEBUG("*************************************\r\n");
     //RTOS_LOG_DEBUG("[IDLE] Entering idle mode (WFI)...\r\n");
     //RTOS_LOG_DEBUG("*************************************\r\n");
-    __WFI();
+    HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 }
 
 /* USER CODE END 4 */

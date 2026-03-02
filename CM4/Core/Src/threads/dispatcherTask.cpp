@@ -33,29 +33,35 @@ void dispatcherTask(void *argument) {
         //     stackMonitorCounter = 0;
         // }
         
-        // Monitorear colas cada 5 segundos (cada 10 iteraciones × 500ms delay)
-        // if (++queueMonitorCounter >= 10) {
-        //     RTOS_LOG_INFO("[QUEUE STATUS] =============================\r\n");
-        //     RTOS_LOG_INFO("  Dispatcher  - Msgs: %u / Spaces: %u\r\n", 
-        //                  osMessageQueueGetCount(dispatcherQueueHandle),
-        //                  osMessageQueueGetSpace(dispatcherQueueHandle));
-        //     RTOS_LOG_INFO("  SensorAcq   - Msgs: %u / Spaces: %u\r\n",
-        //                  osMessageQueueGetCount(sensorAcqQueueHandle),
-        //                  osMessageQueueGetSpace(sensorAcqQueueHandle));
-        //     RTOS_LOG_INFO("  FSM         - Msgs: %u / Spaces: %u\r\n",
-        //                  osMessageQueueGetCount(fsmQueueHandle),
-        //                  osMessageQueueGetSpace(fsmQueueHandle));
-        //     RTOS_LOG_INFO("  Stimulus    - Msgs: %u / Spaces: %u\r\n",
-        //                  osMessageQueueGetCount(stimulusQueueHandle),
-        //                  osMessageQueueGetSpace(stimulusQueueHandle));
-        //     RTOS_LOG_INFO("  LoraTx      - Msgs: %u / Spaces: %u\r\n",
-        //                  osMessageQueueGetCount(loraTxQueueHandle),
-        //                  osMessageQueueGetSpace(loraTxQueueHandle));
-        //     RTOS_LOG_INFO("============================================\r\n");
-        //     queueMonitorCounter = 0;
-        // }
+        
         
         if (osMessageQueueGet(dispatcherQueueHandle, &msg, NULL, osWaitForever) == osOK) {
+            //Monitorear colas cada 5 segundos (cada 10 iteraciones × 500ms delay)
+            // if (1) {
+            //     RTOS_LOG_INFO("[QUEUE STATUS] =============================\r\n");
+            //     RTOS_LOG_INFO("  Dispatcher  - Msgs: %u / Spaces: %u\r\n", 
+            //                 osMessageQueueGetCount(dispatcherQueueHandle),
+            //                 osMessageQueueGetSpace(dispatcherQueueHandle));
+            //     RTOS_LOG_INFO("  gps   - Msgs: %u / Spaces: %u\r\n",
+            //                 osMessageQueueGetCount(gpsQueueHandle),
+            //                 osMessageQueueGetSpace(gpsQueueHandle));
+            //     RTOS_LOG_INFO("  imu   - Msgs: %u / Spaces: %u\r\n",
+            //                 osMessageQueueGetCount(imuQueueHandle),
+            //                 osMessageQueueGetSpace(imuQueueHandle));
+            //     RTOS_LOG_INFO("  ina   - Msgs: %u / Spaces: %u\r\n",
+            //                 osMessageQueueGetCount(inaQueueHandle),
+            //                 osMessageQueueGetSpace(inaQueueHandle));
+            //     RTOS_LOG_INFO("  FSM         - Msgs: %u / Spaces: %u\r\n",
+            //                 osMessageQueueGetCount(fsmQueueHandle),
+            //                 osMessageQueueGetSpace(fsmQueueHandle));
+            //     RTOS_LOG_INFO("  Stimulus    - Msgs: %u / Spaces: %u\r\n",
+            //                 osMessageQueueGetCount(stimulusQueueHandle),
+            //                 osMessageQueueGetSpace(stimulusQueueHandle));
+            //     RTOS_LOG_INFO("  LoraTx      - Msgs: %u / Spaces: %u\r\n",
+            //                 osMessageQueueGetCount(loraTxQueueHandle),
+            //                 osMessageQueueGetSpace(loraTxQueueHandle));
+            //     RTOS_LOG_INFO("============================================\r\n");
+            // }
             // Ahora podemos hacer logging thread-safe
             //RTOS_LOG_DEBUG("[DISPATCHER] Routing msg ID:%d from:%d to:%d\r\n", msg->id, msg->sender, msg->receiver);
             
@@ -103,12 +109,25 @@ void dispatcherTask(void *argument) {
                     }
                     break;
                     
-                case MODULE_LORA_TX:
+                case MODULE_LORA_TX: {
+                    // Semántica "latest-value": purgar mensajes viejos del mismo tipo para
+                    // evitar que la cola se llene cuando la FSM corre rápido (ej: 50ms near fence).
+                    // LoRa siempre procesa la posición más reciente.
+                    EmbeddedMessage_t *staleMsg = NULL;
+                    uint32_t purged = 0;
+                    while (osMessageQueueGet(loraTxQueueHandle, &staleMsg, NULL, 0) == osOK) {
+                        MessagePool_Free(staleMsg);
+                        purged++;
+                    }
+                    if (purged > 0) {
+                        RTOS_LOG_WARN("[DISPATCHER] LORA_TX: purged %lu stale msg(s), keeping latest (ID:%d)\r\n", purged, msg->id);
+                    }
                     if (osMessageQueuePut(loraTxQueueHandle, &msg, 0, 0) != osOK) {
                         RTOS_LOG_ERROR("[DISPATCHER] Failed to route message to LORA_TX\r\n");
                         MessagePool_Free(msg);
                     }
                     break;
+                }
                     
                 case MODULE_LORA_RX:
                 case MODULE_DISTANCE:

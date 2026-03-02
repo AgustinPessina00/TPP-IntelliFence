@@ -153,21 +153,22 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                     greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
                 }
             }
-            // // Fallback: MSG_ID_SEND_IMU (single sample - legacy/deprecated)
-            // else if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
-            //     RTOS_LOG_WARN("[FSM] GREEN: Received single IMU sample (deprecated - use burst)\r\n");
-            //     if (processImuMessage(*msg, cow) == HAL_OK) {
-            //         greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
-            //     }
-            // }
+            // Fallback: MSG_ID_SEND_IMU (single sample - legacy/deprecated)
+            else if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
+                RTOS_LOG_WARN("[FSM] GREEN: Received single IMU sample (deprecated - use burst)\r\n");
+                if (processImuMessage(*msg, cow) == HAL_OK) {
+                    greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+                }
+            }
             else if (Timeout_IsExpired(&timeout)) {
                 RTOS_LOG_WARN("[NORMAL_OPERATION] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
             }
+            greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
             break;
             
         case GREEN_ZONE_EVALUATE_COWSTATE:
-            switch (cow.getState()) {
+            switch (CowState::MOVEMENT) {
                 case CowState::GRAZING:
                     greenZoneState = GREEN_ZONE_GRAZING;
                     RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE GRAZING: \r\n");
@@ -194,15 +195,18 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
         case GREEN_ZONE_SLEEP:
             updateGpsAdqTime(GpsRate:: GREEN_ZONE_RATE);      // A CHEQUEAR PARA AGREGARLE UN MAYOR TIEMPO AL GPS
             Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
-            enterLowPowerSleep();
+            //enterLowPowerSleep();
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
         case GREEN_ZONE_MOVEMENT:
             if (cow.getDistanceToLimit() <= NEAR_LIMIT) {
                 greenZoneState = GREEN_ZONE_NEAR_LIMIT;
+                RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE NEAR_LIMIT: \r\n");
             } else {
                 greenZoneState = GREEN_ZONE_FAR_LIMIT;
+                RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE FAR_LIMIT: \r\n");
+
             }
             break;
             
@@ -226,7 +230,7 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                      greenZoneState = GREEN_ZONE_END;
                 }
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[NORMAL_OPERATION] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                //RTOS_LOG_WARN("[NORMAL_OPERATION] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
             }
             break;

@@ -58,14 +58,14 @@ void inaTask(void *argument) {
         //     stackMonitorCounter = 0;
         // }
 
-        RTOS_LOG_DEBUG("------------------------------------------------------------\r\n");
-        inaGps.readCurrent_mA();
-        RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS current read: %.3f mA\r\n", inaGps.current);
-        inaImu.readCurrent_mA();
-        RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU current read: %.3f mA\r\n", inaImu.current);
-        inaMcu.readCurrent_mA();
-        RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU current read: %.3f mA\r\n", inaMcu.current);
-        RTOS_LOG_DEBUG("------------------------------------------------------------\r\n");
+        // RTOS_LOG_DEBUG("------------------------------------------------------------\r\n");
+        // inaGps.readCurrent_mA();
+        // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA GPS current read: %.3f mA\r\n", inaGps.current);
+        // inaImu.readCurrent_mA();
+        // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA IMU current read: %.3f mA\r\n", inaImu.current);
+        // inaMcu.readCurrent_mA();
+        // RTOS_LOG_DEBUG("[SENSOR_ACQ] INA MCU current read: %.3f mA\r\n", inaMcu.current);
+        // RTOS_LOG_DEBUG("------------------------------------------------------------\r\n");
 
         // Verificar si hay mensajes de solicitud
         if (osMessageQueueGet(inaQueueHandle, &msgReceived, NULL, 0) == osOK) {

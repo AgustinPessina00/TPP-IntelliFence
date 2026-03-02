@@ -30,7 +30,7 @@ extern "C" {
 #define FSM_TICKS_GREEN_ZONE 1000  // 1 segundo - Ticks entre iteraciones en zona verde (ajustable según necesidades)
 #define FSM_TICKS_NEAR_LIMIT 50
 #define FSM_TICKS_STIMULOUS_ZONE 50
-#define NEAR_LIMIT  10.0f   // en metros
+#define NEAR_LIMIT  35.0f   // en metros
 
 
 extern uint32_t fsmTicks;

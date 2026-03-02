@@ -1005,7 +1005,7 @@ static void SendTxData(void)
           memcpy(AppData.Buffer, msg->payload, msg->length);
           AppData.BufferSize = msg->length;
           AppData.Port = LORAWAN_USER_APP_PORT;
-          shouldSendFeedback = true;
+          shouldSendFeedback = false;
           messageId = MSG_ID_LORA_SEND_POSITION_FEEDBACK;
           // Debug: extraer y mostrar lat/lon
           if (msg->length >= 8) {

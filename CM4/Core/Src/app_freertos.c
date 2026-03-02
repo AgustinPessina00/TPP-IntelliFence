@@ -134,7 +134,7 @@ osThreadId_t dispatcher_TaskHandle;
 const osThreadAttr_t dispatcher_Task_attributes = {
   .name = "dispatcher_Task",
   .stack_size = 128 * 5,  // 512 bytes - ruteo simple
-  .priority = (osPriority_t) osPriorityNormal1,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 
 // Thread FSM - máquina de estados principal
@@ -151,7 +151,7 @@ osThreadId_t stimulus_TaskHandle;
 const osThreadAttr_t stimulus_Task_attributes = {
   .name = "stimulus_Task",
   .stack_size = 256 * 4,  // 1024 bytes - buzzer + vibration motors + alarms
-  .priority = (osPriority_t) osPriorityHigh,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 
 // Thread IMU - adquisición de acelerómetro
@@ -167,7 +167,7 @@ osThreadId_t gps_TaskHandle;
 const osThreadAttr_t gps_Task_attributes = {
   .name = "gps_Task",
   .stack_size = 292 * 4,  // 1536 bytes - objeto C++ SAM-M10Q
-  .priority = (osPriority_t) osPriorityNormal5,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 
 // Thread INA - adquisición de corrientes

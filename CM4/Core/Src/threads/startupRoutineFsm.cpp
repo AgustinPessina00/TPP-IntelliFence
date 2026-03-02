@@ -66,16 +66,16 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
         case STARTUP_ROUTINE_REQUEST_GPS_CONFIGURATION_PSM:
             sendMessage(MSG_ID_REQUEST_GPS_CONFIGURATION_PSM, MODULE_GPS);
             Timeout_Start(&timeout, GPS_PSM_TIMEOUT_MS);
-            RTOS_LOG_DEBUG("[STARTUP_ROUTINE] Requesting GPS configuration PSM (timeout: %lums)\r\n", timeout.timeoutMs);
+            //RTOS_LOG_DEBUG("[STARTUP_ROUTINE] Requesting GPS configuration PSM (timeout: %lums)\r\n", timeout.timeoutMs);
             *state = STARTUP_ROUTINE_WAIT_GPS_CONFIGURATION_PSM;
             break;
             
         case STARTUP_ROUTINE_WAIT_GPS_CONFIGURATION_PSM:
             if (waitForMessage(MSG_ID_SEND_GPS_CONFIGURATION_PSM, timeout, msg, newMessage) == HAL_OK) {
-                RTOS_LOG_DEBUG("[STARTUP_ROUTINE] GPS configuration PSM received after %lums\r\n", Timeout_GetElapsed(&timeout));
+                //RTOS_LOG_DEBUG("[STARTUP_ROUTINE] GPS configuration PSM received after %lums\r\n", Timeout_GetElapsed(&timeout));
                 *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
             } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[STARTUP_ROUTINE] GPS configuration PSM timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+                //RTOS_LOG_WARN("[STARTUP_ROUTINE] GPS configuration PSM timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 *state = STARTUP_ROUTINE_REQUEST_GPS_CONFIGURATION_PSM;
             }
             break;
@@ -84,21 +84,21 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
             Timeout_Start(&timeout, LORA_TX_TIMEOUT_MS);
             RTOS_LOG_DEBUG("[STARTUP_ROUTINE] Sending position via LoRa (timeout: %lums)\r\n", timeout.timeoutMs);
-            *state = STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE;
+            *state = STARTUP_ROUTINE_WAIT_FENCE;
             break;
             
-        case STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE:
-            if (waitForMessage(MSG_ID_LORA_SEND_POSITION_FEEDBACK, timeout, msg, newMessage) == HAL_OK) {
-                if (processLoRaTxResponse(*msg) == HAL_OK) {
-                    RTOS_LOG_DEBUG("[STARTUP_ROUTINE] LoRa TX confirmed after %lums\r\n", Timeout_GetElapsed(&timeout));
-                    *state = STARTUP_ROUTINE_WAIT_FENCE;
-                    Timeout_Start(&timeout, LORA_RX_TIMEOUT_MS);
-                }
-            } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[STARTUP_ROUTINE] LoRa TX timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
-            }
-            break;
+        // case STARTUP_ROUTINE_WAIT_SEND_POSITION_RESPONSE:
+        //     if (waitForMessage(MSG_ID_LORA_SEND_POSITION_FEEDBACK, timeout, msg, newMessage) == HAL_OK) {
+        //         if (processLoRaTxResponse(*msg) == HAL_OK) {
+        //             RTOS_LOG_DEBUG("[STARTUP_ROUTINE] LoRa TX confirmed after %lums\r\n", Timeout_GetElapsed(&timeout));
+        //             *state = STARTUP_ROUTINE_WAIT_FENCE;
+        //             Timeout_Start(&timeout, LORA_RX_TIMEOUT_MS);
+        //         }
+        //     } else if (Timeout_IsExpired(&timeout)) {
+        //         RTOS_LOG_WARN("[STARTUP_ROUTINE] LoRa TX timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+        //         *state = STARTUP_ROUTINE_SEND_POSITION_LORA;
+        //     }
+        //     break;
             
         case STARTUP_ROUTINE_WAIT_FENCE:
             if (waitForMessage(MSG_ID_LORA_VERTEXES_RECEIVED, timeout, msg, newMessage) == HAL_OK) {
@@ -115,33 +115,34 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             
         case STARTUP_ROUTINE_SAVE_FENCE:
             // Fence ya fue actualizado en processFenceMessage() via createLimits()
-            *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+            //*state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+            *state = STARTUP_ROUTINE_REQUEST_ZONE;
             break;
             
-        case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
-            sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS);
-            Timeout_Start(&timeout, GPS_TIMEOUT_MS);
-            RTOS_LOG_DEBUG("[STARTUP_ROUTINE] Requesting GPS position after fence update\r\n");
-            *state = STARTUP_ROUTINE_WAIT_NEW_POSITION;
-            break;
+        // case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
+        //     sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS);
+        //     Timeout_Start(&timeout, GPS_TIMEOUT_MS);
+        //     RTOS_LOG_DEBUG("[STARTUP_ROUTINE] Requesting GPS position after fence update\r\n");
+        //     *state = STARTUP_ROUTINE_WAIT_NEW_POSITION;
+        //     break;
             
-        case STARTUP_ROUTINE_WAIT_NEW_POSITION:
-            if (waitForMessage(MSG_ID_SEND_GPS, timeout, msg, newMessage) == HAL_OK) {
-                bool validPosition = false;
-                if (processGpsMessage(*msg, cow, validPosition) == HAL_OK) {
-                    if (validPosition) {
-                        RTOS_LOG_DEBUG("[STARTUP_ROUTINE] Valid GPS position received after %lums\r\n", Timeout_GetElapsed(&timeout));
-                        *state = STARTUP_ROUTINE_REQUEST_ZONE;
-                    } else {
-                        RTOS_LOG_WARN("[STARTUP_ROUTINE] GPS without fix, retrying...\r\n");
-                        *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
-                    }
-                }
-            } else if (Timeout_IsExpired(&timeout)) {
-                RTOS_LOG_WARN("[STARTUP_ROUTINE] GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
-                *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
-            }
-            break;
+        // case STARTUP_ROUTINE_WAIT_NEW_POSITION:
+        //     if (waitForMessage(MSG_ID_SEND_GPS, timeout, msg, newMessage) == HAL_OK) {
+        //         bool validPosition = false;
+        //         if (processGpsMessage(*msg, cow, validPosition) == HAL_OK) {
+        //             if (validPosition) {
+        //                 RTOS_LOG_DEBUG("[STARTUP_ROUTINE] Valid GPS position received after %lums\r\n", Timeout_GetElapsed(&timeout));
+        //                 *state = STARTUP_ROUTINE_REQUEST_ZONE;
+        //             } else {
+        //                 RTOS_LOG_WARN("[STARTUP_ROUTINE] GPS without fix, retrying...\r\n");
+        //                 *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+        //             }
+        //         }
+        //     } else if (Timeout_IsExpired(&timeout)) {
+        //         RTOS_LOG_WARN("[STARTUP_ROUTINE] GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
+        //         *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+        //     }
+        //     break;
             
         case STARTUP_ROUTINE_REQUEST_ZONE:
             // Calcular zona localmente

@@ -147,7 +147,7 @@ void imuTask(void *argument) {
                     features.z_ratio = z_ratio;
                     features.reserved = 0;
                     
-                    RTOS_LOG_INFO("[IMU_TASK] 📊 Features: var=%lu, range_total=%u (z=%u), z_ratio=%u%% from %d samples\r\n", 
+                    RTOS_LOG_INFO("[IMU_TASK] Features: var=%lu, range_total=%u (z=%u), z_ratio=%u%% from %d samples\r\n", 
                                   features.var_total, range_total, range_z, z_ratio, BURST_SIZE);
                     
                     // Enviar solo features (12 bytes) en vez de burst completo (312 bytes)
@@ -180,8 +180,13 @@ void imuTask(void *argument) {
                         EmbeddedMessage_CreateWithPayload(msgToSend, MSG_ID_SENSOR_IMU_DATA, 
                                                          MODULE_IMU, MODULE_CONSOLE, 
                                                          (uint8_t*)imuData, 3 * sizeof(float));
-                        osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
-                        RTOS_LOG_DEBUG("[IMU_TASK] Sent IMU data to console\r\n");
+                        osStatus_t statusConsole = osMessageQueuePut(dispatcherQueueHandle, &msgToSend, 0, 0);
+                        if (statusConsole == osOK) {
+                            RTOS_LOG_DEBUG("[IMU_TASK] Sent IMU data to console\r\n");
+                        } else {
+                            RTOS_LOG_ERROR("[IMU_TASK] Failed to send IMU data to console (osStatus: %d)\r\n", statusConsole);
+                            MessagePool_Free(msgToSend);
+                        }
                         msgToSend = NULL;
                     }
                     break;

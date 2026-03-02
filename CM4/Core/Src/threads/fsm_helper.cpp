@@ -218,7 +218,10 @@ void sendPosition(uint8_t msgId, ModuleId_t dest, Cow& cow) {
         memcpy(data + sizeof(float), &longitude, sizeof(float));
         
         EmbeddedMessage_CreateWithPayload(msg, msgId, MODULE_FSM, dest, data, 2 * sizeof(float));
-        osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
+        if (osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100) != osOK) {
+            RTOS_LOG_ERROR("[FSM_HELPER] Dispatcher queue full, dropping position message\r\n");
+            MessagePool_Free(msg);
+        }
     }
 }
 
@@ -240,16 +243,16 @@ void sendZoneToStimulus(zone_t zone, ModuleId_t dest) {
 void updateGpsAdqTime(GpsRate gpsRate) {
     EmbeddedMessage_t *msg = MessagePool_Allocate();
     if (msg != nullptr) {
-        HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_SET);
-        HAL_Delay(50);
-        HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
+        // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_SET);
+        // HAL_Delay(50);
+        // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_RESET);
         // HAL_Delay(50);
         // HAL_GPIO_WritePin(GPS_EXTINT_GPIO_Port, GPS_EXTINT_Pin, GPIO_PIN_SET);
 
         EmbeddedMessage_CreateWithPayload(msg, MSG_ID_GPS_REQUEST_CONFIG, MODULE_FSM, 
                                          MODULE_GPS, (uint8_t*)&gpsRate, sizeof(GpsRate));
         osMessageQueuePut(dispatcherQueueHandle, &msg, 0, 100);
-        RTOS_LOG_DEBUG("[FSM_HELPER] GPS rate updated: %d\r\n", (int)gpsRate);
+        // RTOS_LOG_DEBUG("[FSM_HELPER] GPS rate updated: %d\r\n", (int)gpsRate);
     }
 }
 
@@ -351,10 +354,10 @@ void updateStateFromFeatures(Cow& cow, uint32_t var_total, uint16_t range_z, uin
         if ((range_z > TH_RANGE_Z && z_ratio > TH_Z_RATIO && var_total < TH_VAR_MOVE) ||
             (var_total > TH_VAR_MOVE_ENTER || range_total > TH_RANGE_MOVE_ENTER)) {
             // Hay movimiento real, continuar con clasificación normal
-            RTOS_LOG_INFO("[FSM_HELPER] 🔥 Waking from SLEEP (movement detected)\r\n");
+            RTOS_LOG_INFO("[FSM_HELPER] Waking from SLEEP (movement detected)\r\n");
         } else {
             // No hay movimiento suficiente → mantener SLEEP
-            RTOS_LOG_DEBUG("[FSM_HELPER] 😴 Staying in SLEEP (no significant movement)\r\n");
+            RTOS_LOG_DEBUG("[FSM_HELPER] Staying in SLEEP (no significant movement)\r\n");
             return; // Salir sin modificar el estado
         }
     }
