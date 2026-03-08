@@ -113,11 +113,11 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             }
             break;
             
-        case STARTUP_ROUTINE_SAVE_FENCE:
-            // Fence ya fue actualizado en processFenceMessage() via createLimits()
-            //*state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
-            *state = STARTUP_ROUTINE_REQUEST_ZONE;
-            break;
+        // case STARTUP_ROUTINE_SAVE_FENCE:
+        //     // Fence ya fue actualizado en processFenceMessage() via createLimits()
+        //     //*state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
+        //     *state = STARTUP_ROUTINE_REQUEST_ZONE;
+        //     break;
             
         // case STARTUP_ROUTINE_REQUEST_NEW_POSITION:
         //     sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS);
