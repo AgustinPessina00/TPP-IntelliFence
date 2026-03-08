@@ -1,0 +1,136 @@
+@startuml ina226_class
+title TPP-IntelliFence — Clase Ina226 (Monitor de corriente/potencia INA226)
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    HeaderBackgroundColor DarkGreen
+    HeaderFontColor White
+    FontSize 12
+    AttributeFontSize 11
+}
+skinparam enum {
+    BackgroundColor LightYellow
+    BorderColor DarkGoldenRod
+}
+skinparam ArrowColor DarkSlateGray
+skinparam linetype ortho
+
+' ──────────────────────────────────────────────
+' Enums de configuración
+' ──────────────────────────────────────────────
+enum Ina226Averaging << (E,LightYellow) >> {
+    AVG_1    = 0b000
+    AVG_4    = 0b001
+    AVG_16   = 0b010
+    AVG_64   = 0b011
+    AVG_128  = 0b100
+    AVG_256  = 0b101
+    AVG_512  = 0b110
+    AVG_1024 = 0b111
+}
+
+enum Ina226BusConvTime << (E,LightYellow) >> {
+    CT_140US
+    CT_204US
+    CT_332US
+    CT_588US
+    CT_1_1MS
+    CT_2_116MS
+    CT_4_156MS
+    CT_8_244MS
+}
+
+enum Ina226ShuntConvTime << (E,LightYellow) >> {
+    CT_140US
+    CT_204US
+    CT_332US
+    CT_588US
+    CT_1_1MS
+    CT_2_116MS
+    CT_4_156MS
+    CT_8_244MS
+}
+
+enum Ina226Mode << (E,LightYellow) >> {
+    POWER_DOWN
+    SHUNT_TRIGGERED
+    BUS_TRIGGERED
+    SHUNT_BUS_TRIGGERED
+    SHUNT_CONTINUOUS
+    BUS_CONTINUOUS
+    SHUNT_BUS_CONTINUOUS
+}
+
+' ──────────────────────────────────────────────
+' Dependencia
+' ──────────────────────────────────────────────
+class I2CBus << (C,LightGray) >>
+
+' ──────────────────────────────────────────────
+' Clase principal
+' ──────────────────────────────────────────────
+class Ina226 {
+    ' ── Atributos públicos (mediciones) ─────
+    + shuntVoltage : float    ' [mV]
+    + busVoltage   : float    ' [mV]
+    + current      : float    ' [mA]
+    + power        : float    ' [mW]
+
+    ' ── Constructor ─────────────────────────
+    + Ina226()
+
+    ' ── Inicialización ──────────────────────
+    + init(i2cAddr : uint8_t, rShunt : float, currentLSB : float,\n       avg : Ina226Averaging, vbusCt : Ina226BusConvTime,\n       vshCt : Ina226ShuntConvTime, mode : Ina226Mode) : bool
+
+    ' ── Lecturas ────────────────────────────
+    + readShuntVoltage_mV() : I2CResult
+    + readBusVoltage_mV()   : I2CResult
+    + readCurrent_mA()      : I2CResult
+    + readPower_mW()        : I2CResult
+
+    ' ── Test ────────────────────────────────
+    + testINA() : void
+
+    ' ── Atributos privados ──────────────────
+    - i2cAddr     : uint8_t
+    - i2cBus      : I2CBus*
+    - rShunt      : float
+    - currentLSB  : float
+    - initialized : bool
+
+    ' ── Config almacenada ───────────────────
+    - avgConfig    : Ina226Averaging
+    - vbusCtConfig : Ina226BusConvTime
+    - vshCtConfig  : Ina226ShuntConvTime
+    - modeConfig   : Ina226Mode
+
+    ' ── Métodos privados ────────────────────
+    - configure(avg : Ina226Averaging, vbusCt : Ina226BusConvTime,\n             vshCt : Ina226ShuntConvTime, mode : Ina226Mode) : I2CResult
+    - setConfiguration(avg : Ina226Averaging, vbusCt : Ina226BusConvTime,\n                   vshCt : Ina226ShuntConvTime, mode : Ina226Mode) : uint16_t
+    - writeRegister(reg : uint8_t, value : uint16_t) : I2CResult
+    - readRegister(reg : uint8_t, value : uint16_t&) : I2CResult
+    - calculateCalibration() : uint16_t
+}
+
+' ──────────────────────────────────────────────
+' Relaciones
+' ──────────────────────────────────────────────
+Ina226 "1" *-- "1" I2CBus           : usa (I2C2) >
+Ina226 ..> Ina226Averaging           : <<parámetro>>
+Ina226 ..> Ina226BusConvTime         : <<parámetro>>
+Ina226 ..> Ina226ShuntConvTime       : <<parámetro>>
+Ina226 ..> Ina226Mode                : <<parámetro>>
+
+note bottom of Ina226
+  Protocolo: I2C2 (thread-safe via I2CBus)
+  Instancias en el sistema:
+    0x40 → MCU power monitor
+    0x41 → GPS power monitor
+    0x45 → IMU power monitor
+  Registro CALIBRATION calculado via:
+    Cal = 0.00512 / (currentLSB × rShunt)
+end note
+
+@enduml

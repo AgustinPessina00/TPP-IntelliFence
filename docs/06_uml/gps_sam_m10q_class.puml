@@ -1,0 +1,174 @@
+@startuml gps_sam_m10q_class
+title TPP-IntelliFence — Clase SamM10q (GPS u-blox SAM-M10Q)
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    HeaderBackgroundColor SteelBlue
+    HeaderFontColor White
+    FontSize 12
+    AttributeFontSize 11
+}
+skinparam enum {
+    BackgroundColor LightYellow
+    BorderColor DarkGoldenRod
+}
+skinparam struct {
+    BackgroundColor LightCyan
+    BorderColor DarkCyan
+}
+skinparam ArrowColor DarkSlateGray
+skinparam linetype ortho
+
+' ──────────────────────────────────────────────
+' Enum
+' ──────────────────────────────────────────────
+enum gpsRateSpeed {
+    GREEN_ZONE
+    NEAR_LIMIT
+    CONTINUOUS
+}
+
+' ──────────────────────────────────────────────
+' Struct: UBX_NAV_PVT_data_t
+' ──────────────────────────────────────────────
+class UBX_NAV_PVT_data_t << (S,LightCyan) struct >> {
+    + iTOW      : uint32_t       ' GPS time of week [ms]
+    + year      : uint16_t       ' Año (UTC)
+    + month     : uint8_t        ' Mes [1..12]
+    + day       : uint8_t        ' Día [1..31]
+    + hour      : uint8_t        ' Hora [0..23]
+    + min       : uint8_t        ' Minuto [0..59]
+    + sec       : uint8_t        ' Segundo [0..60]
+    + valid     : uint8_t        ' Flags de validez
+    + tAcc      : uint32_t       ' Time accuracy [ns]
+    + nano      : int32_t        ' Fracción de segundo [ns]
+    + fixType   : uint8_t        ' 0=no fix, 2=2D, 3=3D
+    + flags     : uint8_t        ' Fix status flags
+    + flags2    : uint8_t        ' Flags adicionales
+    + numSV     : uint8_t        ' Satélites usados
+    + lon       : int32_t        ' Longitud [deg × 1e-7]
+    + lat       : int32_t        ' Latitud  [deg × 1e-7]
+    + height    : int32_t        ' Altura sobre elipsoide [mm]
+    + hMSL      : int32_t        ' Altura sobre nivel del mar [mm]
+    + hAcc      : uint32_t       ' Horizontal accuracy [mm]
+    + vAcc      : uint32_t       ' Vertical accuracy [mm]
+    + velN      : int32_t        ' Velocidad NED norte [mm/s]
+    + velE      : int32_t        ' Velocidad NED este [mm/s]
+    + velD      : int32_t        ' Velocidad NED abajo [mm/s]
+    + gSpeed    : int32_t        ' Ground speed [mm/s]
+    + headMot   : int32_t        ' Heading of motion [deg × 1e-5]
+    + sAcc      : uint32_t       ' Speed accuracy [mm/s]
+    + headAcc   : uint32_t       ' Heading accuracy [deg × 1e-5]
+    + pDOP      : uint16_t       ' Position DOP [× 0.01]
+    + flags3    : uint16_t       ' Flags adicionales
+    + headVeh   : int32_t        ' Heading of vehicle [deg × 1e-5]
+    + magDec    : int16_t        ' Declinación magnética [deg × 1e-2]
+    + magAcc    : uint16_t       ' Mag. dec. accuracy [deg × 1e-2]
+}
+
+' ──────────────────────────────────────────────
+' Struct: M10QPayload (de sam_m10q_KEYID.h)
+' ──────────────────────────────────────────────
+class M10QPayload << (S,LightCyan) struct >> {
+    + data : const uint8_t*
+    + size : uint8_t
+}
+
+' ──────────────────────────────────────────────
+' Dependencias externas (forward declarations)
+' ──────────────────────────────────────────────
+class I2CBus  << (C,LightGray) >>
+class UARTBus << (C,LightGray) >>
+
+' ──────────────────────────────────────────────
+' Clase principal
+' ──────────────────────────────────────────────
+class SamM10q {
+    ' ── Atributos públicos ──────────────────
+    + latitude      : float
+    + longitude     : float
+    + fechaUTC      : uint32_t   ' yymmdd
+    + horaUTC       : uint32_t   ' hhmmss
+    + flags         : uint8_t
+    + iTow          : uint32_t   ' GPS time of week [ms]
+    + psmStateActive : bool      ' true = GPS en PSM inactivo
+
+    ' ── Atributos privados ──────────────────
+    - i2cAddr    : uint8_t
+    - initialized : bool
+    - version    : uint8_t
+    - reserved   : uint16_t
+    - i2cBus     : I2CBus*
+    - uartBus    : UARTBus*
+
+    ' ── Constructor ─────────────────────────
+    + SamM10q()
+
+    ' ── Inicialización ──────────────────────
+    + init(i2cAddr : uint8_t) : bool
+
+    ' ── API pública de posición ─────────────
+    + read_gps_position() : HAL_StatusTypeDef
+    + update_location_and_time() : bool
+    + set_new_acq_time(gpsRate : gpsRateSpeed) : bool
+
+    ' ── Registro UBX (I2C) ──────────────────
+    + write_register(payload_data : uint8_t*, payload_len : size_t, layer : uint8_t) : bool
+
+    ' ── Registro UBX (UART) ─────────────────
+    + write_register_uart(payload_data : uint8_t*, payload_len : size_t, layer : uint8_t) : bool
+    + read_register_uart(payload_data : uint8_t*, payload_len : size_t,\n               response_buffer : uint8_t*, buffer_size : uint16_t, layer : uint8_t) : bool
+    + configure_gps_uart() : void
+    + configure_gps(startIndex : size_t, numPayloads : size_t) : void
+
+    ' ── Test ────────────────────────────────
+    + testGPS() : void
+
+    ' ── Configuración interna ───────────────
+    - configure_all_registers(configPayloads : M10QPayload[], startIndex : size_t, numPayloads : size_t) : void
+    - verify_config_with_valget_uart(payload_data : uint8_t*, payload_len : size_t, layer : uint8_t) : bool
+
+    ' ── Construcción/envío de mensajes UBX ──
+    - build_ubx_message(msgClass : uint8_t, msgID : uint8_t, layer : uint8_t,\n               payload_data : uint8_t*, payload_len : size_t,\n               buffer : uint8_t*, buffer_size : uint16_t) : uint16_t
+    - send_message(message : uint8_t*, message_len : uint16_t, delay_ms : uint32_t) : HAL_StatusTypeDef
+    - send_message_uart(message : uint8_t*, message_len : uint16_t, delay_ms : uint32_t) : HAL_StatusTypeDef
+    - ubx_calculate_checksum(msg : uint8_t*, msg_len : uint16_t, ck_a : uint8_t*, ck_b : uint8_t*) : void
+
+    ' ── PVT (Position, Velocity, Time) ──────
+    - getPVT(pvtData : UBX_NAV_PVT_data_t*, maxWaitMs : uint32_t = 1000) : bool
+    - requestPVT() : bool
+    - receivePVT(pvtData : UBX_NAV_PVT_data_t*, maxWaitMs : uint32_t) : bool
+    - receivePVTValidateOption(pvtData : UBX_NAV_PVT_data_t*, maxWaitMs : uint32_t) : bool
+    - parseUBXMessage(buffer : uint8_t*, bufferLen : uint16_t, pvtData : UBX_NAV_PVT_data_t*) : bool
+    - verifyUBXChecksum(buffer : uint8_t*, msgLen : uint16_t) : bool
+
+    ' ── VALGET / ACK internos ───────────────
+    - flush_uart_buffer(timeout_ms : uint32_t = 500) : void
+    - verify_config_with_valget_i2c(payload_data : uint8_t*, payload_len : size_t, layer : uint8_t) : bool
+    - parse_valget_response(response_buffer : uint8_t*, buffer_len : uint16_t,\n               key_id : uint8_t*, expected_value : uint8_t*, value_size : uint8_t) : bool
+    - check_ack_response(response_buffer : uint8_t*, buffer_len : uint16_t,\n               expected_class : uint8_t, expected_id : uint8_t) : int8_t
+}
+
+' ──────────────────────────────────────────────
+' Relaciones
+' ──────────────────────────────────────────────
+SamM10q "1" *-- "1" I2CBus    : usa >
+SamM10q "1" *-- "1" UARTBus   : usa >
+
+SamM10q ..> UBX_NAV_PVT_data_t : <<usa (PVT)>>
+SamM10q ..> M10QPayload         : <<usa (config)>>
+SamM10q ..> gpsRateSpeed        : <<parámetro>>
+
+note bottom of SamM10q
+  Protocolo: I2C (operación) + UART (config inicial)
+  Módulo: u-blox SAM-M10Q
+  Protocolo UBX clases relevantes:
+    NAV-PVT  (0x01/0x07) — posición/velocidad/tiempo
+    CFG-VALSET (0x06/0x8A) — escritura de config
+    CFG-VALGET (0x06/0x8B) — lectura/verificación
+    ACK/NAK  (0x05/0x01|0x00)
+end note
+
+@enduml

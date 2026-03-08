@@ -1,0 +1,25 @@
+@startuml main_fsm
+title TPP-IntelliFence — Main FSM (MainFSM_t)
+
+skinparam state {
+    BackgroundColor<<active>> LightSkyBlue
+    BorderColor Black
+    FontSize 13
+}
+
+[*] --> STARTUP_ROUTINE
+
+state STARTUP_ROUTINE : Inicialización del sistema\n(join LoRa, GPS, cerca)
+
+state NORMAL_OPERATION : Operación normal\n(sub-FSM: INITIALIZE / GREEN_ZONE / STIMULUS_ZONE)
+
+state FENCE_TRANSITION : Transición de cerca\n(nueva cerca recibida vía LoRa)
+
+STARTUP_ROUTINE --> NORMAL_OPERATION  : zona verde al inicio
+STARTUP_ROUTINE --> FENCE_TRANSITION  : fuera de zona verde al inicio
+
+NORMAL_OPERATION --> FENCE_TRANSITION : nueva cerca recibida (MSG_ID_LORA_VERTEXES_RECEIVED)
+
+FENCE_TRANSITION --> NORMAL_OPERATION : cerca procesada, vaca en zona verde
+
+@enduml
