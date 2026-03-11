@@ -193,11 +193,6 @@ class Lsm6dso {
     - lsm6dso_from_fs1000_to_mdps(lsb : int16_t) : float_t
     - lsm6dso_from_fs2000_to_mdps(lsb : int16_t) : float_t
     - lsm6dso_from_lsb_to_celsius(lsb : int16_t) : float_t
-
-    ' ── Legacy ──────────────────────────────
-    - lsm6dso_read_reg(reg : uint8_t, data : uint8_t*, len : uint16_t) : I2CResult
-    - lsm6dso_acceleration_raw_get(val : int16_t*) : I2CResult
-    - lsm6dso_data_get(md : lsm6dso_md_t*, data : lsm6dso_data_t*) : I2CResult
 }
 
 ' ──────────────────────────────────────────────
