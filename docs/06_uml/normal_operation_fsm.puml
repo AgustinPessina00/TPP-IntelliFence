@@ -1,0 +1,111 @@
+@startuml normal_operation_fsm
+title TPP-IntelliFence -- Normal Operation FSM (NormalOpFSM_t + Sub-FSMs)
+
+skinparam state {
+    BorderColor     Black
+    FontSize        11
+    ArrowFontSize   9
+    BackgroundColor White
+    MinimumWidth    330
+}
+skinparam ArrowColor DarkSlateGray
+
+[*] --> NORMAL_OPERATION
+
+state "NORMAL OPERATION (NormalOpFSM_t)" as NORMAL_OPERATION {
+
+    [*] --> INIT_FSM
+
+    ' =========================================================================
+    ' SUB-FSM 1 -- INITIALIZE
+    ' =========================================================================
+    state "INITIALIZE (InitializeState_t)" as INIT_FSM #LightSkyBlue {
+        [*]        --> I_BEGIN
+        state "INITIALIZE_BEGIN" as I_BEGIN
+        state "INITIALIZE_REQUEST_POSITION" as I_REQ_POS  : sendMessage(MSG_ID_REQUEST_GPS, MODULE_GPS)\nAbre timeout GPS_TIMEOUT_MS
+        state "INITIALIZE_WAIT_POSITION" as I_WAIT_POS    : Aguarda MSG_ID_SEND_GPS\nprocessGpsMessage() -- cow.updatePosition()\nSi timeout: avanza con ultima posicion conocida
+        state "INITIALIZE_REQUEST_ZONE" as I_REQ_ZONE     : getZoneFromDistance(cow, fence)\ncow.updateCurrentZone()\ncow.updateDistanceToLimit()
+        state "INITIALIZE_END" as I_END                   : Evalua isInGreenZone(cow)\nSelecciona sub-FSM destino\nReinicia initializeState = BEGIN
+
+        I_BEGIN    --> I_REQ_POS
+        I_REQ_POS  --> I_WAIT_POS
+        I_WAIT_POS --> I_REQ_ZONE
+        I_REQ_ZONE --> I_END
+        I_END      --> [*]
+    }
+
+    ' =========================================================================
+    ' SUB-FSM 2 -- GREEN ZONE
+    ' =========================================================================
+    state "GREEN ZONE (GreenZoneState_t)" as GZ_FSM #PaleGreen {
+        [*]          --> GZ_BEGIN
+        state "GREEN_ZONE_BEGIN" as GZ_BEGIN
+        state "GREEN_ZONE_REQUEST_ACCELERATION" as GZ_REQ_ACC  : sendMessage(MSG_ID_REQUEST_IMU, MODULE_IMU)\nAbre timeout IMU_TIMEOUT_MS
+        state "GREEN_ZONE_WAIT_ACCELERATION" as GZ_WAIT_ACC    : Aguarda MSG_ID_SEND_IMU_BURST\nupdateStateFromFeatures(var, range_z, range, z_ratio)\nSi timeout: repite REQUEST_ACCELERATION
+        state "GREEN_ZONE_EVALUATE_COWSTATE" as GZ_EVAL        : Evalua CowState clasificado\n-> GRAZING / SLEEP / MOVEMENT
+        state "GREEN_ZONE_GRAZING" as GZ_GRAZING               : CowState = GRAZING\nRedirige a evaluacion de distancia
+        state "GREEN_ZONE_SLEEP" as GZ_SLEEP                   : CowState = SLEEP / QUIET\nupdateGpsAdqTime(GREEN_ZONE_RATE)
+        state "GREEN_ZONE_MOVEMENT" as GZ_MOVEMENT             : CowState = MOVEMENT\nEvalua cow.getDistanceToLimit()
+        state "GREEN_ZONE_NEAR_LIMIT" as GZ_NEAR               : Distancia <= NEAR_LIMIT\nfsmTicks = FSM_TICKS_NEAR_LIMIT\nupdateGpsAdqTime(NEAR_LIMIT_RATE)
+        state "GREEN_ZONE_FAR_LIMIT" as GZ_FAR                 : Distancia > NEAR_LIMIT\nfsmTicks = FSM_TICKS_GREEN_ZONE\nupdateGpsAdqTime(GREEN_ZONE_RATE)
+        state "GREEN_ZONE_WAIT_GPS_ADQ_TIME" as GZ_WAIT_GPS    : Aguarda MSG_ID_GPS_CONFIG_RESPONSE\nprocessGpsConfigResponse()\nSi timeout: vuelve a EVALUATE_COWSTATE
+        state "GREEN_ZONE_END" as GZ_END                       : Ciclo completo\ngreenZoneState = BEGIN\nnormalOpFSM = INITIALIZE
+
+        GZ_BEGIN    --> GZ_REQ_ACC
+        GZ_REQ_ACC  --> GZ_WAIT_ACC
+        GZ_WAIT_ACC --> GZ_EVAL
+
+        GZ_EVAL     --> GZ_GRAZING  : CowState == GRAZING
+        GZ_EVAL     --> GZ_SLEEP    : CowState == SLEEP/QUIET
+        GZ_EVAL     --> GZ_MOVEMENT : CowState == MOVEMENT
+
+        GZ_GRAZING  --> GZ_MOVEMENT : Redirige (GRAZING no\nmodifica GPS rate)
+        GZ_SLEEP    --> GZ_WAIT_GPS
+        GZ_MOVEMENT --> GZ_NEAR     : distancia <= NEAR_LIMIT
+        GZ_MOVEMENT --> GZ_FAR      : distancia > NEAR_LIMIT
+        GZ_NEAR     --> GZ_WAIT_GPS
+        GZ_FAR      --> GZ_WAIT_GPS
+        GZ_WAIT_GPS --> GZ_END
+        GZ_END      --> [*]
+    }
+
+    ' =========================================================================
+    ' SUB-FSM 3 -- STIMULUS ZONE
+    ' =========================================================================
+    state "STIMULUS ZONE (StimulusZone_t)" as SZ_FSM #LightSalmon {
+        [*]      --> SZ_BEGIN
+        state "STIMULUS_ZONE_BEGIN" as SZ_BEGIN
+        state "STIMULUS_ZONE_SEND_ZONE" as SZ_SEND    : sendZoneToStimulus(cow.getCurrentZone())\nfsmTicks = FSM_TICKS_STIMULOUS_ZONE\nAbre timeout STIMULUS_TIMEOUT_MS
+        state "STIMULUS_ZONE_WAIT_RESPONSE" as SZ_WAIT : Aguarda MSG_ID_STIMULUS_FEEDBACK\nprocessStimulusResponse()\nSi timeout: repite SEND_ZONE
+        state "STIMULUS_ZONE_END" as SZ_END            : Estimulo confirmado\nstimZoneState = BEGIN\nnormalOpFSM = INITIALIZE
+
+        SZ_BEGIN --> SZ_SEND
+        SZ_SEND  --> SZ_WAIT
+        SZ_WAIT  --> SZ_END
+        SZ_END   --> [*]
+    }
+
+    ' =========================================================================
+    ' Transiciones de alto nivel entre Sub-FSMs (NormalOpFSM_t)
+    ' =========================================================================
+    INIT_FSM --> GZ_FSM  : isInGreenZone(cow) == OK\nnormalOpFSM = GREEN_ZONE
+    INIT_FSM --> SZ_FSM  : isInGreenZone(cow) != OK\nnormalOpFSM = STIMULUS_ZONE
+
+    GZ_FSM   --> INIT_FSM : GZ ciclo completo\nnormalOpFSM = INITIALIZE
+    SZ_FSM   --> INIT_FSM : SZ ciclo completo\nnormalOpFSM = INITIALIZE
+}
+
+' =============================================================================
+' Salida: nueva cerca recibida (detectada en fsmTask.cpp)
+' =============================================================================
+state "FENCE_TRANSITION [MainFSM_t]" as FT #LightCoral
+
+NORMAL_OPERATION --> FT : [MSG_ID_LORA_VERTEXES_RECEIVED]\nprocessFenceMessage() OK\nmainFSM = FENCE_TRANSITION
+
+note right of FT
+  Puede ocurrir en cualquier sub-estado.
+  Detectado en fsmTask.cpp al finalizar
+  el ciclo RTOS activo.
+end note
+
+@enduml
