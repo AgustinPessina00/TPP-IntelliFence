@@ -62,11 +62,9 @@ void runInitializeFSM(NormalOpFSM_t& normalOpFSM, InitializeState_t& initializeS
         case INITIALIZE_WAIT_POSITION:
             if (waitForMessage(MSG_ID_SEND_GPS, timeout, msg, newMessage) == HAL_OK) {
                 bool validPosition = false;
-                if (processGpsMessage(*msg, cow, validPosition) == HAL_OK) {
-                    if(validPosition) {
-                        sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
-                        initializeState = INITIALIZE_REQUEST_ZONE;
-                    }
+                if (processGpsMessage(*msg, cow, validPosition) == HAL_OK && validPosition) {
+                    sendPosition(MSG_ID_LORA_SEND_POSITION, MODULE_LORA_TX, cow);
+                    initializeState = INITIALIZE_REQUEST_ZONE;
                 }
             } else if (Timeout_IsExpired(&timeout)) {
                 RTOS_LOG_WARN("[NORMAL_OPERATION] Normal OP INITIALIZE: GPS timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
@@ -153,18 +151,18 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                     greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
                 }
             }
-            // Fallback: MSG_ID_SEND_IMU (single sample - legacy/deprecated)
-            else if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
-                RTOS_LOG_WARN("[FSM] GREEN: Received single IMU sample (deprecated - use burst)\r\n");
-                if (processImuMessage(*msg, cow) == HAL_OK) {
-                    greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
-                }
-            }
+            // // Fallback: MSG_ID_SEND_IMU (single sample - legacy/deprecated)
+            // else if (waitForMessage(MSG_ID_SEND_IMU, timeout, msg, newMessage) == HAL_OK) {
+            //     RTOS_LOG_WARN("[FSM] GREEN: Received single IMU sample (deprecated - use burst)\r\n");
+            //     if (processImuMessage(*msg, cow) == HAL_OK) {
+            //         greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+            //     }
+            // }
             else if (Timeout_IsExpired(&timeout)) {
                 RTOS_LOG_WARN("[NORMAL_OPERATION] GREEN: IMU timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 greenZoneState = GREEN_ZONE_REQUEST_ACCELERATION;
             }
-            greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
+            // greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
             break;
             
         case GREEN_ZONE_EVALUATE_COWSTATE:
@@ -177,10 +175,10 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                     greenZoneState = GREEN_ZONE_SLEEP;
                     RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE SLEEP: \r\n");
                     break;
-                case CowState::QUIET:
-                    greenZoneState = GREEN_ZONE_SLEEP; // QUIET usa mismo path que SLEEP
-                    RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE QUIET: \r\n");
-                    break;
+                // case CowState::QUIET:
+                //     greenZoneState = GREEN_ZONE_SLEEP; // QUIET usa mismo path que SLEEP
+                //     RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE QUIET: \r\n");
+                //     break;
                 case CowState::MOVEMENT:
                     greenZoneState = GREEN_ZONE_MOVEMENT;
                     RTOS_LOG_DEBUG("[NORMAL_OPERATION] GREEN ZONE MOVEMENT: \r\n");
@@ -193,9 +191,9 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
             break;
             
         case GREEN_ZONE_SLEEP:
-            updateGpsAdqTime(GpsRate:: GREEN_ZONE_RATE);      // A CHEQUEAR PARA AGREGARLE UN MAYOR TIEMPO AL GPS
+            updateGpsAdqTime(GpsRate::GREEN_ZONE_RATE);      // A CHEQUEAR PARA AGREGARLE UN MAYOR TIEMPO AL GPS
             Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
-            //enterLowPowerSleep();
+            //enterLowPowerSleep(); -> Se movió a la espera de confirmación de configuración GPS para evitar quedarse dormido sin actualizar zona ni adquirir GPS.
             greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
             break;
             
@@ -227,14 +225,25 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
         case GREEN_ZONE_WAIT_GPS_ADQ_TIME:
             if (waitForMessage(MSG_ID_GPS_CONFIG_RESPONSE, timeout, msg, newMessage) == HAL_OK) {
                 if (processGpsConfigResponse(*msg) == HAL_OK) {
-                     greenZoneState = GREEN_ZONE_END;
+                    if(cow.getState() == CowState::SLEEP) {
+                        RTOS_LOG_INFO("[NORMAL_OPERATION] Cow is sleeping, entering low power mode\r\n");
+                        greenZoneState = GREEN_ZONE_LOW_POWER_SLEEP;
+                    }
+                    else {
+                        greenZoneState = GREEN_ZONE_END;
+                    }
                 }
             } else if (Timeout_IsExpired(&timeout)) {
                 //RTOS_LOG_WARN("[NORMAL_OPERATION] GREEN: GPS config timeout (%lums), retrying...\r\n", Timeout_GetElapsed(&timeout));
                 greenZoneState = GREEN_ZONE_EVALUATE_COWSTATE;
             }
             break;
-            
+        
+        case GREEN_ZONE_LOW_POWER_SLEEP:
+            enterLowPowerSleep();
+            greenZoneState = GREEN_ZONE_END;
+            break;
+
         case GREEN_ZONE_END:
             greenZoneState = GREEN_ZONE_BEGIN;
             normalOpFSM = NormalOpFSM_t::INITIALIZE;

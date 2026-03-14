@@ -104,7 +104,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             if (waitForMessage(MSG_ID_LORA_VERTEXES_RECEIVED, timeout, msg, newMessage) == HAL_OK) {
                 if (processFenceMessage(*msg, fence) == HAL_OK) {
                     RTOS_LOG_INFO("[STARTUP_ROUTINE] Fence vertices received after %lums\r\n", Timeout_GetElapsed(&timeout));
-                    *state = STARTUP_ROUTINE_SAVE_FENCE;
+                    *state = STARTUP_ROUTINE_REQUEST_ZONE;
                 }
             } else if (Timeout_IsExpired(&timeout)) {
                 RTOS_LOG_WARN("[STARTUP_ROUTINE] Fence RX timeout (%lums), waiting...\r\n", Timeout_GetElapsed(&timeout));
