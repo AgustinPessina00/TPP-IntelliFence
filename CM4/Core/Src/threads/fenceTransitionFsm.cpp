@@ -54,7 +54,7 @@ void runFenceTransitionFSM(MainFSM_t& mainFSM, FenceTransitionState_t& fenceTran
             break;
             
         case FENCE_TRANSITION_GPSRATE_FAST:
-            // updateGpsAdqTime(GpsRate::CONTINUOUS_RATE); // Para acelerar adquisición GPS durante transición
+            // updateGpsAdqTime(GpsRate::FAST);
             // Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
             fenceTransitionState = FENCE_TRANSITION_WAIT_GPS_ADQ_TIME;
             break;

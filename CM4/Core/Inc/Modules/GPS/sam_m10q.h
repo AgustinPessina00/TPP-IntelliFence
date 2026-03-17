@@ -98,19 +98,31 @@ public:
 	bool init(uint8_t i2cAddr);
 
     HAL_StatusTypeDef read_gps_position();
+	bool update_location_and_time();
 	bool set_new_acq_time(gpsRateSpeed gpsRate);
+
+	// TEST
+	void testGPS();
+
+	// Escritura y lectura de registros UBX (usa I2C por defecto)
+	bool write_register(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
+
+	// Funciones específicas para UART (configuración inicial)
+	bool write_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
+
+	bool read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer); //Leo la configuración de un KeyID con VALGET via UART.
+
+	void configure_gps_uart();  // Configuración inicial via UART
+
     void configure_gps(size_t startIndex, size_t numPayloads);
 
 private:
-	// Funciones internas de configuración y actualización
-	bool update_location_and_time();
-	bool write_register(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
-	bool write_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
-	bool read_register_uart(const uint8_t* payload_data, size_t payload_len, uint8_t* response_buffer, uint16_t buffer_size, uint8_t layer);
-
-	// Funciones auxiliares de configuración
+	// void configure_gps();
+	// void configure_all_registers(const M10QPayload configPayloads[], size_t numPayloads);
     void configure_all_registers(const M10QPayload configPayloads[], size_t startIndex, size_t numPayloads);
-    
+
+    bool verify_config_with_valget_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
+
 	// Armado de mensajes UBX usando arrays estáticos (embedded friendly)
 	uint16_t build_ubx_message(uint8_t msgClass, uint8_t msgID, uint8_t layer, const uint8_t* payload_data, size_t payload_len, uint8_t* buffer, uint16_t buffer_size);
 	HAL_StatusTypeDef send_message(const uint8_t* message, uint16_t message_len, uint32_t delay_ms);
@@ -121,13 +133,13 @@ private:
     bool getPVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs = 1000);
     bool requestPVT();
     bool receivePVT(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs);
+    bool receivePVTValidateOption(UBX_NAV_PVT_data_t* pvtData, uint32_t maxWaitMs); //Esta función hace varias validaciones para evitar el ruido de tramas NMEA. Solo debemos usarla si no eliminamos los mensajes NMEA.
     bool parseUBXMessage(const uint8_t* buffer, uint16_t bufferLen, UBX_NAV_PVT_data_t* pvtData);
     bool verifyUBXChecksum(const uint8_t* buffer, uint16_t msgLen);
 
 	// ====== FUNCIONES PRIVADAS PARA VERIFICACION VALGET ======
 	void flush_uart_buffer(uint32_t timeout_ms = 500);
 	bool verify_config_with_valget_i2c(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
-    bool verify_config_with_valget_uart(const uint8_t* payload_data, size_t payload_len, uint8_t layer);
 	bool parse_valget_response(const uint8_t* response_buffer, uint16_t buffer_len, const uint8_t* key_id, const uint8_t* expected_value, uint8_t value_size);
 	int8_t check_ack_response(const uint8_t* response_buffer, uint16_t buffer_len, uint8_t expected_class, uint8_t expected_id);
 
@@ -143,6 +155,11 @@ public:
 private:
     uint8_t i2cAddr;
 	bool initialized;
+
+	//uint16_t length;	Es fijo, lo conocemos del KEYID.
+	uint8_t version;
+	uint16_t reserved;
+
 	I2CBus* i2cBus;             // Bus I2C thread-safe
 	UARTBus* uartBus;           // Bus UART thread-safe para configuración inicial
 };
