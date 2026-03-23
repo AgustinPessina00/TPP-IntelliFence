@@ -14,7 +14,6 @@ skinparam enum {
     BorderColor DarkGoldenRod
 }
 skinparam ArrowColor DarkSlateGray
-skinparam linetype ortho
 
 ' ──────────────────────────────────────────────
 ' Enums y tipos
@@ -70,73 +69,57 @@ class Line << (S,LightCyan) struct >> {
 ' Clase Cow
 ' ──────────────────────────────────────────────
 class Cow {
-    ' ── Constructores ────────────────────────
-    + Cow()
-    + Cow(id)
-    + init() : void
-
-    ' ── Mutators ────────────────────────────
-    + updatePosition() : void
-    + updateAcceleration() : void
-    + updateState() : void
-    + updateCurrentZone() : void
-    + updateDistanceToLimit() : void
-
-    ' ── Getters ─────────────────────────────
-    + getId() : DeviceUID
-    + getPosition() : Position
-    + getAcceleration() : Acceleration
-    + getState() : CowState
-    + getCurrentZone() : zone_t
-    + getDistanceToLimit() : float
-    + getIsInitialized() : bool
-
-    ' ── Atributos privados ──────────────────
-    - id              : DeviceUID
-    - position        : Position
-    - acceleration    : Acceleration
-    - state           : CowState
-    - currentZone     : zone_t
-    - distanceToLimit : float
-    - isInitialized   : bool
+    public:
+    Cow()
+    Cow(id)
+    init() : void
+    updatePosition()        : void
+    updateAcceleration()    : void
+    updateState()           : void
+    updateCurrentZone()     : void
+    updateDistanceToLimit() : void
+    getId()              : DeviceUID
+    getPosition()        : Position
+    getAcceleration()    : Acceleration
+    getState()           : CowState
+    getCurrentZone()     : zone_t
+    getDistanceToLimit() : float
+    getIsInitialized()   : bool
+    --
+    private:
+    id              : DeviceUID
+    position        : Position
+    acceleration    : Acceleration
+    state           : CowState
+    currentZone     : zone_t
+    distanceToLimit : float
+    isInitialized   : bool
 }
 
 ' ──────────────────────────────────────────────
 ' Clase Fence
 ' ──────────────────────────────────────────────
 class Fence {
-    ' ── Constantes (macros) ─────────────────
-    ' MAX_VERTICES = 10
-    ' TOTAL_TRESHOLDS = 5
-
-    ' ── Constructor ─────────────────────────
-    + Fence()
-    + init() : void
-
-    ' ── Gestión de límites ──────────────────
-    + createLimits() : void
-
-    ' ── Getters ─────────────────────────────
-    + getLimits() : const Line*
-    + getLimitCount() : uint8_t
-    + getCenterFence() : Vertex
-    + getIsInitialized() : bool
-    + getHasValidFence() : bool
-    + getThreshold() : float
-
-    ' ── Umbrales de zona ────────────────────
-    + thresholds[5] : float
-
-    ' ── Atributos privados ──────────────────
-    - limites[10]   : Line       ' Array estático de límites
-    - limitCount    : uint8_t
-    - centerFence   : Vertex
-    - isInitialized : bool
-    - hasValidFence : bool
-
-    ' ── Métodos privados ────────────────────
-    - updateCenterFence() : void
-    - setZoneThresholds() : void
+    public:
+    thresholds[5] : float
+    Fence()
+    init()         : void
+    createLimits() : void
+    getLimits()        : const Line*
+    getLimitCount()    : uint8_t
+    getCenterFence()   : Vertex
+    getIsInitialized() : bool
+    getHasValidFence() : bool
+    getThreshold()     : float
+    --
+    private:
+    limites[10]   : Line
+    limitCount    : uint8_t
+    centerFence   : Vertex
+    isInitialized : bool
+    hasValidFence : bool
+    updateCenterFence() : void
+    setZoneThresholds() : void
 }
 
 ' ──────────────────────────────────────────────

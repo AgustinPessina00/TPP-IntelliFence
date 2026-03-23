@@ -18,7 +18,6 @@ skinparam struct {
     BorderColor DarkCyan
 }
 skinparam ArrowColor DarkSlateGray
-skinparam linetype ortho
 skinparam nodesep 50
 skinparam ranksep 70
 
@@ -55,36 +54,28 @@ class UARTBus << (C,LightGray) >>
 ' Clase principal
 ' ──────────────────────────────────────────────
 class SamM10q {
-    ' ── Atributos públicos ──────────────────
-    + latitude      : float
-    + longitude     : float
-    + fechaUTC      : uint32_t   ' yymmdd
-    + horaUTC       : uint32_t   ' hhmmss
-    + flags         : uint8_t
-    + iTow          : uint32_t   ' GPS time of week [ms]
-    + psmStateActive : bool      ' true = GPS en PSM inactivo
-
-    ' ── Atributos privados ──────────────────
-    - i2cAddr    : uint8_t
-    - initialized : bool
-    - i2cBus     : I2CBus*
-    - uartBus    : UARTBus*
-
-    ' ── Constructor ─────────────────────────
-    + SamM10q()
-
-    ' ── Inicialización ──────────────────────
-    + init() : bool
-
-    ' ── API pública de posición ─────────────
-    + read_gps_position() : HAL_StatusTypeDef
-    + set_new_acq_time() : bool
-    + configure_gps() : void
-
-    ' ── Funciones privadas ──────────────────
-    - update_location_and_time() : bool
-    - configure_gps_uart() : void
-    - getPVT() : bool
+    public:
+    latitude       : float
+    longitude      : float
+    fechaUTC       : uint32_t
+    horaUTC        : uint32_t
+    flags          : uint8_t
+    iTow           : uint32_t
+    psmStateActive : bool
+    SamM10q()
+    init() : bool
+    read_gps_position() : HAL_StatusTypeDef
+    set_new_acq_time()  : bool
+    configure_gps()     : void
+    --
+    private:
+    i2cAddr     : uint8_t
+    initialized : bool
+    i2cBus      : I2CBus*
+    uartBus     : UARTBus*
+    update_location_and_time() : bool
+    configure_gps_uart()       : void
+    getPVT()                   : bool
 }
 
 ' ──────────────────────────────────────────────

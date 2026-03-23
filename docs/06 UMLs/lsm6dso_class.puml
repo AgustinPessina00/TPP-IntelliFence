@@ -14,81 +14,50 @@ skinparam enum {
     BorderColor DarkGoldenRod
 }
 skinparam ArrowColor DarkSlateGray
-skinparam linetype ortho
 left to right direction
-skinparam nodesep 35
-skinparam ranksep 60
+skinparam nodesep 30
+skinparam ranksep 50
 
 ' ──────────────────────────────────────────────
-' Enums de configuración (principales)
+' Enums de configuración — fila 1
 ' ──────────────────────────────────────────────
-enum Lsm6dsoOdrAcc << (E,LightYellow) >> {
-    POWER_DOWN
-    ODR_1_6
-    ODR_12_5
-    ODR_26
-    ODR_52
-    ODR_104
-    ODR_208
-    ODR_416
-    ODR_833
-    ODR_1K66
-    ODR_3K33
-    ODR_6K66
+together {
+    enum Lsm6dsoOdrAcc << (E,LightYellow) >> {
+    }
+
+    enum Lsm6dsoFsAcc << (E,LightYellow) >> {
+    }
+
+    enum Lsm6dsoOdrGyr << (E,LightYellow) >> {
+    }
 }
 
-enum Lsm6dsoFsAcc << (E,LightYellow) >> {
-    FS_2G
-    FS_16G
-    FS_4G
-    FS_8G
+' ──────────────────────────────────────────────
+' Enums de configuración — fila 2
+' ──────────────────────────────────────────────
+together {
+    enum Lsm6dsoFsGyr << (E,LightYellow) >> {
+    }
+
+    enum Lsm6dsoWakeThs << (E,LightYellow) >> {
+    }
+
+    enum Lsm6dsoWakeDur << (E,LightYellow) >> {
+    }
 }
 
-enum Lsm6dsoOdrGyr << (E,LightYellow) >> {
-    POWER_DOWN
-    ODR_12_5
-    ODR_26
-    ODR_52
-    ODR_104
-    ODR_208
-    ODR_416
-    ODR_833
-    ODR_1K66
-    ODR_3K33
-    ODR_6K66
-}
+' ──────────────────────────────────────────────
+' Enums de configuración — fila 3
+' ──────────────────────────────────────────────
+together {
+    enum Lsm6dsoWakeWeight << (E,LightYellow) >> {
+    }
 
-enum Lsm6dsoFsGyr << (E,LightYellow) >> {
-    FS_250DPS
-    FS_500DPS
-    FS_1KDPS
-    FS_2KDPS
-}
+    enum Lsm6dsoSleepDur << (E,LightYellow) >> {
+    }
 
-enum Lsm6dsoWakeThs << (E,LightYellow) >> {
-    THS_DISABLE = 0
-    THS_1..THS_63
-}
-
-enum Lsm6dsoWakeDur << (E,LightYellow) >> {
-    ODR_0
-    ODR_1
-    ODR_2
-    ODR_3
-}
-
-enum Lsm6dsoWakeWeight << (E,LightYellow) >> {
-    FS_XL_64
-    FS_XL_256
-}
-
-enum Lsm6dsoSleepDur << (E,LightYellow) >> {
-    DUR_0_512 .. DUR_15_512
-}
-
-enum Lsm6dsoI3C << (E,LightYellow) >> {
-    ENABLED
-    DISABLED
+    enum Lsm6dsoI3C << (E,LightYellow) >> {
+    }
 }
 
 ' ──────────────────────────────────────────────
@@ -100,49 +69,36 @@ class I2CBus << (C,LightGray) >>
 ' Clase principal
 ' ──────────────────────────────────────────────
 class Lsm6dso {
-    ' ── Atributos públicos (datos acc [mg]) ─
-    + ax          : float
-    + ay          : float
-    + az          : float
-    + gx          : float
-    + gy          : float
-    + gz          : float
-    + temperature : float
-
-    ' ── Datos raw ───────────────────────────
-    + axRaw   : int16_t
-    + ayRaw   : int16_t
-    + azRaw   : int16_t
-    + gxRaw   : int16_t
-    + gyRaw   : int16_t
-    + gzRaw   : int16_t
-    + tempRaw : int16_t
-
-    ' ── Constructor ─────────────────────────
-    + Lsm6dso()
-
-    ' ── Inicialización ──────────────────────
-    + init() : bool
-
-    ' ── Lecturas ────────────────────────────
-    + readAcceleration() : I2CResult
-    + readGyroscope()    : I2CResult
-    + readTemperature()  : I2CResult
-    + getWhoAmI()        : I2CResult
-
-    ' ── Test ────────────────────────────────
-    + testIMU() : void
-
-    ' ── Atributos privados ──────────────────
-    - i2cAddr     : uint8_t
-    - i2cBus      : I2CBus*
-    - initialized : bool
-
-    ' ── Métodos privados ────────────────────
-    - configure() : bool
-    - writeRegister() : I2CResult
-    - readRegister()  : I2CResult
-    - readRegisters() : I2CResult
+    public:
+    ax          : float
+    ay          : float
+    az          : float
+    gx          : float
+    gy          : float
+    gz          : float
+    temperature : float
+    axRaw   : int16_t
+    ayRaw   : int16_t
+    azRaw   : int16_t
+    gxRaw   : int16_t
+    gyRaw   : int16_t
+    gzRaw   : int16_t
+    tempRaw : int16_t
+    Lsm6dso()
+    init() : bool
+    readAcceleration() : I2CResult
+    readGyroscope()    : I2CResult
+    readTemperature()  : I2CResult
+    getWhoAmI()        : I2CResult
+    --
+    private:
+    i2cAddr     : uint8_t
+    i2cBus      : I2CBus*
+    initialized : bool
+    configure()     : bool
+    writeRegister() : I2CResult
+    readRegister()  : I2CResult
+    readRegisters() : I2CResult
 }
 
 ' ──────────────────────────────────────────────
