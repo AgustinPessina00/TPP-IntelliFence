@@ -1,0 +1,206 @@
+@startuml communication_buses_class
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    FontSize 12
+    AttributeFontSize 11
+}
+skinparam class<<Interface>> {
+    HeaderBackgroundColor DarkViolet
+    HeaderFontColor White
+    BorderColor DarkViolet
+    FontStyle italic
+}
+skinparam class<<Bus>> {
+    HeaderBackgroundColor SteelBlue
+    HeaderFontColor White
+}
+skinparam class<<Manager>> {
+    HeaderBackgroundColor DarkCyan
+    HeaderFontColor White
+}
+skinparam class<<Config>> {
+    HeaderBackgroundColor LightGray
+    BorderColor Gray
+}
+skinparam enum {
+    BackgroundColor LightYellow
+    BorderColor DarkGoldenRod
+}
+skinparam ArrowColor DarkSlateGray
+skinparam linetype ortho
+
+' ──────────────────────────────────────────────
+' Enums de resultado
+' ──────────────────────────────────────────────
+enum I2CResult << (E,LightYellow) >> {
+    I2C_OK      = 0
+    I2C_ERROR   = 1
+    I2C_TIMEOUT = 2
+    I2C_BUSY    = 3
+    I2C_NACK    = 4
+}
+
+enum UARTResult << (E,LightYellow) >> {
+    UART_OK      = 0
+    UART_ERROR   = 1
+    UART_TIMEOUT = 2
+    UART_BUSY    = 3
+    UART_NACK    = 4
+}
+
+' ──────────────────────────────────────────────
+' Structs de configuración
+' ──────────────────────────────────────────────
+class I2CBusConfig << (S,LightCyan) Config >> {
+    + maxRetries   : uint8_t
+    + retryDelay   : uint32_t
+    + busTimeout   : uint32_t
+    + mutexTimeout : uint32_t
+}
+
+class UARTConfig << (S,LightCyan) Config >> {
+    + maxRetries   : uint8_t
+    + retryDelay   : uint32_t
+    + busTimeout   : uint32_t
+    + mutexTimeout : uint32_t
+}
+
+' ──────────────────────────────────────────────
+' Interfaz II2C (abstracta)
+' ──────────────────────────────────────────────
+abstract class II2C << Interface >> {
+    + {abstract} memRead()   : I2CResult
+    + {abstract} memWrite()  : I2CResult
+    + {abstract} writeRead() : I2CResult
+    + {abstract} ~II2C()
+}
+
+' ──────────────────────────────────────────────
+' Interfaz IUART (abstracta)
+' ──────────────────────────────────────────────
+abstract class IUART << Interface >> {
+    + {abstract} memRead()   : UARTResult
+    + {abstract} memWrite()  : UARTResult
+    + {abstract} writeRead() : UARTResult
+    + {abstract} ~IUART()
+}
+
+' ──────────────────────────────────────────────
+' I2CBus
+' ──────────────────────────────────────────────
+class I2CBus << Bus >> {
+    ' ── Constructor ─────────────────────────
+    + I2CBus()
+    + ~I2CBus()
+
+    ' ── Inicialización ──────────────────────
+    + initialize() : I2CResult
+    + isInitialized() : bool
+
+    ' ── Operaciones II2C ────────────────────
+    + memRead()   : I2CResult
+    + memWrite()  : I2CResult
+    + writeRead() : I2CResult
+
+    ' ── Extra ───────────────────────────────
+    + transmit() : I2CResult
+    + {static} getDefaultConfig() : I2CBusConfig
+
+    ' ── Privados ────────────────────────────
+    - hi2c        : I2C_HandleTypeDef*
+    - busMutex    : osMutexId_t
+    - config      : I2CBusConfig
+    - initialized : bool
+    - recoverBus() : bool
+}
+
+' ──────────────────────────────────────────────
+' UARTBus
+' ──────────────────────────────────────────────
+class UARTBus << Bus >> {
+    ' ── Constructor ─────────────────────────
+    + UARTBus()
+    + ~UARTBus()
+
+    ' ── Inicialización ──────────────────────
+    + initialize() : UARTResult
+    + isInitialized() : bool
+
+    ' ── Operaciones IUART ───────────────────
+    + memRead()   : UARTResult
+    + memWrite()  : UARTResult
+    + writeRead() : UARTResult
+
+    ' ── Extra ───────────────────────────────
+    + transmit() : UARTResult
+    + receive()  : UARTResult
+
+    ' ── Privados ────────────────────────────
+    - huart       : UART_HandleTypeDef*
+    - busMutex    : osMutexId_t
+    - config      : UARTConfig
+    - initialized : bool
+    - recoverComm() : bool
+}
+
+' ──────────────────────────────────────────────
+' I2CManager (Singleton estático)
+' ──────────────────────────────────────────────
+class I2CManager << Manager >> {
+    ' ── API estática ────────────────────────
+    + {static} getBus2() : I2CBus&
+    + {static} initializeAll() : bool
+    + {static} isInitialized() : bool
+    + {static} reset() : bool
+
+    ' ── Privados estáticos ──────────────────
+    - {static} initialized : bool
+    - {static} bus2        : I2CBus
+
+    ' ── Singleton (no instanciable) ─────────
+    - I2CManager() = delete
+}
+
+' ──────────────────────────────────────────────
+' UARTManager (Singleton estático)
+' ──────────────────────────────────────────────
+class UARTManager << Manager >> {
+    ' ── API estática ────────────────────────
+    + {static} getUart1() : UARTBus&
+    + {static} initializeAll() : bool
+    + {static} isInitialized() : bool
+    + {static} reset() : bool
+
+    ' ── Privados estáticos ──────────────────
+    - {static} initialized : bool
+    - {static} uart1       : UARTBus
+
+    ' ── Singleton (no instanciable) ─────────
+    - UARTManager() = delete
+}
+
+' ──────────────────────────────────────────────
+' Herencia
+' ──────────────────────────────────────────────
+II2C  <|-- I2CBus  : extends
+IUART <|-- UARTBus : extends
+
+' ──────────────────────────────────────────────
+' Composición Managers
+' ──────────────────────────────────────────────
+I2CManager  "1" *-- "1" I2CBus  : bus2 (estático) >
+UARTManager "1" *-- "1" UARTBus : uart1 (estático) >
+
+' ──────────────────────────────────────────────
+' Uso de configs
+' ──────────────────────────────────────────────
+I2CBus  ..> I2CBusConfig : <<configura>>
+UARTBus ..> UARTConfig   : <<configura>>
+
+I2CBus  ..> I2CResult    : <<retorna>>
+UARTBus ..> UARTResult   : <<retorna>>
+
+@enduml

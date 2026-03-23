@@ -1,0 +1,100 @@
+@startuml gps_sam_m10q_class
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    HeaderBackgroundColor SteelBlue
+    HeaderFontColor White
+    FontSize 12
+    AttributeFontSize 11
+}
+skinparam enum {
+    BackgroundColor LightYellow
+    BorderColor DarkGoldenRod
+}
+skinparam struct {
+    BackgroundColor LightCyan
+    BorderColor DarkCyan
+}
+skinparam ArrowColor DarkSlateGray
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 70
+
+' ──────────────────────────────────────────────
+' Enum
+' ──────────────────────────────────────────────
+enum gpsRateSpeed {
+    GREEN_ZONE
+    NEAR_LIMIT
+    CONTINUOUS
+}
+
+' ──────────────────────────────────────────────
+' Struct: UBX_NAV_PVT_data_t
+' ──────────────────────────────────────────────
+class UBX_NAV_PVT_data_t << (S,LightCyan) struct >> {
+}
+
+' ──────────────────────────────────────────────
+' Struct: M10QPayload (de sam_m10q_KEYID.h)
+' ──────────────────────────────────────────────
+class M10QPayload << (S,LightCyan) struct >> {
+    + data : const uint8_t*
+    + size : uint8_t
+}
+
+' ──────────────────────────────────────────────
+' Dependencias externas (forward declarations)
+' ──────────────────────────────────────────────
+class I2CBus  << (C,LightGray) >>
+class UARTBus << (C,LightGray) >>
+
+' ──────────────────────────────────────────────
+' Clase principal
+' ──────────────────────────────────────────────
+class SamM10q {
+    ' ── Atributos públicos ──────────────────
+    + latitude      : float
+    + longitude     : float
+    + fechaUTC      : uint32_t   ' yymmdd
+    + horaUTC       : uint32_t   ' hhmmss
+    + flags         : uint8_t
+    + iTow          : uint32_t   ' GPS time of week [ms]
+    + psmStateActive : bool      ' true = GPS en PSM inactivo
+
+    ' ── Atributos privados ──────────────────
+    - i2cAddr    : uint8_t
+    - initialized : bool
+    - i2cBus     : I2CBus*
+    - uartBus    : UARTBus*
+
+    ' ── Constructor ─────────────────────────
+    + SamM10q()
+
+    ' ── Inicialización ──────────────────────
+    + init() : bool
+
+    ' ── API pública de posición ─────────────
+    + read_gps_position() : HAL_StatusTypeDef
+    + set_new_acq_time() : bool
+    + configure_gps() : void
+
+    ' ── Funciones privadas ──────────────────
+    - update_location_and_time() : bool
+    - configure_gps_uart() : void
+    - getPVT() : bool
+}
+
+' ──────────────────────────────────────────────
+' Relaciones
+' ──────────────────────────────────────────────
+SamM10q "1" *-- "1" I2CBus    : usa >
+SamM10q "1" *-- "1" UARTBus   : usa >
+
+SamM10q ..> UBX_NAV_PVT_data_t : <<parámetro>>
+SamM10q ..> M10QPayload         : <<parámetro>>
+SamM10q ..> gpsRateSpeed        : <<parámetro>>
+
+@enduml

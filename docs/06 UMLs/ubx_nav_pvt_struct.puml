@@ -1,0 +1,52 @@
+@startuml ubx_nav_pvt_struct
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor LightCyan
+    BorderColor DarkCyan
+    HeaderBackgroundColor CadetBlue
+    HeaderFontColor White
+    FontSize 12
+    AttributeFontSize 11
+}
+skinparam ArrowColor DarkSlateGray
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 50
+
+class UBX_NAV_PVT_data_t << (S,LightCyan) struct >> {
+    {field} + iTOW    : uint32_t   ' GPS time of week [ms]
+    {field} + year    : uint16_t   ' Año (UTC)
+    {field} + month   : uint8_t    ' Mes [1..12]
+    {field} + day     : uint8_t    ' Día [1..31]
+    {field} + hour    : uint8_t    ' Hora [0..23]
+    {field} + min     : uint8_t    ' Minuto [0..59]
+    {field} + sec     : uint8_t    ' Segundo [0..60]
+    {field} + valid   : uint8_t    ' Flags de validez
+    {field} + tAcc    : uint32_t   ' Time accuracy [ns]
+    {field} + nano    : int32_t    ' Fracción de segundo [ns]
+    {field} + fixType : uint8_t    ' 0=no fix, 2=2D, 3=3D
+    {field} + flags   : uint8_t    ' Fix status flags
+    {field} + flags2  : uint8_t    ' Flags adicionales
+    {field} + numSV   : uint8_t    ' Satélites usados
+    {field} + lon     : int32_t    ' Longitud [deg × 1e-7]
+    {field} + lat     : int32_t    ' Latitud  [deg × 1e-7]
+    {field} + height  : int32_t    ' Altura sobre elipsoide [mm]
+    {field} + hMSL    : int32_t    ' Altura sobre nivel del mar [mm]
+    {field} + hAcc    : uint32_t   ' Horizontal accuracy [mm]
+    {field} + vAcc    : uint32_t   ' Vertical accuracy [mm]
+    {field} + velN    : int32_t    ' Velocidad NED norte [mm/s]
+    {field} + velE    : int32_t    ' Velocidad NED este [mm/s]
+    {field} + velD    : int32_t    ' Velocidad NED abajo [mm/s]
+    {field} + gSpeed  : int32_t    ' Ground speed [mm/s]
+    {field} + headMot : int32_t    ' Heading of motion [deg × 1e-5]
+    {field} + sAcc    : uint32_t   ' Speed accuracy [mm/s]
+    {field} + headAcc : uint32_t   ' Heading accuracy [deg × 1e-5]
+    {field} + pDOP    : uint16_t   ' Position DOP [× 0.01]
+    {field} + flags3  : uint16_t   ' Flags adicionales
+    {field} + headVeh : int32_t    ' Heading of vehicle [deg × 1e-5]
+    {field} + magDec  : int16_t    ' Declinación magnética [deg × 1e-2]
+    {field} + magAcc  : uint16_t   ' Mag. dec. accuracy [deg × 1e-2]
+}
+
+@enduml

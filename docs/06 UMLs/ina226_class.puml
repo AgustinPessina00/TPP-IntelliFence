@@ -1,0 +1,120 @@
+@startuml ina226_class
+
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    HeaderBackgroundColor DarkGreen
+    HeaderFontColor White
+    FontSize 12
+    AttributeFontSize 11
+}
+skinparam enum {
+    BackgroundColor LightYellow
+    BorderColor DarkGoldenRod
+}
+skinparam ArrowColor DarkSlateGray
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 70
+
+' ──────────────────────────────────────────────
+' Enums de configuración
+' ──────────────────────────────────────────────
+enum Ina226Averaging << (E,LightYellow) >> {
+    AVG_1    = 0b000
+    AVG_4    = 0b001
+    AVG_16   = 0b010
+    AVG_64   = 0b011
+    AVG_128  = 0b100
+    AVG_256  = 0b101
+    AVG_512  = 0b110
+    AVG_1024 = 0b111
+}
+
+enum Ina226BusConvTime << (E,LightYellow) >> {
+    CT_140US
+    CT_204US
+    CT_332US
+    CT_588US
+    CT_1_1MS
+    CT_2_116MS
+    CT_4_156MS
+    CT_8_244MS
+}
+
+enum Ina226ShuntConvTime << (E,LightYellow) >> {
+    CT_140US
+    CT_204US
+    CT_332US
+    CT_588US
+    CT_1_1MS
+    CT_2_116MS
+    CT_4_156MS
+    CT_8_244MS
+}
+
+enum Ina226Mode << (E,LightYellow) >> {
+    POWER_DOWN
+    SHUNT_TRIGGERED
+    BUS_TRIGGERED
+    SHUNT_BUS_TRIGGERED
+    SHUNT_CONTINUOUS
+    BUS_CONTINUOUS
+    SHUNT_BUS_CONTINUOUS
+}
+
+' ──────────────────────────────────────────────
+' Dependencia
+' ──────────────────────────────────────────────
+class I2CBus << (C,LightGray) >>
+
+' ──────────────────────────────────────────────
+' Clase principal
+' ──────────────────────────────────────────────
+class Ina226 {
+    ' ── Atributos públicos (mediciones) ─────
+    + shuntVoltage : float    ' [mV]
+    + busVoltage   : float    ' [mV]
+    + current      : float    ' [mA]
+    + power        : float    ' [mW]
+
+    ' ── Constructor ─────────────────────────
+    + Ina226()
+
+    ' ── Inicialización ──────────────────────
+    + init() : bool
+
+    ' ── Lecturas ────────────────────────────
+    + readShuntVoltage_mV() : I2CResult
+    + readBusVoltage_mV()   : I2CResult
+    + readCurrent_mA()      : I2CResult
+    + readPower_mW()        : I2CResult
+
+    ' ── Test ────────────────────────────────
+    + testINA() : void
+
+    ' ── Atributos privados ──────────────────
+    - i2cAddr     : uint8_t
+    - i2cBus      : I2CBus*
+    - rShunt      : float
+    - currentLSB  : float
+    - initialized : bool
+
+    ' ── Métodos privados ────────────────────
+    - configure()           : I2CResult
+    - writeRegister()       : I2CResult
+    - readRegister()        : I2CResult
+    - calculateCalibration() : uint16_t
+}
+
+' ──────────────────────────────────────────────
+' Relaciones
+' ──────────────────────────────────────────────
+Ina226 "1" *-- "1" I2CBus           : usa (I2C2) >
+Ina226 ..> Ina226Averaging      : <<parámetro>>
+Ina226 ..> Ina226BusConvTime    : <<parámetro>>
+Ina226 ..> Ina226ShuntConvTime  : <<parámetro>>
+Ina226 ..> Ina226Mode           : <<parámetro>>
+
+@enduml
