@@ -16,10 +16,10 @@ Lsm6dso::Lsm6dso()
       fsAccConfig(Lsm6dsoFsAcc::FS_2G),
       odrGyrConfig(Lsm6dsoOdrGyr::ODR_104),
       fsGyrConfig(Lsm6dsoFsGyr::FS_250DPS),
-      wakeThsConfig(Lsm6dsoWakeThs::THS_DISABLE),
-      wakeDurConfig(Lsm6dsoWakeDur::ODR_0),
+      wakeThsConfig(Lsm6dsoWakeThs::THS_3),
+      wakeDurConfig(Lsm6dsoWakeDur::ODR_2),
       wakeWeightConfig(Lsm6dsoWakeWeight::FS_XL_64),
-      sleepDurConfig(Lsm6dsoSleepDur::DUR_0_512)
+      sleepDurConfig(Lsm6dsoSleepDur::DUR_5_512)
 {
   // Constructor does nothing - initialization is explicit via init()
 }
@@ -221,6 +221,26 @@ bool Lsm6dso::configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc
     // Enable register address auto-increment
     config = setConfigurationREG_CTRL3_C(Lsm6dsoIfInc::ENABLED);
     if (writeRegister(REG_CTRL3_C, config) != I2C_OK) return false;
+
+    // Use HPF for cleaner motion-onset detection (vs. slope filter)
+    config = setConfigurationREG_TAP_CFG0(Lsm6dsoSlopeFilterEn::HPF);
+    if (writeRegister(REG_TAP_CFG0, config) != I2C_OK) return false;
+
+    // Enable interrupt pipeline; gyroscope enters sleep on inactivity
+    config = setConfigurationREG_TAP_CFG2(Lsm6dsoIntEn::ENABLED, Lsm6dsoInActEn::G_SLEEP);
+    if (writeRegister(REG_TAP_CFG2, config) != I2C_OK) return false;
+
+    // Configure wake-up threshold
+    config = setConfigurationREG_WAKE_UP_THS(wakeThs);
+    if (writeRegister(REG_WAKE_UP_THS, config) != I2C_OK) return false;
+
+    // Configure wake-up duration, threshold weight and sleep duration
+    config = setConfigurationREG_WAKE_UP_DUR(wakeDur, wakeWeight, sleepDur);
+    if (writeRegister(REG_WAKE_UP_DUR, config) != I2C_OK) return false;
+
+    // Route wake-up interrupt to INT1
+    config = setConfigurationREG_MD1_CFG(Lsm6dsoIntWU::ENABLED);
+    if (writeRegister(REG_MD1_CFG, config) != I2C_OK) return false;
 
     return true;
 }

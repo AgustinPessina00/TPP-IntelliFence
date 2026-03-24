@@ -462,10 +462,10 @@ public:
 	          Lsm6dsoFsAcc fsAcc = Lsm6dsoFsAcc::FS_2G, 
 	          Lsm6dsoOdrGyr odrGyr = Lsm6dsoOdrGyr::ODR_104, 
 	          Lsm6dsoFsGyr fsGyr = Lsm6dsoFsGyr::FS_250DPS, 
-	          Lsm6dsoWakeThs wakeThs = Lsm6dsoWakeThs::THS_DISABLE, 
-	          Lsm6dsoWakeDur wakeDur = Lsm6dsoWakeDur::ODR_0, 
+	          Lsm6dsoWakeThs wakeThs = Lsm6dsoWakeThs::THS_3, 
+	          Lsm6dsoWakeDur wakeDur = Lsm6dsoWakeDur::ODR_2, 
 	          Lsm6dsoWakeWeight wakeWeight = Lsm6dsoWakeWeight::FS_XL_64, 
-	          Lsm6dsoSleepDur sleepDur = Lsm6dsoSleepDur::DUR_0_512);
+	          Lsm6dsoSleepDur sleepDur = Lsm6dsoSleepDur::DUR_5_512);
 
 	// Read acceleration data using thread-safe I2C
 	I2CResult readAcceleration();
