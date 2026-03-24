@@ -458,9 +458,9 @@ public:
 
 	// Must be called explicitly after HAL_Init() and MX_I2C_Init()
 	bool init(uint8_t i2cAddr, Lsm6dsoI3C i3c = Lsm6dsoI3C::DISABLED, 
-	          Lsm6dsoOdrAcc odrAcc = Lsm6dsoOdrAcc::ODR_104, 
+	          Lsm6dsoOdrAcc odrAcc = Lsm6dsoOdrAcc::ODR_52, 
 	          Lsm6dsoFsAcc fsAcc = Lsm6dsoFsAcc::FS_2G, 
-	          Lsm6dsoOdrGyr odrGyr = Lsm6dsoOdrGyr::ODR_104, 
+	          Lsm6dsoOdrGyr odrGyr = Lsm6dsoOdrGyr::POWER_DOWN,
 	          Lsm6dsoFsGyr fsGyr = Lsm6dsoFsGyr::FS_250DPS, 
 	          Lsm6dsoWakeThs wakeThs = Lsm6dsoWakeThs::THS_3, 
 	          Lsm6dsoWakeDur wakeDur = Lsm6dsoWakeDur::ODR_2, 

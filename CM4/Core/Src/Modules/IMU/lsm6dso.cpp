@@ -242,6 +242,14 @@ bool Lsm6dso::configure(Lsm6dsoI3C i3c, Lsm6dsoOdrAcc odrAcc, Lsm6dsoFsAcc fsAcc
     config = setConfigurationREG_MD1_CFG(Lsm6dsoIntWU::ENABLED);
     if (writeRegister(REG_MD1_CFG, config) != I2C_OK) return false;
 
+    // Disable high-performance mode for accelerometer (normal mode)
+    config = setConfigurationREG_CTRL6_C(Lsm6dsoXlHm::DISABLED);
+    if (writeRegister(REG_CTRL6_C, config) != I2C_OK) return false;
+
+    // Disable high-performance mode for gyroscope (normal mode)
+    config = setConfigurationREG_CTRL7_G(Lsm6dsoGHm::DISABLED);
+    if (writeRegister(REG_CTRL7_G, config) != I2C_OK) return false;
+
     return true;
 }
 
