@@ -42,7 +42,8 @@ typedef enum
   SYS_RTC_ALARM_MSG_ID,
   SYS_OTHER_MSG_ID,
   /* USER CODE BEGIN SYSTEM_MsgIdTypeDef */
-
+  SYS_SLEEP_REQUEST_MSG_ID, /* CM4 -> CM0+: halt LoRaWAN MAC + radio before STOP2 */
+  SYS_WAKE_REQUEST_MSG_ID,  /* CM4 -> CM0+: restart LoRaWAN MAC after STOP2       */
   /* USER CODE END SYSTEM_MsgIdTypeDef */
   SYS_MSGID_LAST
 } SYSTEM_MsgIdTypeDef;

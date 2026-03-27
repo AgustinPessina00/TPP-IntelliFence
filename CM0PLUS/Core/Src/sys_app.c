@@ -40,7 +40,7 @@
 #endif /* ALLOW_KMS_VIA_MBMUX */
 
 /* USER CODE BEGIN Includes */
-
+#include "LoRaMac.h"  /* LoRaMacHalt(), LoRaMacStart() */
 /* USER CODE END Includes */
 
 /* External variables ---------------------------------------------------------*/
@@ -200,7 +200,17 @@ void Process_Sys_Cmd(MBMUX_ComParam_t *ComObj)
       break;
 
     /* USER CODE BEGIN Process_Sys_Cmd_switch_case */
-
+    case SYS_SLEEP_REQUEST_MSG_ID:
+      /* Stop all MAC timers (RxWindow1/2, TxDelayed, etc.) and put the
+       * radio to sleep so CM0+ does not wake during CM4 STOP2. The MAC
+       * context (OTAA session, counters) is fully preserved. */
+      LoRaMacHalt();
+      break;
+    case SYS_WAKE_REQUEST_MSG_ID:
+      /* Transition MAC from LORAMAC_STOPPED -> LORAMAC_IDLE so that
+       * uplinks can resume normally after CM4 exits STOP2. */
+      LoRaMacStart();
+      break;
     /* USER CODE END Process_Sys_Cmd_switch_case */
 
     default:
