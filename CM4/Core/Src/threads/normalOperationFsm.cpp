@@ -205,14 +205,22 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
              * Spurious wakes (IPCC from CM0+/LoRaWAN, DMA completions, etc.)
              * return wakeReasonUnknown → sources stay armed, we loop back here
              * and immediately re-enter STOP without spamming the GPS/IMU logic.
+             *
+             * fsmTicks is forced to 1 so that after returning from STOP2 the task
+             * loop does not idle 1000 ms in active run mode before the next
+             * iteration.  The STOP2 period itself is the real "wait".  A normal
+             * fsmTicks value will be restored when the FSM leaves the sleep path
+             * (e.g. GREEN_ZONE_FAR_LIMIT resets it to FSM_TICKS_GREEN_ZONE).
              * ----------------------------------------------------------------- */
+            fsmTicks = 1;   /* ← prevent 1000 ms active-run after STOP2 wake */
             RTOS_LOG_INFO("[NORMAL_OPERATION] SLEEP: entering STOP%d (IMU-EXTI PC1 + LPTIM1 %ds backup)\r\n",
                           PM_STOP_MODE, PM_BACKUP_WAKE_SECONDS);
-            HAL_GPIO_WritePin(GPIOB, LED_RED_Pin, GPIO_PIN_SET); // DEBUG: Indicar que estamos entrando en modo de suspensión
+            HAL_GPIO_WritePin(GPIOB, LED_RED_Pin, GPIO_PIN_SET);
+            HAL_Delay(100); /* Ensure LED state is visible before STOP (flush UART) */
+            HAL_GPIO_WritePin(GPIOB, LED_RED_Pin, GPIO_PIN_RESET);
+            
             powerManagerArmWakeSources();   /* idempotent */
             powerManagerClearWakeReason();
-            HAL_Delay(100);                    /* Ensure wake sources are armed before sleeping */
-            HAL_GPIO_WritePin(GPIOB, LED_RED_Pin, GPIO_PIN_RESET); // DEBUG: Indicar que estamos entrando en modo de suspensión
             powerManagerEnterStop();        /* ← CPU halts here */
             /* NOTE: do NOT call powerManagerDisarmWakeSources() here yet –
              *       only disarm when we confirm a real wake reason below.   */

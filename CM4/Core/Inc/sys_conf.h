@@ -74,8 +74,12 @@ extern "C" {
 /**
   * @brief Enable/Disable MCU Debugger pins (dbg serial wires)
   * @note  by HW serial wires are ON by default, need to put them OFF to save power
+  * @note  Set to 1 only when debugging with ST-Link. With 1, HAL_DBGMCU_EnableDBGStopMode()
+  *        is called at startup which sets DBGMCU_CR.DBG_STOP → hardware keeps APB/AHB clocks
+  *        running during STOP2, causing "simulated stop" (~3 mA instead of <100 µA).
+  *        For real STOP2 power measurements, keep this 0.
   */
-#define DEBUGGER_ENABLED                     1
+#define DEBUGGER_ENABLED                     0
 
 /**
   * @brief Disable Low Power mode
