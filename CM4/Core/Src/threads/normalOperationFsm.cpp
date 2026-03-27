@@ -237,6 +237,9 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                 }
                 else if (wakeReason == wakeReasonLptim)
                 {
+                    HAL_GPIO_WritePin(GPIOB, LED_BLUE_Pin, GPIO_PIN_SET);
+                    HAL_Delay(100); /* Ensure LED state is visible before STOP (flush UART) */
+                    HAL_GPIO_WritePin(GPIOB, LED_BLUE_Pin, GPIO_PIN_RESET);
                     /* Periodic health check → re-evaluate GPS and cow state */
                     RTOS_LOG_INFO("[NORMAL_OPERATION] SLEEP: ← LPTIM1 backup wake (%ds) → health check\r\n",
                                   PM_BACKUP_WAKE_SECONDS);

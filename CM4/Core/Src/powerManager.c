@@ -17,6 +17,10 @@
 
 #include "powerManager.h"
 #include "usart_if.h"   /* vcom_Resume() – restores USART2 + DMA after STOP */
+#include "usart.h"      /* huart1, GPS_StartReception() */
+
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
 
 /* SystemClock_Config is implemented in main.c */
 extern void SystemClock_Config(void);
@@ -180,10 +184,46 @@ void powerManagerEnterStop(void)
     HAL_NVIC_DisableIRQ(IPCC_C1_RX_IRQn);
     HAL_NVIC_DisableIRQ(IPCC_C1_TX_IRQn);
 
-    /* 3. Suspend HAL tick source (TIM or SysTick) */
+    /* 3. Mask GPS UART (USART1).
+     *
+     *    The GPS module (u-blox) runs in continuous IT-receive mode: one byte
+     *    per HAL_UART_Receive_IT call, recursively restarted in GPS_RxCallback.
+     *    At 9600 baud that is ~one USART1_IRQn per millisecond.  If USART1_IRQn
+     *    is pending when WFI executes, the CPU wakes immediately and
+     *    HAL_PWREx_EnterSTOP2Mode returns with wakeReasonUnknown, causing an
+     *    infinite loop at ~4 mA while the LED blinks rapidly.
+     *
+     *    HAL_UART_AbortReceive flushes the HAL RX state machine and disables
+     *    the RXNE interrupt inside the USART peripheral register (CR1.RXNEIE)
+     *    so no new USART1_IRQn can pend after this call.  The NVIC disable
+     *    clears the enable bit in ISER so any byte that sneaks in before clock
+     *    shutdown cannot trigger WFI wake.  GPS bytes received while in STOP
+     *    are lost (USART1 clock is gated), which is acceptable – we restart
+     *    fresh IT-receive immediately after waking.                          */
+    HAL_UART_AbortReceive(&huart1);
+    HAL_NVIC_DisableIRQ(USART1_IRQn);
+
+    /* 4. Abort any in-progress LoRaWAN trace DMA on USART2 TX (DMA1_Channel5).
+     *
+     *    When IPCC is re-enabled after a previous wake, the CM0+ LoRaWAN stack
+     *    flushes accumulated trace messages via vcom_Trace_DMA which calls
+     *    HAL_UART_Transmit_DMA(&huart2, ...) → DMA1_Channel5.  If that DMA
+     *    transfer is still in progress when WFI executes, DMA1_Channel5_IRQn
+     *    fires and WFI returns immediately (spurious wake), creating an infinite
+     *    loop where the MCU blinks the LED but never achieves STOP2.
+     *
+     *    Aborting USART2 TX here stops the DMA transfer cleanly.  The partial
+     *    trace output is lost, which is acceptable – we are about to stop all
+     *    clocks anyway.  vcom_Resume() after wake re-initialises USART2 + DMA
+     *    so the trace system recovers automatically.                          */
+    HAL_UART_AbortTransmit(&huart2);
+    HAL_NVIC_ClearPendingIRQ(DMA1_Channel5_IRQn);
+    HAL_NVIC_DisableIRQ(DMA1_Channel5_IRQn);
+
+    /* 5. Suspend HAL tick source (TIM or SysTick) */
     HAL_SuspendTick();
 
-    /* 4. Enter STOP mode – CPU halts here until a wake source fires ----------
+    /* 6. Enter STOP mode – CPU halts here until a wake source fires ----------
      *    Only EXTI lines and LPTIM1 (armed above) can wake us now.
      *    Execution resumes at the line immediately after this call.          */
 #if PM_STOP_MODE == 2
@@ -193,24 +233,36 @@ void powerManagerEnterStop(void)
 #endif
     /* ---- CPU resumes here after wake --------------------------------------- */
 
-    /* 5. Restore HAL tick */
+    /* 7. Restore HAL tick */
     HAL_ResumeTick();
 
-    /* 6. Restore system clocks.
+    /* 8. Restore system clocks.
      *    In STOP mode, MSI (SYSCLK source) is stopped.  SystemClock_Config()
      *    re-enables MSI at 48 MHz and re-locks APB/AHB dividers.            */
     SystemClock_Config();
 
-    /* 7. Restore USART2 + DMA1 ch5 (trace/log UART – not retained in STOP).
+    /* 9. Restore USART2 + DMA1 ch5 (trace/log UART – not retained in STOP).
      *    vcom_Resume() re-runs HAL_UART_Init + HAL_DMA_Init for huart2.     */
     vcom_Resume();
 
-    /* 8. Re-enable IPCC RX/TX so the LoRaWAN stack catches up.
-     *    Any pending CM0+ flag triggers the ISR immediately here.           */
+    /* 10. Re-enable IPCC RX/TX so the LoRaWAN stack catches up.
+     *     Any pending CM0+ flag triggers the ISR immediately here.          */
     HAL_NVIC_EnableIRQ(IPCC_C1_RX_IRQn);
     HAL_NVIC_EnableIRQ(IPCC_C1_TX_IRQn);
 
-    /* 9. Determine wake reason from flags set in the ISR callbacks */
+    /* 11. Restart GPS UART IT-receive aborted before STOP.
+     *     GPS_StartReception() re-arms HAL_UART_Receive_IT so the circular
+     *     buffer resumes from the next GPS byte after clock restore.        */
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
+    GPS_StartReception();
+
+    /* 12. Re-enable USART2 TX DMA interrupts (DMA1_Channel5).
+     *     vcom_Resume() above already re-ran HAL_DMA_Init for hdma_usart2_tx.
+     *     Re-enabling the IRQ here lets the next vcom_Trace_DMA transfer
+     *     complete normally and signal UTIL_ADV_TRACE.                      */
+    HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+
+    /* 13. Determine wake reason from flags set in the ISR callbacks */
     if (imuWakeFlag)
     {
         currentWakeReason = wakeReasonImu;
