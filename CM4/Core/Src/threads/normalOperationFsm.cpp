@@ -208,9 +208,11 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
              * ----------------------------------------------------------------- */
             RTOS_LOG_INFO("[NORMAL_OPERATION] SLEEP: entering STOP%d (IMU-EXTI PC1 + LPTIM1 %ds backup)\r\n",
                           PM_STOP_MODE, PM_BACKUP_WAKE_SECONDS);
-
+            HAL_GPIO_WritePin(GPIOB, LED_RED_Pin, GPIO_PIN_SET); // DEBUG: Indicar que estamos entrando en modo de suspensión
             powerManagerArmWakeSources();   /* idempotent */
             powerManagerClearWakeReason();
+            HAL_Delay(100);                    /* Ensure wake sources are armed before sleeping */
+            HAL_GPIO_WritePin(GPIOB, LED_RED_Pin, GPIO_PIN_RESET); // DEBUG: Indicar que estamos entrando en modo de suspensión
             powerManagerEnterStop();        /* ← CPU halts here */
             /* NOTE: do NOT call powerManagerDisarmWakeSources() here yet –
              *       only disarm when we confirm a real wake reason below.   */
@@ -234,6 +236,9 @@ void runGreenZoneFSM(NormalOpFSM_t& normalOpFSM, GreenZoneState_t& greenZoneStat
                     updateGpsAdqTime(GpsRate::GREEN_ZONE_RATE);
                     Timeout_Start(&timeout, GPS_CONFIG_TIMEOUT_MS);
                     greenZoneState = GREEN_ZONE_WAIT_GPS_ADQ_TIME;
+                    /* Exit SLEEP to QUIET so FSM requires fresh quiet confirmations
+                     * before transitioning back to SLEEP. */
+                    cow.updateState(CowState::QUIET);
                 }
                 else
                 {

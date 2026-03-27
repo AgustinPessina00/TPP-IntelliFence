@@ -166,7 +166,7 @@ void powerManagerEnterStop(void)
     /* 1. Clear any stale wake flags to avoid immediate spurious wake */
     clearWakeFlags();
 
-    /* 2. Disable the IPCC RX interrupt (IPCC_C1_RX_IRQn) before entering STOP.
+    /* 2. Disable IPCC RX/TX interrupts before entering STOP.
      *
      *    The CM0+ LoRaWAN stack runs independently and fires IPCC events for
      *    every uplink confirmation, downlink, or MAC timer.  Those events are
@@ -178,6 +178,7 @@ void powerManagerEnterStop(void)
      *    interrupt fires at once and the mbmux processes all queued CM0+
      *    messages – no LoRaWAN events are lost.                              */
     HAL_NVIC_DisableIRQ(IPCC_C1_RX_IRQn);
+    HAL_NVIC_DisableIRQ(IPCC_C1_TX_IRQn);
 
     /* 3. Suspend HAL tick source (TIM or SysTick) */
     HAL_SuspendTick();
@@ -204,9 +205,10 @@ void powerManagerEnterStop(void)
      *    vcom_Resume() re-runs HAL_UART_Init + HAL_DMA_Init for huart2.     */
     vcom_Resume();
 
-    /* 8. Re-enable IPCC RX so the LoRaWAN stack catches up.
+    /* 8. Re-enable IPCC RX/TX so the LoRaWAN stack catches up.
      *    Any pending CM0+ flag triggers the ISR immediately here.           */
     HAL_NVIC_EnableIRQ(IPCC_C1_RX_IRQn);
+    HAL_NVIC_EnableIRQ(IPCC_C1_TX_IRQn);
 
     /* 9. Determine wake reason from flags set in the ISR callbacks */
     if (imuWakeFlag)

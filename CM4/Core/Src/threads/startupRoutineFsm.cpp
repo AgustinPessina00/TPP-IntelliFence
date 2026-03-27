@@ -5,6 +5,7 @@
 #include "getZone.h"
 #define RTOS_PRINTF_AUTO
 #include "rtos_printf.h"
+#include "gpio.h"
 
 // ============================================================================
 // STARTUP ROUTINE FSM
@@ -101,6 +102,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             break;
             
         case STARTUP_ROUTINE_WAIT_FENCE:
+            HAL_GPIO_WritePin(GPIOB, LED_BLUE_Pin, GPIO_PIN_SET); // DEBUG: Indicar que estamos esperando el cerco
             if (waitForMessage(MSG_ID_LORA_VERTEXES_RECEIVED, timeout, msg, newMessage) == HAL_OK) {
                 if (processFenceMessage(*msg, fence) == HAL_OK) {
                     RTOS_LOG_INFO("[STARTUP_ROUTINE] Fence vertices received after %lums\r\n", Timeout_GetElapsed(&timeout));
@@ -115,6 +117,7 @@ void runStartupRoutineFSM(MainFSM_t& mainFSM, StartupRoutineState_t* state,
             
         case STARTUP_ROUTINE_SAVE_FENCE:
             // Fence ya fue actualizado en processFenceMessage() via createLimits()
+            HAL_GPIO_WritePin(GPIOB, LED_BLUE_Pin, GPIO_PIN_RESET); // DEBUG: Cerco recibido, apagar indicación
             *state = STARTUP_ROUTINE_REQUEST_NEW_POSITION;
             break;
             
