@@ -153,7 +153,17 @@ extern "C" {
 void LoRaWAN_Init(void);
 
 /* USER CODE BEGIN EFP */
+/**
+  * @brief  Stop the LoRaWAN TX timer so its RTC Alarm A does not wake CM4
+  *         from STOP2.  Call before powerManagerEnterStop().
+  */
+void LoRa_StopTxTimer(void);
 
+/**
+  * @brief  Restart the LoRaWAN TX timer (full period) after STOP2 exit.
+  *         Call after powerManagerEnterStop() returns.
+  */
+void LoRa_StartTxTimer(void);
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

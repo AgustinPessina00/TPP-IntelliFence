@@ -21,6 +21,8 @@
 #include "mbmuxif_sys.h" /* MBMUXIF_GetSystemFeatureCmdComPtr(), MBMUXIF_SystemSendCmd() */
 #include "msg_id.h"      /* SYS_SLEEP_REQUEST_MSG_ID, SYS_WAKE_REQUEST_MSG_ID */
 #include "features_info.h" /* FEAT_INFO_SYSTEM_ID */
+#include "stm32wlxx_ll_ipcc.h" /* LL_C1_IPCC_DisableReceiveChannel() */
+#include "lora_app.h"    /* LoRa_StopTxTimer(), LoRa_StartTxTimer() */
 
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
@@ -188,21 +190,35 @@ void powerManagerEnterStop(void)
         MBMUXIF_SystemSendCmd(FEAT_INFO_SYSTEM_ID); /* blocks until CM0+ ACKs */
     }
 
-    /* 2. Disable IPCC RX/TX interrupts before entering STOP.
+    /* 1.6. Stop TxTimer to prevent RTC Alarm A from waking CM4 during STOP2.
      *
-     *    The CM0+ LoRaWAN stack runs independently and fires IPCC events for
-     *    every uplink confirmation, downlink, or MAC timer.  Those events are
-     *    the primary cause of spurious wakes: without this mask the CM4 exits
-     *    STOP almost immediately every time the CM0+ has activity.
+     *    UTIL_TIMER uses RTC_ALARM_A via HAL_RTC_SetAlarm_IT, which connects
+     *    to EXTI17.  EXTI17 is always active as a STOP2 wake source on STM32WL.
+     *    TxPeriodicity = 10 s, so without this call CM4 wakes ~10 s into every
+     *    60 s sleep window.  LoRa_StartTxTimer() after STOP2 reschedules the
+     *    alarm for a fresh full period so no uplink is attempted before the MAC
+     *    stack is confirmed running.                                          */
+    LoRa_StopTxTimer();
+
+    /* 2. Mask IPCC at the hardware level (C1MR) then disable NVIC.
      *
-     *    Safety: masking the NVIC does NOT discard the pending IPCC flag in
-     *    hardware.  When we call HAL_NVIC_EnableIRQ() after waking, the
-     *    interrupt fires at once and the mbmux processes all queued CM0+
-     *    messages – no LoRaWAN events are lost.                              */
+     *    NVIC-level masking alone (HAL_NVIC_DisableIRQ + ClearPendingIRQ) is
+     *    insufficient: as long as IPCC RX channels are occupied (CM0+ queued
+     *    a message that CM4 hasn't read yet) the IPCC peripheral keeps its
+     *    interrupt line asserted, which immediately re-sets the pending bit in
+     *    NVIC after we clear it.  WFI wakes on a pending interrupt regardless
+     *    of NVIC enable state – so the CPU exits STOP2 instantly every time.
+     *
+     *    Setting C1MR bits disconnects the IPCC interrupt signal at the
+     *    peripheral level so no occupied channel can assert the IRQ line.  The
+     *    pending IPCC messages are still preserved.  After STOP2 exit we
+     *    unmask C1MR and re-enable NVIC; any backed-up notifications fire at
+     *    once and mbmux processes them normally – no messages are lost.       */
+    LL_C1_IPCC_DisableReceiveChannel(IPCC,
+        LL_IPCC_CHANNEL_1 | LL_IPCC_CHANNEL_2 | LL_IPCC_CHANNEL_3 |
+        LL_IPCC_CHANNEL_4 | LL_IPCC_CHANNEL_5 | LL_IPCC_CHANNEL_6);
     HAL_NVIC_DisableIRQ(IPCC_C1_RX_IRQn);
     HAL_NVIC_DisableIRQ(IPCC_C1_TX_IRQn);
-    /* Clear pending bits: DisableIRQ only prevents future handling but a
-     * pending bit already set in NVIC ISPR will still cause WFI to wake. */
     HAL_NVIC_ClearPendingIRQ(IPCC_C1_RX_IRQn);
     HAL_NVIC_ClearPendingIRQ(IPCC_C1_TX_IRQn);
 
@@ -276,8 +292,12 @@ void powerManagerEnterStop(void)
      *    vcom_Resume() re-runs HAL_UART_Init + HAL_DMA_Init for huart2.     */
     vcom_Resume();
 
-    /* 11. Re-enable IPCC RX/TX so the LoRaWAN stack catches up.
-     *     Any pending CM0+ flag triggers the ISR immediately here.          */
+    /* 11. Re-enable IPCC: first unmask C1MR (hardware), then enable NVIC.
+     *     Any occupied channel immediately re-asserts the IRQ line; the
+     *     IPCC handler fires and mbmux flushes all backed-up notifications. */
+    LL_C1_IPCC_EnableReceiveChannel(IPCC,
+        LL_IPCC_CHANNEL_1 | LL_IPCC_CHANNEL_2 | LL_IPCC_CHANNEL_3 |
+        LL_IPCC_CHANNEL_4 | LL_IPCC_CHANNEL_5 | LL_IPCC_CHANNEL_6);
     HAL_NVIC_EnableIRQ(IPCC_C1_RX_IRQn);
     HAL_NVIC_EnableIRQ(IPCC_C1_TX_IRQn);
 
@@ -294,6 +314,11 @@ void powerManagerEnterStop(void)
         com_obj->ParamCnt = 0;
         MBMUXIF_SystemSendCmd(FEAT_INFO_SYSTEM_ID); /* blocks until CM0+ ACKs */
     }
+
+    /* 11.8. Restart TxTimer for a fresh 10 s period.
+     *     This re-arms RTC Alarm A so uplinks resume normally after STOP2.
+     *     The full period is used so no TX fires immediately on wake.        */
+    LoRa_StartTxTimer();
 
     /* 12. Restart GPS UART IT-receive aborted before STOP.
      *     GPS_StartReception() re-arms HAL_UART_Receive_IT so the circular

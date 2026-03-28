@@ -239,6 +239,9 @@ static void OnJoinTimerLedEvent(void *context);
 
 /* USER CODE END PFP */
 
+/* USER CODE BEGIN EF */
+/* USER CODE END EF */
+
 /* Private variables ---------------------------------------------------------*/
 /**
   * @brief LoRaWAN default activation type
@@ -550,7 +553,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 /* Private functions ---------------------------------------------------------*/
 /* USER CODE BEGIN PrFD */
+void LoRa_StopTxTimer(void)
+{
+    UTIL_TIMER_Stop(&TxTimer);
+}
 
+void LoRa_StartTxTimer(void)
+{
+    /* Restart with the full configured period so we don't send immediately
+     * after waking from STOP2.  Any uplinks missed during sleep are skipped
+     * intentionally – the device was asleep for power saving.              */
+    UTIL_TIMER_Stop(&TxTimer);
+    UTIL_TIMER_SetPeriod(&TxTimer, TxPeriodicity);
+    UTIL_TIMER_Start(&TxTimer);
+}
 /* USER CODE END PrFD */
 
 static void Thd_LoraSendProcess(void *argument)
