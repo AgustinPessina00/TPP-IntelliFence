@@ -4,7 +4,7 @@ skinparam classAttributeIconSize 0
 skinparam class {
     BackgroundColor White
     BorderColor Black
-    HeaderBackgroundColor DarkGreen
+    HeaderBackgroundColor SteelBlue
     HeaderFontColor White
     FontSize 12
     AttributeFontSize 11

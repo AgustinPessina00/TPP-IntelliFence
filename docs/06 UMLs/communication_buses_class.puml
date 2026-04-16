@@ -4,13 +4,15 @@ skinparam classAttributeIconSize 0
 skinparam class {
     BackgroundColor White
     BorderColor Black
+    HeaderBackgroundColor SteelBlue
+    HeaderFontColor White
     FontSize 12
     AttributeFontSize 11
 }
 skinparam class<<Interface>> {
-    HeaderBackgroundColor DarkViolet
+    HeaderBackgroundColor SteelBlue
     HeaderFontColor White
-    BorderColor DarkViolet
+    BorderColor Black
     FontStyle italic
 }
 skinparam class<<Bus>> {
@@ -18,16 +20,16 @@ skinparam class<<Bus>> {
     HeaderFontColor White
 }
 skinparam class<<Manager>> {
-    HeaderBackgroundColor DarkCyan
+    HeaderBackgroundColor SteelBlue
     HeaderFontColor White
 }
 skinparam class<<Config>> {
-    HeaderBackgroundColor LightGray
-    BorderColor Gray
+    HeaderBackgroundColor SteelBlue
+    BorderColor Black
 }
 skinparam enum {
     BackgroundColor LightYellow
-    BorderColor DarkGoldenRod
+    BorderColor Black
 }
 skinparam ArrowColor DarkSlateGray
 skinparam linetype ortho
