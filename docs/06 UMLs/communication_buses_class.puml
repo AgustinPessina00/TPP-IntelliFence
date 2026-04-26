@@ -109,7 +109,7 @@ class I2CBus << Bus >> {
 
     ' ── Extra ───────────────────────────────
     + transmit() : I2CResult
-    + {static} getDefaultConfig() : I2CBusConfig
+    + getDefaultConfig() : I2CBusConfig
 
     ' ── Privados ────────────────────────────
     - hi2c        : I2C_HandleTypeDef*
@@ -153,14 +153,14 @@ class UARTBus << Bus >> {
 ' ──────────────────────────────────────────────
 class I2CManager << Manager >> {
     ' ── API estática ────────────────────────
-    + {static} getBus2() : I2CBus&
-    + {static} initializeAll() : bool
-    + {static} isInitialized() : bool
-    + {static} reset() : bool
+    + getBus2() : I2CBus&
+    + initializeAll() : bool
+    + isInitialized() : bool
+    + reset() : bool
 
     ' ── Privados estáticos ──────────────────
-    - {static} initialized : bool
-    - {static} bus2        : I2CBus
+    - initialized : bool
+    - bus2        : I2CBus
 
     ' ── Singleton (no instanciable) ─────────
     - I2CManager() = delete
@@ -171,14 +171,14 @@ class I2CManager << Manager >> {
 ' ──────────────────────────────────────────────
 class UARTManager << Manager >> {
     ' ── API estática ────────────────────────
-    + {static} getUart1() : UARTBus&
-    + {static} initializeAll() : bool
-    + {static} isInitialized() : bool
-    + {static} reset() : bool
+    + getUart1() : UARTBus&
+    + initializeAll() : bool
+    + isInitialized() : bool
+    + reset() : bool
 
     ' ── Privados estáticos ──────────────────
-    - {static} initialized : bool
-    - {static} uart1       : UARTBus
+    - initialized : bool
+    - uart1       : UARTBus
 
     ' ── Singleton (no instanciable) ─────────
     - UARTManager() = delete
