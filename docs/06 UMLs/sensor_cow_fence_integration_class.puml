@@ -1,0 +1,90 @@
+@startuml sensor_cow_fence_integration_class
+
+skinparam backgroundColor #FCFCF8
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam defaultTextAlignment center
+skinparam ArrowColor #4A4A4A
+skinparam ArrowThickness 1
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 85
+skinparam ranksep 85
+skinparam dpi 150
+skinparam RoundCorner 10
+top to bottom direction
+
+skinparam package {
+    BackgroundColor transparent
+    BorderColor #CFCFCF
+    FontColor #5A5A5A
+}
+
+skinparam folder {
+    BackgroundColor #FFFDF7
+    BorderColor #6E6E6E
+    FontColor #202020
+}
+
+skinparam note {
+    BackgroundColor #FFF7CC
+    BorderColor #C7B36A
+    FontColor #2B2B2B
+}
+
+package "Logica" {
+    folder "FSM / Logica" as FSM #F3F0FF
+}
+
+package "                           Sensores\n\n" {
+    together {
+        folder "INA\n(INA226 x3)" as INA #FFF0D9
+        folder "IMU\n(LSM6DSO)" as IMU #EEF6FF
+        folder "GPS\n(SAM-M10Q)" as GPS #EEF6FF
+    }
+}
+
+package "Modelo" {
+    folder "COW" as COW #F2FAEA
+    folder "FENCE" as FENCE #F2FAEA
+}
+
+package "      Buses\n\n" {
+    together {
+        folder "I2C\n(bus I2C2)" as I2C #F6F2E8
+        folder "UART\n(bus USART1)" as UART #F6F2E8
+    }
+}
+
+INA -[hidden]right-> IMU
+IMU -[hidden]right-> GPS
+GPS -[hidden]right-> COW
+COW -[hidden]down-> FENCE
+I2C -[hidden]right-> UART
+FSM -[hidden]down-> IMU
+IMU -[hidden]down-> I2C
+
+GPS -up-> FSM : posicion
+IMU -right-> FSM : aceleracion
+FENCE -up-> FSM : limites
+FSM -left-> COW : actualiza datos
+
+GPS -down-> UART : datos
+GPS -left-> I2C : config
+IMU -down-> I2C : lecturas
+INA -down-> I2C : consumo
+
+note top of INA
+Monitorea consumo
+de GPS e IMU.
+end note
+
+note bottom of I2C
+Compartido por GPS, IMU e INA.
+end note
+
+note bottom of UART
+Usado por GPS para enviar datos.
+end note
+
+@enduml
